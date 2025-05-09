@@ -1,6 +1,6 @@
-# 🔐 SafeRoom_V2 — Farewell Zoom you did your best(That's not much I mean but couldn't expect more to monopoly)
-> “Fast, Zoom? Eh maybe.  
-> Secure? Get f**ck out here.”  
+# 🔐 SafeRoom_V2 — Farewell Zoom. You tried. (Not much, but monopolies rarely do.)
+> “Fast, Zoom? Eh, maybe.  
+> Secure? Please.”  
 > — SafeRoom_V2
 
 ---
