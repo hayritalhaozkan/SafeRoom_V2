@@ -1,0 +1,101 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.google.protobuf' version '0.9.4'
+}
+
+group = 'com.saferoom'
+version = '1.0'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    // JavaFX
+    implementation name: 'javafx.controls'
+    implementation name: 'javafx.fxml'
+    implementation name: 'javafx.graphics'
+    implementation name: 'javafx.base'
+    implementation name: 'javafx.swing'
+    implementation name: 'javafx.web'
+    implementation name: 'javafx.media'
+    implementation name: 'javafx-swt'
+
+    // gRPC ve Protobuf
+    implementation 'io.grpc:grpc-netty-shaded:1.58.0'
+    implementation 'io.grpc:grpc-protobuf:1.58.0'
+    implementation 'io.grpc:grpc-stub:1.58.0'
+    compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
+    implementation 'com.google.protobuf:protobuf-java:3.23.4'
+
+    // Mail & Network
+    implementation name: 'javax.mail'
+    implementation name: 'javax.activation-1.2.0'
+    implementation name: 'jstun-0.7.4'
+    implementation name: 'weupnp-0.1.4'
+    
+    // DB & Logging
+    implementation name: 'mysql-connector-j-9.2.0'
+    implementation name: 'slf4j-api-1.7.36'
+    implementation name: 'slf4j-simple-1.7.36'
+    
+    implementation 'com.jfoenix:jfoenix:9.0.10'   // Java 11+ sürümü
+    implementation 'org.openjfx:javafx-controls:21.0.1'
+    implementation 'com.jfoenix:jfoenix:9.0.10'
+    implementation 'com.jfoenix:jfoenix:9.0.10'  // Use the latest version
+    
+    
+}
+
+application {
+  mainClass = 'com.saferoom.gui.SafeRoomApp'
+}
+
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.23.4'
+    }
+    
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.58.0'
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                grpc {}
+            }
+        }
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += 'build/generated/source/proto/main/java'
+            srcDirs += 'build/generated/source/proto/main/grpc'
+            srcDirs += 'src/main/resources'
+            
+        }
+            resources {
+      srcDirs = ['src/main/resources']
+    }
+
+    }
+}
+
+run {
+    if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+        jvmArgs = [
+            '--module-path', 'libs/javafx-sdk-23.0.2/lib',
+            '--add-modules', 'javafx.controls,javafx.fxml,javafx.base,javafx.graphics,javafx.web,javafx.media'
+        ]
+    }
+}
