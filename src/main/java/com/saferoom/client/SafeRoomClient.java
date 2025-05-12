@@ -94,7 +94,7 @@ public class SafeRoomClient {
 	        System.out.println("✅ SafeRoomClient işlemi tamamlandı.");
 	    }
 	
-	public static void Join(String wtoJoin) {
+	public static void Join(String me ,String wtoJoin) {
 			try {
 				run("localhost", wtoJoin);
 			} catch (Exception e) {
@@ -106,6 +106,9 @@ public class SafeRoomClient {
 			KeyExchange.create_AES();
 			lock.notifyAll();
 		}
+
+		String client_ID =wtoJoin+me;
+
 		SecretKey SecretKey_AES = KeyExchange.AES_Key;
 		
 		String wtoJoinAddress =targetInfo.getIp()+":"+targetInfo.getPort();
@@ -115,20 +118,42 @@ public class SafeRoomClient {
 				.build();
 		
 		UDPHoleGrpc.UDPHoleBlockingStub stub = UDPHoleGrpc.newBlockingStub(channel);
+
+		while(stub.pubKey.equals(null)){
+			Thread.sleep(150);
+		}
+
+		String encryptedKey = CryptoUtils.encrypt_AESkey( SecretKey_AES, pubKey);
 		
-		
-		
-		
+		SafeRoomProto.EncryptedAESKeyMessage encrypted_key = SafeRoomProto.EncryptedAESKeyMessage.newBuilder()
+																								 .setClientId(client_ID)
+																								 .setEncryptedKey(encryptedKey)
+																								 .build();
+		Status status = stub.sendEncryptedAESKey(encrypted_key);
+		 
+	 	       if(status.getCode().equals(0)){
+				System.out.println("Encrypted AES Key(128-bit) successfully sended");
+			   } 
+			   else{
+				System.err.out("ERROR HAS BEEN ACCOUR WHILE KEY SENDİNG[ERROR]");
+			   }
+			SessionInfo thisSession = new SessionInfo(wtoWait, me, SecretKey_AES, stub.getBase64Key);
+			sessions.put(client_ID, thisSession);
+
 		
 	}
 	
-	public static void NewMeeting(String wtoWait) {
+	public static void NewMeeting(String me, String wtoWait) {
 		synchronized(lock) {
 		KeyExchange.init();
 		lock.notifyAll();
 		}
+
+		String client_ID = me+wtoWait;
+
 		PublicKey Public_Key = KeyExchange.publicKey;
 		PrivateKey Private_Key = KeyExchange.privateKey;
+
 		
 		String wtoClientAddress =targetInfo.getIp()+":"+targetInfo.getPort();
 
@@ -140,8 +165,22 @@ public class SafeRoomClient {
 		UDPHoleGrpc.UDPHoleBlockingStub stub = UDPHoleGrpc.newBlockingStub(channel);
 		
 		String EncodedPublicKey = Base64.getEncoder().encodeToString(Public_Key.toString().getBytes(StandardCharsets.UTF_8));
-		
-		
+
+		UDPHoleImpl.SendPublicKeyRequest request = UDPHoleImpl.SendPublicKeyRequest.newBuilder()
+																			.setBase64Key(EncodedPublicKey)
+																			.setUsername(me)
+																			.build();
+
+		Status response = stub.SendPublicKeyRequest(request);
+
+			if(response.getCode().equals(0)){
+				System.out.println("Public Key was sent");
+			}
+			else{
+				Syste.err.out("Error has been accour[ERROR]");
+			}
+			SessionInfo thisSession = new SessionInfo(me, wtoWait, stub.getAesKey, EncodedPublicKey);
+			sessions.put(client_ID, thisSession);
 
 		
 	}

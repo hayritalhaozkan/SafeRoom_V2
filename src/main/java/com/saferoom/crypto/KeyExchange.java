@@ -38,6 +38,7 @@ import com.saferoom.server.*;
 
 public class KeyExchange {
 	
+	  public static KeyPair keypair;
 	  public static PublicKey publicKey;
 	  public static PrivateKey privateKey;
 	  public static SecretKey AES_Key;
@@ -45,6 +46,7 @@ public class KeyExchange {
 	    public static void init() {
 	        try {
 	            KeyPair keyPair = CryptoUtils.generatorRSAkeyPair();
+				keypair = keyPair;
 	            publicKey = keyPair.getPublic();
 	            privateKey = keyPair.getPrivate();
 	            System.out.println("[KEYSTORE] RSA KeyPair oluşturuldu.");

@@ -255,24 +255,24 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	    responseObserver.onCompleted();
 	}
 	
-	/*@Override
-	public void sendPublicKey(SafeRoomProto.ToWho targ, StreamObserver<Status> responseObserver) {
-		
-		String rsa_key = targ.getTarg();
-	
-	    Status.Builder response = Status.newBuilder();
-	    
-	    if (response.getCode() == 1) {
-	        response.setMessage("Mesaj başarıyla iletildi.").setCode(0);
-	    } else {
-	        response.setMessage("Mesaj iletilemedi.").setCode(2);
-	    }
+	@Override
+	public static void sendPublicKey(SafeRoomProto.SendPublicKeyRequest request, StreamObserver<Status> response){
+			String pubKey = request.getBase64Key();
+			Status status = Status.newBuilder();
+			if(pubKey.equals(!null)){
+					status.setMessage("Public Key Successfully sent to client")
+						  .setCode(0);
+			}
+			else{
+					status.setMessage("Request taken as a null[ERROR] ")
+						  .setCode(2);
 
-	    responseObserver.onNext(response.build());
-	    responseObserver.onCompleted();		
-		
-	}*/
-	
+			}
+			status.build();
+			response.onNext(status);
+			response.onCompleted();	
+
+	}
 	
 
 
