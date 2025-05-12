@@ -1,4 +1,4 @@
-package com.saferoom.server;
+package com.saferoom.client;
 
 import java.net.*;
 

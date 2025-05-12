@@ -2,11 +2,16 @@ package com.saferoom.client;
 
 import com.saferoom.crypto.CryptoUtils;
 import com.saferoom.grpc.*;
+import com.saferoom.sessions.SessionInfo;
+import com.saferoom.sessions.SessionManager;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
+import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Scanner;
 
@@ -23,25 +28,34 @@ public class DecryptedMessageHandler {
         System.out.print("🔐 Şifreli (Base64) mesajı girin: ");
         String base64Payload = scanner.nextLine();
 
-        // gRPC bağlantısı
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
-                .usePlaintext()
-                .build();
+        // AES anahtarını al
+        SessionInfo session = SessionManager.get(senderUsername);
+        if (session == null || session.getAesKey() == null) {
+            System.out.println("🚨 AES key bulunamadı. Şifre çözüm yapılamıyor.");
+            return;
+        }
 
-        UDPHoleGrpc.UDPHoleBlockingStub client = UDPHoleGrpc.newBlockingStub(channel);
+        SecretKey aesKey = session.getAesKey();
 
-        // EncryptedPacket objesini oluştur
-        SafeRoomProto.EncryptedPacket packet = SafeRoomProto.EncryptedPacket.newBuilder()
-                .setSender(senderUsername)
-                .setReceiver(myUsername)
-                .setPayload(base64Payload)
-                .build();
+        String plaintext = "";
 
-        // gRPC ile Decryption isteği gönder
-        SafeRoomProto.DecryptedPacket plaintext = client.decryptedMessage(packet);
+        try {
+            byte[] decodedData = Base64.getDecoder().decode(base64Payload);
+            byte[] iv = new byte[16];
+            byte[] ciphertext = new byte[decodedData.length - 16];
 
-        System.out.println("✅ Çözülen mesaj: " + plaintext.getPlaintext());
+            System.arraycopy(decodedData, 0, iv, 0, 16);
+            System.arraycopy(decodedData, 16, ciphertext, 0, ciphertext.length);
 
-        channel.shutdown();
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, aesKey, new IvParameterSpec(iv));
+            byte[] decrypted = cipher.doFinal(ciphertext);
+
+            plaintext = new String(decrypted, StandardCharsets.UTF_8);
+
+            System.out.println("✅ Çözülen mesaj: " + plaintext);
+        } catch (Exception e) {
+            System.out.println("❌ Decryption failed: " + e.getMessage());
+        }
     }
 }

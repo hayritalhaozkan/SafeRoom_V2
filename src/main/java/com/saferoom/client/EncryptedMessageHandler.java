@@ -1,8 +1,9 @@
 package com.saferoom.client;
 
-import com.saferoom.crypto.CryptoSessionStore;
 import com.saferoom.crypto.CryptoUtils;
 import com.saferoom.grpc.*;
+import com.saferoom.sessions.SessionManager;
+import com.saferoom.sessions.SessionInfo;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -24,25 +25,27 @@ public class EncryptedMessageHandler {
         System.out.print("💬 Göndermek istediğiniz mesaj: ");
         String message = scanner.nextLine();
 
-        // gRPC bağlantısı
+        // AES anahtarını al
+        SessionInfo session = SessionManager.get(myUsername);  // ✅ Yeni yapı
+        if (session == null || session.getAesKey() == null) {
+            System.out.println("🚨 AES anahtarı bulunamadı. Önce register + key exchange yapmalısınız.");
+            return;
+        }
+
+        SecretKey aesKey = session.getAesKey();
+
+        // Mesajı AES ile şifrele
+        byte[] encryptedData = CryptoUtils.encrypte_data_with_AES(message, aesKey);
+        String base64Payload = Base64.getEncoder().encodeToString(encryptedData);
+
+        // gRPC kanalı oluştur
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
                 .usePlaintext()
                 .build();
 
         UDPHoleGrpc.UDPHoleBlockingStub client = UDPHoleGrpc.newBlockingStub(channel);
 
-        // AES anahtarını RAM'den al
-        SecretKey aesKey = CryptoSessionStore.get(myUsername);
-        if (aesKey == null) {
-            System.out.println("🚨 AES anahtarı RAM'de bulunamadı. Önce register olup key exchange yapmalısınız.");
-            return;
-        }
-
-        // AES ile şifrele
-        byte[] encryptedData = CryptoUtils.encrypte_data_with_AES(message, aesKey);
-        String base64Payload = Base64.getEncoder().encodeToString(encryptedData);
-
-        // gRPC mesajı gönder
+        // Paket oluştur ve gönder
         SafeRoomProto.EncryptedPacket packet = SafeRoomProto.EncryptedPacket.newBuilder()
                 .setSender(myUsername)
                 .setReceiver(targetUsername)

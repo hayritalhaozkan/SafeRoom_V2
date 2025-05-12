@@ -25,6 +25,11 @@ rpc SendEncryptedMessage(EncryptedPacket) returns (Status);
 
 rpc DecryptedMessage(EncryptedPacket) returns (DecryptedPacket);
 
+
+rpc SendPublicKey(SendPublicKeyRequest) returns (Status);
+
+
+
 }
 
 message Stun_Info{
@@ -55,6 +60,10 @@ message FromTo{
     string them = 2;
 }
 
+message SendPublicKeyRequest {
+  string base64_pubkey = 1;
+}
+
 message Status {
   string message = 1;
   int32 code = 2; // 0 = OK, 1 = NOT_FOUND, 2 = ERROR, vs.
@@ -62,6 +71,7 @@ message Status {
 
 message PublicKeyMessage {
   string base64_key = 1;
+  string username = 2;
 }
 
 message Empty {}

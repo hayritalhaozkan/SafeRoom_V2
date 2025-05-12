@@ -25,83 +25,62 @@ import com.saferoom.grpc.SafeRoomProto.DecryptedPacket;
 import com.saferoom.grpc.SafeRoomProto.EncryptedAESKeyMessage;
 import com.saferoom.grpc.SafeRoomProto.EncryptedPacket;
 
+import com.saferoom.sessions.*;
+
 
 import io.grpc.stub.StreamObserver;
 
 public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
-
-	private static final Map<String, SafeRoomProto.Stun_Info> peerMap = new ConcurrentHashMap<>();
-	private static final Map<String, SecretKey> sessionKeys = new ConcurrentHashMap<>();
-	private final Object lock = new Object();
-
+	
 	
 	@Override
-	public void registerClient(Stun_Info request, StreamObserver<Status> responseObserver){
-		
-		synchronized(lock) {
-		peerMap.put(request.getUsername(), request);
-		lock.notifyAll();
-		}
-		SafeRoomProto.Status response = SafeRoomProto.Status.newBuilder()
-				.setMessage("Client Registered")
-				.setCode(0)
-				.build();
-		
-		responseObserver.onNext(response);
-		responseObserver.onCompleted();
-			
+	public void registerClient(Stun_Info request, StreamObserver<Status> responseObserver) {
+	    SessionManager.registerPeer(request.getUsername(), request); // ✅ Yeni yapı
+
+	    Status response = Status.newBuilder()
+	        .setMessage("Client Registered")
+	        .setCode(0)
+	        .build();
+
+	    responseObserver.onNext(response);
+	    responseObserver.onCompleted();
 	}
 
 	@Override
 	public void getStunInfo(Request_Client request, StreamObserver<Stun_Info> responseObserver) {
-		
-		synchronized(lock) {
-			while(!peerMap.containsKey(request.getUsername())){
-				try {
-					lock.wait(500);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		SafeRoomProto.Stun_Info peerInfo = peerMap.get(request.getUsername());
-		
-		if(peerInfo != null) {
-			responseObserver.onNext(peerInfo);
-		}
-		else {
-			responseObserver.onNext(SafeRoomProto.Stun_Info.newBuilder()
-					.setUsername(request.getUsername())
-					.setState(false)
-					.build());
-		}
-	    responseObserver.onCompleted();
-	    System.out.println("[OKEY]");
+	    String username = request.getUsername();
+	    Stun_Info peerInfo = SessionManager.getPeer(username); // ✅
 
+	    if (peerInfo != null) {
+	        responseObserver.onNext(peerInfo);
+	    } else {
+	        responseObserver.onNext(Stun_Info.newBuilder()
+	            .setUsername(username)
+	            .setState(false)
+	            .build());
+	    }
+
+	    responseObserver.onCompleted();
 	}
+
 
 	@Override
 	public void punchTest(FromTo request, StreamObserver<Status> responseObserver) {
-		// TODO Auto-generated method stub
-		  String me = request.getMe();
-		    String them = request.getThem();
+	    Stun_Info targetInfo = SessionManager.getPeer(request.getThem());
 
-		    SafeRoomProto.Stun_Info targetInfo = peerMap.get(them);
+	    Status.Builder responseBuilder = Status.newBuilder();
+	    if (targetInfo != null) {
+	        responseBuilder.setMessage("Target peer found. Ready to punch.");
+	        responseBuilder.setCode(0);
+	    } else {
+	        responseBuilder.setMessage("Target peer not found.");
+	        responseBuilder.setCode(1);
+	    }
 
-		    SafeRoomProto.Status.Builder responseBuilder = SafeRoomProto.Status.newBuilder();
-
-		    if (targetInfo != null) {
-		        responseBuilder.setMessage("Target peer found. Ready to punch.");
-		        responseBuilder.setCode(0); // OK
-		    } else {
-		        responseBuilder.setMessage("Target peer not found.");
-		        responseBuilder.setCode(1); // NOT_FOUND
-		    }
-
-		    responseObserver.onNext(responseBuilder.build());
-		    responseObserver.onCompleted();
+	    responseObserver.onNext(responseBuilder.build());
+	    responseObserver.onCompleted();
 	}
+
 	
 	@Override
 	public void handShake(SafeRoomProto.HandshakeConfirm request, StreamObserver<SafeRoomProto.Status> responseObserver) {
@@ -124,57 +103,55 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 
 
 	@Override
-	public void heartBeat(SafeRoomProto.Stun_Info request, StreamObserver<SafeRoomProto.Status> responseObserver) {
+	public void heartBeat(Stun_Info request, StreamObserver<Status> responseObserver) {
 	    String username = request.getUsername();
 
-	    if (peerMap.containsKey(username)) {
-	        // İsteğe bağlı: burada istenirse lastSeen gibi bir yapı tutulabilir
+	    Status status;
+	    if (SessionManager.hasPeer(username)) {
 	        System.out.println("[HEARTBEAT] Aktif: " + username);
-
-	        SafeRoomProto.Status status = SafeRoomProto.Status.newBuilder()
-	            .setMessage("Peer is active.")
-	            .setCode(0)
-	            .build();
-	        responseObserver.onNext(status);
+	        status = Status.newBuilder()
+	                .setMessage("Peer is active.")
+	                .setCode(0)
+	                .build();
 	    } else {
 	        System.out.println("[HEARTBEAT] Peer not found: " + username);
-
-	        SafeRoomProto.Status status = SafeRoomProto.Status.newBuilder()
-	            .setMessage("Peer not found.")
-	            .setCode(1)
-	            .build();
-	        responseObserver.onNext(status);
+	        status = Status.newBuilder()
+	                .setMessage("Peer not found.")
+	                .setCode(1)
+	                .build();
 	    }
 
+	    responseObserver.onNext(status);
 	    responseObserver.onCompleted();
 	}
+
 
 
 	@Override
-	public void finish(SafeRoomProto.Request_Client request, StreamObserver<SafeRoomProto.Status> responseObserver) {
+	public void finish(Request_Client request, StreamObserver<Status> responseObserver) {
 	    String username = request.getUsername();
-	    SafeRoomProto.Stun_Info removed = peerMap.remove(username);
+	    Stun_Info removed = SessionManager.getPeer(username);
+	    SessionManager.removePeer(username);
 
+	    Status status;
 	    if (removed != null) {
 	        System.out.println("[FINISH] Peer removed: " + username);
-
-	        SafeRoomProto.Status status = SafeRoomProto.Status.newBuilder()
-	            .setMessage("Peer successfully removed.")
-	            .setCode(0)
-	            .build();
-	        responseObserver.onNext(status);
+	        status = Status.newBuilder()
+	                .setMessage("Peer successfully removed.")
+	                .setCode(0)
+	                .build();
 	    } else {
 	        System.out.println("[FINISH] Peer not found for removal: " + username);
-
-	        SafeRoomProto.Status status = SafeRoomProto.Status.newBuilder()
-	            .setMessage("Peer not found.")
-	            .setCode(1)
-	            .build();
-	        responseObserver.onNext(status);
+	        status = Status.newBuilder()
+	                .setMessage("Peer not found.")
+	                .setCode(1)
+	                .build();
 	    }
 
+	    responseObserver.onNext(status);
 	    responseObserver.onCompleted();
 	}
+
 	@Override
 	public void getServerPublicKey(SafeRoomProto.Empty request, StreamObserver<SafeRoomProto.PublicKeyMessage> responseObserver) {
 	    byte[] rsa_pub = KeyExchange.publicKey.getEncoded();
@@ -189,112 +166,114 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	}
 	
 
-@Override
-public void sendEncryptedAESKey(SafeRoomProto.EncryptedAESKeyMessage request, StreamObserver<SafeRoomProto.Status> responseObserver) {
-    try {
-        String encryptedBase64 = request.getEncryptedKey();
+	@Override
+	public void sendEncryptedAESKey(EncryptedAESKeyMessage request, StreamObserver<Status> responseObserver) {
+	    try {
+	        SecretKey aesKey = CryptoUtils.decrypt_AESkey(request.getEncryptedKey(), KeyExchange.privateKey);
+	        String clientId = request.getClientId();
 
-        // Decode base64 → byte[]
-        byte[] encryptedBytes = Base64.getDecoder().decode(encryptedBase64);
+	        SessionInfo session = SessionManager.get(clientId);
+	        if (session != null) {
+	            session.setAesKey(aesKey);
+	        }
 
-        // RSA ile çöz (RSA Private Key: sadece server bilir)
-        SecretKey aesKey = CryptoUtils.decrypt_AESkey(encryptedBase64, KeyExchange.privateKey);
+	        Status status = Status.newBuilder()
+	            .setMessage("AES key başarıyla çözüldü.")
+	            .setCode(0)
+	            .build();
 
-        // (Opsiyonel) AES key’i RAM’e koy: client_id kullanabilirdik ama elimizde yok
-         sessionKeys.put("client_username", aesKey); 
+	        responseObserver.onNext(status);
+	        responseObserver.onCompleted();
+	    } catch (Exception e) {
+	        Status status = Status.newBuilder()
+	            .setMessage("AES çözümleme başarısız: " + e.getMessage())
+	            .setCode(2)
+	            .build();
 
-        // Başarılı cevap
-        sessionKeys.put(request.getClientId(), aesKey);
-
-        SafeRoomProto.Status status = SafeRoomProto.Status.newBuilder()
-                .setMessage("AES key başarıyla çözüldü.")
-                .setCode(0)
-                .build();
-
-        responseObserver.onNext(status);
-        responseObserver.onCompleted();
-
-    } catch (Exception e) {
-        SafeRoomProto.Status status = SafeRoomProto.Status.newBuilder()
-                .setMessage("AES çözümleme başarısız: " + e.getMessage())
-                .setCode(2)
-                .build();
-
-        responseObserver.onNext(status);
-        responseObserver.onCompleted();
-    }
-}
-
-@Override
-public void sendEncryptedMessage(SafeRoomProto.EncryptedPacket request, StreamObserver<SafeRoomProto.Status> responseObserver) {
-    String from = request.getSender();
-    String to = request.getReceiver();
-    String base64EncryptedData = request.getPayload();
-
-    System.out.println("📩 Mesaj alındı: " + from + " → " + to);
-
-    // 🔁 Yönlendirici nesnesini oluştur (RAM içindeki eşleştirmeyi kullanır)
-    MessageForwarder forwarder = new MessageForwarder(peerMap);
-    boolean success = forwarder.forwardToPeer(request);
-
-    // 🔄 Geri bildirim mesajı
-    SafeRoomProto.Status.Builder response = SafeRoomProto.Status.newBuilder();
-    if (success) {
-        response.setMessage("Mesaj başarıyla iletildi.")
-                .setCode(0);
-    } else {
-        response.setMessage("Mesaj iletilemedi (alıcı RAM'de yok ya da UDP hatası).")
-                .setCode(2);
-    }
-
-    responseObserver.onNext(response.build());
-    responseObserver.onCompleted();
-}
+	        responseObserver.onNext(status);
+	        responseObserver.onCompleted();
+	    }
+	}
 
 
-@Override
-public void decryptedMessage(SafeRoomProto.EncryptedPacket request, StreamObserver<DecryptedPacket> responseObserver){
-	String sender = request.getSender();
-	String to_who = request.getReceiver();
-    String base64EncryptedData = request.getPayload(); 
-   
-    SecretKey aes_key = sessionKeys.get(sender);
-    
-    String plaintext = "";
-    
-try {
- // decode edilmiş Base64 veriyi çöz
-    byte[] decoded_data = Base64.getDecoder().decode(base64EncryptedData);
-    byte[] iv_part = new byte[16];
-    byte[] raw_data = new byte[decoded_data.length - 16];
+	@Override
+	public void sendEncryptedMessage(EncryptedPacket request, StreamObserver<Status> responseObserver) {
+	    String from = request.getSender();
+	    String to = request.getReceiver();
 
-    // IV ve veri ayrımı
-    System.arraycopy(decoded_data, 0, iv_part, 0, 16);
-    System.arraycopy(decoded_data, 16, raw_data, 0, raw_data.length);
+	    MessageForwarder forwarder = new MessageForwarder(SessionManager.getAllPeers()); // ✅ yeni utility metot
+	    boolean success = forwarder.forwardToPeer(request);
 
-    
-    IvParameterSpec iv = new IvParameterSpec(iv_part);
-    
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    cipher.init(Cipher.DECRYPT_MODE, aes_key, iv);
-    byte[] decrypted_data = cipher.doFinal(raw_data);
-   
-    plaintext = new String(decrypted_data, StandardCharsets.UTF_8);
-}
-catch(Exception e ) {
-	System.err.println("ERROR: " + e.getMessage());
-}
-    DecryptedPacket response = SafeRoomProto.DecryptedPacket.newBuilder()
-			.setSendedBy(sender)
-			.setRecvedBy(to_who)
-			.setPlaintext(plaintext)
-			.build();
-    
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
+	    Status.Builder response = Status.newBuilder();
+	    if (success) {
+	        response.setMessage("Mesaj başarıyla iletildi.").setCode(0);
+	    } else {
+	        response.setMessage("Mesaj iletilemedi.").setCode(2);
+	    }
+
+	    responseObserver.onNext(response.build());
+	    responseObserver.onCompleted();
+	}
 
 
+	@Override
+	public void decryptedMessage(EncryptedPacket request, StreamObserver<DecryptedPacket> responseObserver) {
+	    String sender = request.getSender();
+	    String to = request.getReceiver();
+	    String base64EncryptedData = request.getPayload();
 
-}
+	    SessionInfo session = SessionManager.get(sender); // ✅
+	    SecretKey aesKey = session != null ? session.getAesKey() : null;
+
+	    String plaintext = "";
+	    try {
+	        if (aesKey == null) throw new RuntimeException("AES key not found for sender");
+
+	        byte[] decodedData = Base64.getDecoder().decode(base64EncryptedData);
+	        byte[] iv = new byte[16];
+	        byte[] ciphertext = new byte[decodedData.length - 16];
+
+	        System.arraycopy(decodedData, 0, iv, 0, 16);
+	        System.arraycopy(decodedData, 16, ciphertext, 0, ciphertext.length);
+
+	        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+	        cipher.init(Cipher.DECRYPT_MODE, aesKey, new IvParameterSpec(iv));
+	        byte[] decrypted = cipher.doFinal(ciphertext);
+
+	        plaintext = new String(decrypted, StandardCharsets.UTF_8);
+	    } catch (Exception e) {
+	        System.err.println("Decryption error: " + e.getMessage());
+	    }
+
+	    DecryptedPacket response = DecryptedPacket.newBuilder()
+	        .setSendedBy(sender)
+	        .setRecvedBy(to)
+	        .setPlaintext(plaintext)
+	        .build();
+
+	    responseObserver.onNext(response);
+	    responseObserver.onCompleted();
+	}
+	
+	/*@Override
+	public void sendPublicKey(SafeRoomProto.ToWho targ, StreamObserver<Status> responseObserver) {
+		
+		String rsa_key = targ.getTarg();
+	
+	    Status.Builder response = Status.newBuilder();
+	    
+	    if (response.getCode() == 1) {
+	        response.setMessage("Mesaj başarıyla iletildi.").setCode(0);
+	    } else {
+	        response.setMessage("Mesaj iletilemedi.").setCode(2);
+	    }
+
+	    responseObserver.onNext(response.build());
+	    responseObserver.onCompleted();		
+		
+	}*/
+	
+	
+
 
 }
