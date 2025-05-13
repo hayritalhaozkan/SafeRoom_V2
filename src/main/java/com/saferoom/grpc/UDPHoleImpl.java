@@ -17,8 +17,10 @@ import com.saferoom.crypto.CryptoUtils;
 import com.saferoom.crypto.KeyExchange;
 import com.saferoom.grpc.SafeRoomProto.FromTo;
 import com.saferoom.grpc.SafeRoomProto.HandshakeConfirm;
+import com.saferoom.grpc.SafeRoomProto.PublicKeyMessage;
 import com.saferoom.grpc.SafeRoomProto.Request_Client;
 import com.saferoom.grpc.SafeRoomProto.Status;
+import com.saferoom.grpc.SafeRoomProto.Status.Builder;
 import com.saferoom.grpc.SafeRoomProto.Stun_Info;
 import com.saferoom.server.MessageForwarder;
 import com.saferoom.grpc.SafeRoomProto.DecryptedPacket;
@@ -255,11 +257,17 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	    responseObserver.onCompleted();
 	}
 	
+	private static final Map<String, String> PublicKeyManager = new ConcurrentHashMap<>();
+	
 	@Override
-	public static void sendPublicKey(SafeRoomProto.SendPublicKeyRequest request, StreamObserver<Status> response){
-			String pubKey = request.getBase64Key();
-			Status status = Status.newBuilder();
-			if(pubKey.equals(!null)){
+	public  void sendPublicKey(SafeRoomProto.SendPublicKeyRequest request, StreamObserver<Status> response){
+			
+			String pubKey = request.getBase64Pubkey();
+			String Session_ID = request.getSessionID();
+			PublicKeyManager.put(Session_ID, pubKey);
+			
+			Builder status = Status.newBuilder();
+			if(pubKey != null && !pubKey.isEmpty()){
 					status.setMessage("Public Key Successfully sent to client")
 						  .setCode(0);
 			}
@@ -268,10 +276,29 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 						  .setCode(2);
 
 			}
-			status.build();
-			response.onNext(status);
+			response.onNext(status.build());
 			response.onCompleted();	
 
+	}
+	
+	@Override
+	public void getPublicKey(SafeRoomProto.RequestByClient_ID request, StreamObserver<SafeRoomProto.PublicKeyMessage> response) {
+		String session_ID = request.getClientId();
+		
+		if(PublicKeyManager.containsKey(session_ID)) {
+		String raw_publickey = PublicKeyManager.get(session_ID);
+		
+		SafeRoomProto.PublicKeyMessage Public_Key = SafeRoomProto.PublicKeyMessage.newBuilder()
+												.setBase64Key(raw_publickey)
+												.setUsername(session_ID)
+												.build();
+		response.onNext(Public_Key);
+		response.onCompleted();
+		}
+		else {
+			System.out.println("Public Key Manager not contain your key");
+			response.onCompleted();
+		}
 	}
 	
 
