@@ -14,38 +14,38 @@ public class SessionManager {
     private static final Map<String, Stun_Info> peerMap = new ConcurrentHashMap<>();
 
 
-    public static void register(String clientA, String clientB, SecretKey aesKey, KeyPair rsaKeyPair) {
-        SessionInfo session = new SessionInfo(clientA, clientB, aesKey, rsaKeyPair);
-        sessions.put(clientA, session);
+    public static void register(String Session_ID, String clientA, String clientB) {
+        SessionInfo session = new SessionInfo(Session_ID,clientA, clientB);
+        sessions.put(Session_ID, session);
     }
 
-    public static SessionInfo get(String clientA) {
-        return sessions.get(clientA);
+    public static SessionInfo get(String Session_ID) {
+        return sessions.get(Session_ID);
     }
 
-    public static boolean has(String clientA) {
-        return sessions.containsKey(clientA);
+    public static boolean has(String Session_ID) {
+        return sessions.containsKey(Session_ID);
     }
 
-    public static void remove(String clientA) {
-        sessions.remove(clientA);
+    public static void remove(String Session_ID) {
+        sessions.remove(Session_ID);
     }
 
-    public static void setHandshakeDone(String clientA, boolean status) {
-        if (sessions.containsKey(clientA)) {
-            sessions.get(clientA).setHandshakeDone(status);
+    public static void setHandshakeDone(String Session_ID, boolean status) {
+        if (sessions.containsKey(Session_ID)) {
+            sessions.get(Session_ID).setHandshakeDone(status);
         }
     }
 
-    public static void updateAESKey(String clientA, SecretKey key) {
-        if (sessions.containsKey(clientA)) {
-            sessions.get(clientA).setAesKey(key);
+    public static void updateAESKey(String Session_ID, SecretKey key) {
+        if (sessions.containsKey(Session_ID)) {
+            sessions.get(Session_ID).setAesKey(key);
         }
     }
 
-    public static void updateRSAKey(String clientA, KeyPair keyPair) {
-        if (sessions.containsKey(clientA)) {
-            sessions.get(clientA).setRsaKeyPair(keyPair);
+    public static void updateRSAKey(String Session_ID, String keyPair) {
+        if (sessions.containsKey(Session_ID)) {
+            sessions.get(Session_ID).setRsaKeyPair(keyPair);
         }
     }
     

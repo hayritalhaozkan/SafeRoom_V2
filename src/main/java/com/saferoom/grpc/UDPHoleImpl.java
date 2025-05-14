@@ -175,6 +175,8 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	        String clientId = request.getClientId();
 
 	        SessionInfo session = SessionManager.get(clientId);
+	        SessionManager.updateAESKey(clientId, aesKey);
+	        
 	        if (session != null) {
 	            session.setAesKey(aesKey);
 	        }
@@ -264,7 +266,16 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 			
 			String pubKey = request.getBase64Pubkey();
 			String Session_ID = request.getSessionID();
+			String Starter = request.getStarter();
+			String Joiner = request.getJoiner();
+			
+			SessionManager.register(Session_ID, Starter, Joiner);
+			SessionManager.updateRSAKey(Session_ID, pubKey);
+			
 			PublicKeyManager.put(Session_ID, pubKey);
+			
+			
+			
 			
 			Builder status = Status.newBuilder();
 			if(pubKey != null && !pubKey.isEmpty()){

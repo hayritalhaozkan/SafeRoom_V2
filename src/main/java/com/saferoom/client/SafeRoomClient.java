@@ -16,9 +16,12 @@ import com.saferoom.sessions.SessionInfo;
 
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+
 import java.security.PrivateKey;
 import java.security.PublicKey;
+
+import java.security.KeyFactory;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
@@ -99,7 +102,7 @@ public class SafeRoomClient {
 	        System.out.println("✅ SafeRoomClient işlemi tamamlandı.");
 	    }
 	
-	public static void Join(String me ,String wtoJoin) {
+	public static void Join(String me ,String wtoJoin) throws Exception {
 			try {
 				run("localhost", wtoJoin);
 			} catch (Exception e) {
@@ -129,6 +132,27 @@ public class SafeRoomClient {
 															.build();
 		
 		SafeRoomProto.PublicKeyMessage public_Key = stub.getPublicKey(req);
+		byte[] RSAPublicByte = Base64.getDecoder().decode(public_Key.getBase64Key());
+		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(RSAPublicByte);
+		KeyFactory kf = KeyFactory.getInstance("RSA");
+		PublicKey ReturnedPublicKey = kf.generatePublic(keySpec);
+		
+		String EncryptedAESKey = CryptoUtils.encrypt_AESkey(SecretKey_AES, ReturnedPublicKey);
+		SafeRoomProto.EncryptedAESKeyMessage EncryptedProtoBuf = SafeRoomProto.EncryptedAESKeyMessage.newBuilder()
+																					.setClientId(client_ID)
+																					.setEncryptedKey(EncryptedAESKey)
+																					.build();
+		SafeRoomProto.Status stats = stub.sendEncryptedAESKey(EncryptedProtoBuf);
+			if(stats != null && stats.equals(0)) {
+				System.out.println("Encrypted Key Successfully been sended");
+				
+			}
+			else {
+				System.err.println("There has been a empty routing");
+			}
+			
+			
+		
 		
 		
 
@@ -171,6 +195,10 @@ public class SafeRoomClient {
 			else{
 				System.err.println("Error has been accour[ERROR]");
 			}
+			
+			
+			
+			
 			
 			
 

@@ -9,19 +9,18 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionInfo {
-
+	private final String Session_ID;
     private final String clientA;
     private final String clientB;
     private SecretKey aesKey;
-    private KeyPair rsaKeyPair;
+    private String rsaKeyPair;
     private long timestamp;
     private boolean handshakeDone;
 
-    public SessionInfo(String clientA, String clientB, SecretKey aesKey, KeyPair rsaKeyPair) {
+    public SessionInfo(String Session_ID,String clientA, String clientB) {
+    	this.Session_ID = Session_ID;
         this.clientA = clientA;
         this.clientB = clientB;
-        this.aesKey = aesKey;
-        this.rsaKeyPair = rsaKeyPair;
         this.timestamp = System.currentTimeMillis();
         this.handshakeDone = false;
     }
@@ -42,12 +41,12 @@ public class SessionInfo {
         this.aesKey = aesKey;
     }
 
-    public KeyPair getRsaKeyPair() {
+    public String getRsaKeyPair() {
         return rsaKeyPair;
     }
 
-    public void setRsaKeyPair(KeyPair rsaKeyPair) {
-        this.rsaKeyPair = rsaKeyPair;
+    public void setRsaKeyPair(String keyPair) {
+        this.rsaKeyPair = keyPair;
     }
 
     public long getTimestamp() {
