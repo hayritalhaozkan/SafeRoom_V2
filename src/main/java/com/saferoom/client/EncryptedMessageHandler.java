@@ -12,8 +12,9 @@ import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Scanner;
 
-public class EncryptedMessageHandler {
-    public static void main(String[] args) throws Exception {
+public class EncryptedMessageHandler implements Runnable {
+	@Override
+    public  void run() {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("👤 Kullanıcı adınızı girin: ");
@@ -33,7 +34,7 @@ public class EncryptedMessageHandler {
         }
 
         SecretKey aesKey = session.getAesKey();
-
+try {
         // Mesajı AES ile şifrele
         byte[] encryptedData = CryptoUtils.encrypte_data_with_AES(message, aesKey);
         String base64Payload = Base64.getEncoder().encodeToString(encryptedData);
@@ -56,5 +57,9 @@ public class EncryptedMessageHandler {
         System.out.println("📤 Mesaj sonucu: " + response.getMessage());
 
         channel.shutdown();
+}
+catch(Exception e) {
+	System.out.println("Exception: " + e);
+}
     }
 }

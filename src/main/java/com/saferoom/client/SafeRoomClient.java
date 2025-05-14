@@ -7,6 +7,8 @@ import com.saferoom.grpc.SafeRoomProto.PublicKeyMessage;
 import com.saferoom.grpc.SafeRoomProto.Request_Client;
 import com.saferoom.grpc.SafeRoomProto.SendPublicKeyRequest;
 import com.saferoom.grpc.SafeRoomProto.Status;
+import com.saferoom.client.EncryptedMessageHandler;
+import com.saferoom.client.DecryptedMessageHandler;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -24,6 +26,9 @@ import java.security.PublicKey;
 import java.security.KeyFactory;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -39,6 +44,8 @@ public class SafeRoomClient {
 	public static SafeRoomProto.Status hsResult;
 	public static Status rsaResult;
 	public static Object lock = new Object();
+	
+	public static ExecutorService threadPool = Executors.newFixedThreadPool(5);
 	
 	 public static void run(String myUsername, String targetUsername) throws Exception{
 
@@ -103,6 +110,11 @@ public class SafeRoomClient {
 	        System.out.println("✅ SafeRoomClient işlemi tamamlandı.");
 	    }
 	
+	private ThreadPoolExecutor newFixedPool(int i) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public static void Join(String me ,String wtoJoin) throws Exception {
 			try {
 				run("localhost", wtoJoin);
@@ -158,11 +170,8 @@ public class SafeRoomClient {
 	
 			}
 			
-				
-			
-			
-		
-		
+		threadPool.execute(new EncryptedMessageHandler());
+		threadPool.execute(new DecryptedMessageHandler());
 		
 
 		
@@ -238,6 +247,9 @@ public class SafeRoomClient {
 				
 				
 			}
+			threadPool.execute(new EncryptedMessageHandler());
+			threadPool.execute(new DecryptedMessageHandler());
+			
 
 		
 	}

@@ -15,8 +15,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Scanner;
 
-public class DecryptedMessageHandler {
-    public static void main(String[] args) throws Exception {
+public class DecryptedMessageHandler implements Runnable{
+    
+	@Override
+	public void run(){
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("🧾 Kullanıcı adınızı girin (şifre çözülecek alıcı): ");
