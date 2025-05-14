@@ -21,12 +21,15 @@ rpc GetServerPublicKey(Empty) returns (PublicKeyMessage);
 
 rpc SendEncryptedAESKey(EncryptedAESKeyMessage) returns (Status);
 
+rpc GetEncryptedAESKey(RequestByClient_ID) returns (EncryptedAESKeyMessage);
+
 rpc SendEncryptedMessage(EncryptedPacket) returns (Status);
 
 rpc DecryptedMessage(EncryptedPacket) returns (DecryptedPacket);
 
-
 rpc SendPublicKey(SendPublicKeyRequest) returns (Status);
+
+rpc GetPublicKey(RequestByClient_ID) returns (PublicKeyMessage);
 
 
 
@@ -62,6 +65,9 @@ message FromTo{
 
 message SendPublicKeyRequest {
   string base64_pubkey = 1;
+  string session_ID = 2;
+  string starter = 3;
+  string joiner = 4;
 }
 
 message Status {
@@ -72,6 +78,10 @@ message Status {
 message PublicKeyMessage {
   string base64_key = 1;
   string username = 2;
+}
+
+message RequestByClient_ID {
+	string client_id = 1;
 }
 
 message Empty {}

@@ -312,6 +312,26 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 		}
 	}
 	
+	@Override
+	public void getEncryptedAESKey(SafeRoomProto.RequestByClient_ID request, StreamObserver<SafeRoomProto.EncryptedAESKeyMessage> response) {
+		String session_ID = request.getClientId();
+		
+		SessionInfo session = SessionManager.get(session_ID);
+	    if (session == null || session.getAesKey() == null) {
+	        response.onError(null);
+	        return;
+	    }
+
+		SecretKey aesKey = session.getAesKey();
+		String encodedAES = Base64.getEncoder().encodeToString(aesKey.getEncoded());
+		SafeRoomProto.EncryptedAESKeyMessage ReturnedAESKey = SafeRoomProto.EncryptedAESKeyMessage.newBuilder()
+																								  .setClientId(session_ID)
+																								  .setEncryptedKey(encodedAES)
+																								  .build();
+		response.onNext(ReturnedAESKey);
+		response.onCompleted();
+	}
+	
 
 
 }
