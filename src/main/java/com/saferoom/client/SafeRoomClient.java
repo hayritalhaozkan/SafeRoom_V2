@@ -26,6 +26,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class SafeRoomClient {
 	
@@ -145,11 +146,19 @@ public class SafeRoomClient {
 		SafeRoomProto.Status stats = stub.sendEncryptedAESKey(EncryptedProtoBuf);
 			if(stats != null && stats.equals(0)) {
 				System.out.println("Encrypted Key Successfully been sended");
+				SafeRoomProto.HandshakeConfirm HandShake = SafeRoomProto.HandshakeConfirm.newBuilder()
+																			.setClientId(me)
+																			.setTargetId(wtoJoinAddress)
+																			.setTimestamp(0)
+																			.build();
 				
 			}
 			else {
-				System.err.println("There has been a empty routing");
+				System.err.println("There has been a empty routing \n Handshake Failed");
+	
 			}
+			
+				
 			
 			
 		
@@ -159,7 +168,7 @@ public class SafeRoomClient {
 		
 	}
 	
-	public static void NewMeeting(String me, String wtoWait) {
+	public static void NewMeeting(String me, String wtoWait) throws Exception {
 		synchronized(lock) {
 		KeyExchange.init();
 		lock.notifyAll();
@@ -196,14 +205,39 @@ public class SafeRoomClient {
 				System.err.println("Error has been accour[ERROR]");
 			}
 			
+			SafeRoomProto.RequestByClient_ID pullbyID = SafeRoomProto.RequestByClient_ID.newBuilder()
+																						.setClientId(client_ID)
+																						.build();
 			
 			
+			SafeRoomProto.EncryptedAESKeyMessage returnedAESKey = stub.getEncryptedAESKey(pullbyID);
 			
+			if(returnedAESKey != null && !returnedAESKey.getEncryptedKey().isEmpty()) {
+				System.out.println("AES Key Has Been Taken");
+			}
+			else {
+				System.err.println("AES Exchange could not done");
+			}
+			String aes_key = returnedAESKey.getEncryptedKey();
 			
+			SecretKey DecryptedAESKey = CryptoUtils.decrypt_AESkey(aes_key, Private_Key);
 			
-			
-			
-
+			if(DecryptedAESKey != null) {
+				SafeRoomProto.HandshakeConfirm HandShake = SafeRoomProto.HandshakeConfirm.newBuilder()
+																		.setClientId(me)
+																		.setTargetId(wtoWait)
+																		.setTimestamp(0)
+																		.build();
+				SafeRoomProto.Status stats = stub.handShake(HandShake);
+				if(stats != null && stats.getCode() == 0) {
+					System.out.println("HandShake is done Communication can start righ now");
+				}
+				else { 
+					System.err.println("HandShake Failure");
+				}
+				
+				
+			}
 
 		
 	}
