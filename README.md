@@ -1,11 +1,11 @@
 # 🔐 SafeRoom_V2 — Farewell Zoom. You tried. (Not much, but monopolies rarely do.)
 > “Fast, Zoom? Eh, maybe.  
-> Secure? Please.”  
+> Secure? Nah, I'd Win.”  
 > — SafeRoom_V2
 
 ---
 
-## 🥊 Zoom vs. SafeRoom_V2
+##  Zoom vs. SafeRoom_V2
 
 | Feature / Claim            | Zoom                                                       | 🚀 SafeRoom_V2                                               |
 |---------------------------|-------------------------------------------------------------|--------------------------------------------------------------|
