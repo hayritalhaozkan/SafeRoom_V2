@@ -1,26 +1,18 @@
 package com.saferoom.db;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
+
 import java.util.Properties;
-import java.util.Vector;
 
 import com.saferoom.p2p.*;
 import com.saferoom.crypto.CryptoUtils;
 import com.saferoom.email.*;
 import com.saferoom.log.Logger;
-import com.saferoom.log.*;
 
 import java.sql.*;
 
-import de.javawi.jstun.test.DiscoveryInfo;
-import de.javawi.jstun.test.DiscoveryTest;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.PortUnreachableException;
+
 
 public class DBManager {
 	

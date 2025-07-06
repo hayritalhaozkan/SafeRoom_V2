@@ -37,7 +37,7 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	
 	@Override
 	public void registerClient(Stun_Info request, StreamObserver<Status> responseObserver) {
-	    SessionManager.registerPeer(request.getUsername(), request); // ✅ Yeni yapı
+	    SessionManager.registerPeer(request.getUsername(), request); 
 
 	    Status response = Status.newBuilder()
 	        .setMessage("Client Registered")
@@ -51,7 +51,7 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	@Override
 	public void getStunInfo(Request_Client request, StreamObserver<Stun_Info> responseObserver) {
 	    String username = request.getUsername();
-	    Stun_Info peerInfo = SessionManager.getPeer(username); // ✅
+	    Stun_Info peerInfo = SessionManager.getPeer(username); 
 
 	    if (peerInfo != null) {
 	        responseObserver.onNext(peerInfo);
@@ -205,7 +205,7 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	    String from = request.getSender();
 	    String to = request.getReceiver();
 
-	    MessageForwarder forwarder = new MessageForwarder(SessionManager.getAllPeers()); // ✅ yeni utility metot
+	    MessageForwarder forwarder = new MessageForwarder(SessionManager.getAllPeers()); 
 	    boolean success = forwarder.forwardToPeer(request);
 
 	    Status.Builder response = Status.newBuilder();
@@ -226,7 +226,7 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	    String to = request.getReceiver();
 	    String base64EncryptedData = request.getPayload();
 
-	    SessionInfo session = SessionManager.get(sender); // ✅
+	    SessionInfo session = SessionManager.get(sender); 
 	    SecretKey aesKey = session != null ? session.getAesKey() : null;
 
 	    String plaintext = "";
