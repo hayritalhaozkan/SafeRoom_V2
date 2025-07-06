@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'com.google.protobuf' version '0.9.4'
+    id 'org.openjfx.javafxplugin' version '0.0.14'
 }
 
 group = 'com.saferoom'
@@ -15,16 +16,19 @@ repositories {
     }
 }
 
+def javafxVersion = '21.0.1'
+
 dependencies {
-    // JavaFX
-    implementation name: 'javafx.controls'
-    implementation name: 'javafx.fxml'
-    implementation name: 'javafx.graphics'
-    implementation name: 'javafx.base'
-    implementation name: 'javafx.swing'
-    implementation name: 'javafx.web'
-    implementation name: 'javafx.media'
-    implementation name: 'javafx-swt'
+    // JavaFX (tamamı Maven üzerinden)
+    implementation "org.openjfx:javafx-controls:$javafxVersion"
+    implementation "org.openjfx:javafx-fxml:$javafxVersion"
+    implementation "org.openjfx:javafx-base:$javafxVersion"
+    implementation "org.openjfx:javafx-graphics:$javafxVersion"
+    implementation "org.openjfx:javafx-media:$javafxVersion"
+    implementation "org.openjfx:javafx-web:$javafxVersion"
+
+    // JFoenix (JavaFX UI)
+    implementation 'com.jfoenix:jfoenix:9.0.10'
 
     // gRPC ve Protobuf
     implementation 'io.grpc:grpc-netty-shaded:1.58.0'
@@ -38,30 +42,21 @@ dependencies {
     implementation name: 'javax.activation-1.2.0'
     implementation name: 'jstun-0.7.4'
     implementation name: 'weupnp-0.1.4'
-    
+
     // DB & Logging
     implementation name: 'mysql-connector-j-9.2.0'
     implementation name: 'slf4j-api-1.7.36'
     implementation name: 'slf4j-simple-1.7.36'
-    
-    implementation 'com.jfoenix:jfoenix:9.0.10'   // Java 11+ sürümü
-    implementation 'org.openjfx:javafx-controls:21.0.1'
-    implementation 'com.jfoenix:jfoenix:9.0.10'
-    implementation 'com.jfoenix:jfoenix:9.0.10'  // Use the latest version
-    
-    
 }
 
 application {
-  mainClass = 'com.saferoom.gui.SafeRoomApp'
+    mainClass = 'com.saferoom.gui.SafeRoomApp'
 }
-
 
 protobuf {
     protoc {
         artifact = 'com.google.protobuf:protoc:3.23.4'
     }
-    
     plugins {
         grpc {
             artifact = 'io.grpc:protoc-gen-grpc-java:1.58.0'
@@ -82,20 +77,15 @@ sourceSets {
             srcDirs += 'build/generated/source/proto/main/java'
             srcDirs += 'build/generated/source/proto/main/grpc'
             srcDirs += 'src/main/resources'
-            
         }
-            resources {
-      srcDirs = ['src/main/resources']
-    }
-
-    }
-}
-
-run {
-    if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
-        jvmArgs = [
-            '--module-path', 'libs/javafx-sdk-23.0.2/lib',
-            '--add-modules', 'javafx.controls,javafx.fxml,javafx.base,javafx.graphics,javafx.web,javafx.media'
-        ]
+        resources {
+            srcDirs = ['src/main/resources']
+        }
     }
 }
+
+javafx {
+    version = javafxVersion
+    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.graphics', 'javafx.base', 'javafx.media', 'javafx.web' ]
+}
+
