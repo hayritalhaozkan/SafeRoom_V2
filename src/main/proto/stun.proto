@@ -39,7 +39,7 @@ message Stun_Info{
   string username = 1;
   string ip = 2;
   int32 port = 3;
-  bool state = 4;
+  optional bool state = 4;
 }
 
 
@@ -72,7 +72,7 @@ message SendPublicKeyRequest {
 
 message Status {
   string message = 1;
-  int32 code = 2; // 0 = OK, 1 = NOT_FOUND, 2 = ERROR, vs.
+  optional int32 code = 2; // 0 = OK, 1 = NOT_FOUND, 2 = ERROR, vs.
 }
 
 message PublicKeyMessage {
