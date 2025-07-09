@@ -31,8 +31,6 @@ rpc SendPublicKey(SendPublicKeyRequest) returns (Status);
 
 rpc GetPublicKey(RequestByClient_ID) returns (PublicKeyMessage);
 
-
-
 }
 
 message Stun_Info{
