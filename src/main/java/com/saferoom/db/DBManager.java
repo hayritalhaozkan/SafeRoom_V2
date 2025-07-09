@@ -124,7 +124,18 @@ public class DBManager {
 	    }
 	}
 
-	
+	public static boolean check_email(String mail) throws SQLException{
+		String query = "SELECT COUNT(*) username FROM users WHERE email = (?)";
+		try(Connection conn = getConnection();
+				PreparedStatement stmt = conn.prepareStatement(query)){
+			stmt.setString(1, mail);
+			ResultSet rs = stmt.executeQuery();
+			if(rs.next()) {
+				return rs.getInt(1) > 0;
+			}
+			return false;
+		}
+	}
 	public static boolean userExists(String username) throws SQLException {
 		String query = "SELECT COUNT(*) FROM users WHERE username = (?)";
 		

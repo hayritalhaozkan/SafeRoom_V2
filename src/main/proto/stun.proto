@@ -35,8 +35,6 @@ rpc SendPublicKey(SendPublicKeyRequest) returns (Status);
 
 rpc GetPublicKey(RequestByClient_ID) returns (PublicKeyMessage);
 
-
-
 }
 
 message Welcome_Menu_Infos {
