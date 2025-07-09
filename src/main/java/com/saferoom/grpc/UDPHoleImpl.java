@@ -3,6 +3,7 @@ package com.saferoom.grpc;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.sql.SQLException;
 import java.util.Base64;
 
 import java.util.Map;
@@ -17,12 +18,14 @@ import com.saferoom.crypto.CryptoUtils;
 import com.saferoom.crypto.KeyExchange;
 import com.saferoom.grpc.SafeRoomProto.FromTo;
 import com.saferoom.grpc.SafeRoomProto.HandshakeConfirm;
+import com.saferoom.grpc.SafeRoomProto.Menu;
 import com.saferoom.grpc.SafeRoomProto.PublicKeyMessage;
 import com.saferoom.grpc.SafeRoomProto.Request_Client;
 import com.saferoom.grpc.SafeRoomProto.Status;
 import com.saferoom.grpc.SafeRoomProto.Status.Builder;
 import com.saferoom.grpc.SafeRoomProto.Stun_Info;
 import com.saferoom.server.MessageForwarder;
+import com.saferoom.grpc.SafeRoomProto.Create_User;
 import com.saferoom.grpc.SafeRoomProto.DecryptedPacket;
 import com.saferoom.grpc.SafeRoomProto.EncryptedAESKeyMessage;
 import com.saferoom.grpc.SafeRoomProto.EncryptedPacket;
@@ -34,15 +37,16 @@ import io.grpc.stub.StreamObserver;
 
 public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	@Override
-	public void first_Questination(Welcome_Menu_Infos request, StreamObserver<Status> response){
+	public void menuAns(Menu request, StreamObserver<Status> response){
 	String username = request.getUsername();
-	String hash_password = request.getPassword();
+	String hash_password = request.getHashPassword();
+	try {
 	boolean user_exist = DBManager.userExists(username);
 		if(user_exist){
 
 			if(DBManager.isUserBlocked(username)){
 				
-				if(DBManager.verifyPassword(username, password)){
+				if(DBManager.verifyPassword(username, hash_password)){
 					Status stat = Status.newBuilder()
 						.setMessage("ALL_GOOD")
 						.setCode(0)
@@ -63,37 +67,52 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	response.onNext(not_ex);
 
 	}
-	response.onCompleted();	
+		response.onCompleted();	
+	
+	}catch(Exception e ) {
+		System.out.println("DB Error Accoured: " + e);
+	}
 	}
 			
 	
 	@Override
-	public void insert_New_User(Create_User request, StreamObserver<Status> response){
+	public void insertUser(Create_User request, StreamObserver<Status> response){
 		String username = request.getUsername();
 		String email =  request.getEmail();
 		String password = request.getPassword();
-		String verification_code = request.getVerification_code();
-		boolean is_verified = request.getIs_verified();
+		String verification_code = request.getVerificationCode();
+		boolean is_verified = request.getIsVerified();
 	
-		boolean is_mail_valid = DBManager.check_email(email);
+		boolean is_mail_valid = true;
+		try {
+			is_mail_valid = DBManager.check_email(email);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	
 		if(is_mail_valid == false){
-			if(DBManager.createUser(username, password, email))
-			{
-				System.out.println("Successfully Registered!");
-				Status stat = Status.newBuilder()
-					.setMessage("SUCCESS")
-					.setCode(0)
-					.build();
-				response.onNext(stat);	
-			}
-			else{
-				System.out.println("Username taken");
-				Status not_valid = Status.newBuilder()
-					.setMessage("INVALID_USERNAME")
-					.setCode(2)
-					.build();
-				response.onNext(not_valid);
+			try {
+				if(DBManager.createUser(username, password, email))
+				{
+					System.out.println("Successfully Registered!");
+					Status stat = Status.newBuilder()
+						.setMessage("SUCCESS")
+						.setCode(0)
+						.build();
+					response.onNext(stat);	
+				}
+				else{
+					System.out.println("Username taken");
+					Status not_valid = Status.newBuilder()
+						.setMessage("INVALID_USERNAME")
+						.setCode(2)
+						.build();
+					response.onNext(not_valid);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 	
 		}

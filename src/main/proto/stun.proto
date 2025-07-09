@@ -5,9 +5,9 @@ option java_outer_classname = "SafeRoomProto";
 
 service UDPHole{
 
-rpc First_Questination(Welcome_Menu_Infos) returns (Status); 
+rpc MenuAns(Menu) returns (Status); 
 
-rpc Insert_New_User(Create_User) returns (Status); 
+rpc InsertUser(Create_User) returns (Status); 
 
 rpc RegisterClient(Stun_Info) returns (Status);
 
@@ -37,7 +37,7 @@ rpc GetPublicKey(RequestByClient_ID) returns (PublicKeyMessage);
 
 }
 
-message Welcome_Menu_Infos {
+message Menu {
 	optional string username = 1;
 	optional string hash_password = 2;
 }
