@@ -1,3 +1,0 @@
-[2025-07-06 12:49:20] [INFO] [DBManager] - Database config loaded successfully.
-[2025-07-07 09:50:40] [INFO] [DBManager] - Database config loaded successfully.
-[2025-07-07 09:50:41] [ERROR] [DBManager] - DataBase Config loading failed.Access denied for user 'root'@'localhost' (using password: YES)
