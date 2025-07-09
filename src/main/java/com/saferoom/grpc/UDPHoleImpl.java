@@ -26,14 +26,87 @@ import com.saferoom.server.MessageForwarder;
 import com.saferoom.grpc.SafeRoomProto.DecryptedPacket;
 import com.saferoom.grpc.SafeRoomProto.EncryptedAESKeyMessage;
 import com.saferoom.grpc.SafeRoomProto.EncryptedPacket;
-
+import com.saferoom.db.*;
 import com.saferoom.sessions.*;
 
 
 import io.grpc.stub.StreamObserver;
 
 public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
+	@Override
+	public void first_Questination(Welcome_Menu_Infos request, StreamObserver<Status> response){
+	String username = request.getUsername();
+	String hash_password = request.getPassword();
+	boolean user_exist = DBManager.userExists(username);
+		if(user_exist){
+
+			if(DBManager.isUserBlocked(username)){
+				
+				if(DBManager.verifyPassword(username, password)){
+					Status stat = Status.newBuilder()
+						.setMessage("ALL_GOOD")
+						.setCode(0)
+						.build();
+						
+					response.onNext(stat);
+		}
+		Status blocked_stat = Status.newBuilder()
+			.setMessage("BLOCKED")
+			.setCode(13)
+			.build();
+		response.onNext(blocked_stat);
+	}
+	Status not_ex = Status.newBuilder()
+		.setMessage("N_REGISTER")
+		.setCode(1)
+		.build();
+	response.onNext(not_ex);
+
+	}
+	response.onCompleted();	
+	}
+			
 	
+	@Override
+	public void insert_New_User(Create_User request, StreamObserver<Status> response){
+		String username = request.getUsername();
+		String email =  request.getEmail();
+		String password = request.getPassword();
+		String verification_code = request.getVerification_code();
+		boolean is_verified = request.getIs_verified();
+	
+		boolean is_mail_valid = DBManager.check_email(email);
+	
+		if(is_mail_valid == false){
+			if(DBManager.createUser(username, password, email))
+			{
+				System.out.println("Successfully Registered!");
+				Status stat = Status.newBuilder()
+					.setMessage("SUCCESS")
+					.setCode(0)
+					.build();
+				response.onNext(stat);	
+			}
+			else{
+				System.out.println("Username taken");
+				Status not_valid = Status.newBuilder()
+					.setMessage("INVALID_USERNAME")
+					.setCode(2)
+					.build();
+				response.onNext(not_valid);
+			}
+	
+		}
+		else{
+			System.out.println("Email is already in use");
+			Status invalid_mail = Status.newBuilder()
+				.setMessage("INVALID_MAIL")
+				.setCode(2)
+				.build();
+			response.onNext(invalid_mail);
+		}
+			response.onCompleted();
+	}
 	
 	@Override
 	public void registerClient(Stun_Info request, StreamObserver<Status> responseObserver) {
