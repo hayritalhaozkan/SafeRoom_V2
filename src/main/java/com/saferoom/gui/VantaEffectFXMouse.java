@@ -305,27 +305,25 @@ public class VantaEffectFXMouse extends Application {
             }
 
             try {
-                boolean exists = DBManager.userExists(username);
-                if (!exists) {
+                int log_return = Client.Login(username, password,
+				" ",50051);
+                if (log_return == 1) {
                     System.out.println("Kullanıcı bulunamadı!");
                     errorState = ErrorType.USER_NOT_FOUND;
                     return;
                 }
 
-                if (DBManager.isUserBlocked(username)) {
+                if (log_return == 2) {
                     System.out.println("Kullanıcı bloke edilmiş!");
                     errorState = ErrorType.BLOCKED;
                     return;
                 }
 
-                boolean success = DBManager.verifyPassword(username, password);
-                if (success) {
+                if (log_return == 3) {
                     DBManager.updateLastLogin(username);
                     System.out.println("Giriş başarılı!");
-                   // StarEffect2.explodeStarEffect(points);
                     errorState = ErrorType.NONE;
                     
-                    // Fade out login menu
                     FadeTransition ft = new FadeTransition(Duration.seconds(0.7), menuOverlay);
                     ft.setFromValue(1);
                     ft.setToValue(0);

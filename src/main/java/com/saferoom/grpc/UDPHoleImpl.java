@@ -56,7 +56,7 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 		}
 		Status blocked_stat = Status.newBuilder()
 			.setMessage("BLOCKED")
-			.setCode(13)
+			.setCode(1)
 			.build();
 		response.onNext(blocked_stat);
 	}
