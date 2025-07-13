@@ -103,7 +103,7 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 					response.onNext(stat);	
 				}
 				else{
-					System.out.println("Username taken");
+					System.out.println("VUSERNAME");
 					Status not_valid = Status.newBuilder()
 						.setMessage("INVALID_USERNAME")
 						.setCode(2)
