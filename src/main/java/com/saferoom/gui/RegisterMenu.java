@@ -1,10 +1,7 @@
 package com.saferoom.gui;
 
-import com.saferoom.email.*;
-import com.saferoom.crypto.VerificationCodeGenerator;
-import com.saferoom.db.DBManager;
+import com.saferoom.client.ClientMenu;
 
-import javafx.animation.FadeTransition;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -12,18 +9,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.stage.Stage;
-import javafx.util.Duration;
 
 public class RegisterMenu {
-	
-	private static final String ICON_PATH = "src/resources/Verificate.png";
-	static String Subject = "Verify Your Account!";
-	static String Body = "Hello,I believe this is belong to you! -->";
-	static String verCode = VerificationCodeGenerator.generateVerificationCode();
-	static String fullCode = Body + verCode;
-	
-
 
     public static VBox createRegisterMenu() {
         VBox menu = new VBox(15);
@@ -158,17 +145,32 @@ public class RegisterMenu {
 
             System.out.println("Registering: " + name + ", " + username + ", " + email);
             try {
-				DBManager.createUser(username, confirmPassword, email);
-				DBManager.setVerificationCode(username, verCode);
+				//DBManager.createUser(username, confirmPassword, email);
+				//DBManager.setVerificationCode(username, verCode);->Monolit Structure
+            	int phase = ClientMenu.register_client(username, confirmPassword, email);
+            	
 				
-				if(EmailSender.sendEmail(email, Subject, fullCode, ICON_PATH)) {
-					
+				switch(phase) {
+				
+				case 0:
 					System.out.println("Hesabı doğrulamak için emailinize gönderdiğimiz kodu girin:");
-					
-					menu.getChildren().clear();
-					VantaEffectFXMouse.mode = 1;
+					VantaEffectFXMouse.mode = 0;
 				    VerificationMenu.createVerificationMenu(username, menu);
-				}
+				    break;
+				case 1:
+					System.out.println("Username Already Taken");
+					VantaEffectFXMouse.mode = 1;
+					break;
+				case 2:
+					System.out.println("E-Mail Already In Use");
+					VantaEffectFXMouse.mode = 2;
+					break;
+				default:
+					System.out.println("Your Connection is unsafe");
+					VantaEffectFXMouse.mode = 2;
+					break;
+				    
+				}menu.getChildren().clear();
 				
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block

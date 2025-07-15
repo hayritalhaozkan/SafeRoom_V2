@@ -5,6 +5,7 @@ import com.jfoenix.controls.JFXDrawer;
 import com.jfoenix.controls.JFXHamburger;
 import com.jfoenix.controls.JFXTextField;
 import com.jfoenix.transitions.hamburger.HamburgerSlideCloseTransition;
+import com.saferoom.client.ClientMenu;
 import com.saferoom.db.DBManager;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
@@ -31,7 +32,7 @@ import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import com.saferoom.gui.MainDashboard; // Import the MainDashboard class
+import com.saferoom.gui.MainDashboard; 
 
 
 import java.util.ArrayList;
@@ -305,8 +306,7 @@ public class VantaEffectFXMouse extends Application {
             }
 
             try {
-                int log_return = Client.Login(username, password,
-				" ",50051);
+                int log_return = ClientMenu.Login(username, password);
                 if (log_return == 1) {
                     System.out.println("Kullanıcı bulunamadı!");
                     errorState = ErrorType.USER_NOT_FOUND;

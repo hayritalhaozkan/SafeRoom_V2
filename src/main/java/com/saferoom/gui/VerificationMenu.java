@@ -1,8 +1,9 @@
 package com.saferoom.gui;
 
-import com.saferoom.gui.StarEffect2;
 
 import java.sql.SQLException;
+
+import com.saferoom.client.ClientMenu;
 import com.saferoom.db.DBManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -104,46 +105,33 @@ public class VerificationMenu {
                 return;
             }
 
-            try {
-                if (enteredCode.equals(DBManager.getVerificationCode(username))) {
-                    System.out.println("Congrats!! You are verified now!!");
+            int client_api_code = ClientMenu.verify_user(username, enteredCode);
+			if (client_api_code == 0) {
+			    System.out.println("Congrats!! You are verified now!!");
 
-                    try {
-                        DBManager.updateVerificationAttempts(username);
-                    } catch (SQLException e1) {
-                        System.out.println("Database error: verification_attempts tablosu eksik!");
-                        e1.printStackTrace();
-                    } catch (Exception e1) {
+			    Platform.runLater(() -> {
+			        try {
+			        	menu.getChildren().clear();
+						DBManager.Verify(username);
+						VantaEffectFXMouse.mode = 2;
+						Thread.sleep(0,3);
+						VantaEffectFXMouse.mode = 3;
+						Thread.sleep(0,2);
+						StarEffect2.explodeStarEffect(VantaEffectFXMouse.points);
+						
+
+					} catch (SQLException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (InterruptedException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
+			    });
 
-                    Platform.runLater(() -> {
-                        try {
-                        	menu.getChildren().clear();
-							DBManager.Verify(username);
-							VantaEffectFXMouse.mode = 2;
-							Thread.sleep(0,3);
-							VantaEffectFXMouse.mode = 3;
-							Thread.sleep(0,2);
-							StarEffect2.explodeStarEffect(VantaEffectFXMouse.points);
-							
-
-						} catch (SQLException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						} catch (InterruptedException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-                    });
-
-                } else {
-                    System.out.println("Incorrect Code!");
-                }
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
+			} else {
+			    System.out.println("Incorrect Code!");
+			}
         });
 
         menu.getChildren().addAll(title, codeField, progressBar, timerLabel, submitButton);

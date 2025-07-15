@@ -1,24 +1,25 @@
 package com.saferoom.client;
 
-import com.saferoom.grpc.SafeRoomProto.Menu;
-import com.saferoom.grpc.SafeRoomProto.Create_User;
-import com.saferoom.grpc.SafeRoomProto.Status;
+import com.saferoom.grpc.SafeRoomProto;
+import com.saferoom.grpc.UDPHoleGrpc;
+import com.saferoom.grpc.SafeRoomProto.Verification;
 
-public class Client{
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+public class ClientMenu{
 	public static String Server;
 	public static int Port;
 
-		public static int Login(String username, String Password,
-				String server, int port)
+		public static int Login(String username, String Password)
 		{
-		ManagedChannel channel = ManagedChannelBuilder.forTarget(server,port)
-			.setPlaintext()
+		ManagedChannel channel = ManagedChannelBuilder.forAddress(Server,Port)
+			.usePlaintext()
 			.build();
 
 		UDPHoleGrpc.UDPHoleBlockingStub client = UDPHoleGrpc.newBlockingStub(channel);
 		SafeRoomProto.Menu main_menu = SafeRoomProto.Menu.newBuilder()
 			.setUsername(username)
-			.setHash_password(password)
+			.setHashPassword(Password)
 			.build();
 		SafeRoomProto.Status stats = client.menuAns(main_menu);
 		
@@ -43,7 +44,7 @@ public class Client{
 		}
 	public static int register_client(String username, String password, String mail)
 	{
-		ManagedChannel channel = ManagedChannelBuilder.forTarget(Server, Port)
+		ManagedChannel channel = ManagedChannelBuilder.forAddress(Server, Port)
 			.usePlaintext()
 			.build();
 
@@ -53,11 +54,13 @@ public class Client{
 			.setUsername(username)
 			.setEmail(mail)
 			.setPassword(password)
-			.setIs_Verified(0)
+			.setIsVerified(false)
 			.build();
 		SafeRoomProto.Status stat = stub.insertUser(insert_obj);
 
 		int code = stat.getCode();
+		String message = stat.getMessage();
+		
 		switch(code){
 			case 0:
 				System.out.println("Success!");
@@ -75,6 +78,35 @@ public class Client{
 				return 3;					
 			}
 		}
+	public static int verify_user(String username, String verify_code) {
+		ManagedChannel channel = ManagedChannelBuilder.forAddress(Server, Port)
+				.usePlaintext()
+				.build();
+		
+		UDPHoleGrpc.UDPHoleBlockingStub stub = UDPHoleGrpc.newBlockingStub(channel);
+		
+		Verification verification_info = Verification.newBuilder()
+				.setUsername(username)
+				.setVerify(verify_code)
+				.build();
+		
+		SafeRoomProto.Status response = stub.verifyUser(verification_info);
+		
+		int code = response.getCode();
+		
+		switch(code) {
+		case 0:
+			System.out.println("Verification Completed");
+			return 0;
+		case 1:
+			System.out.println("Not Matched");
+			return 1;
+		
+		default:
+			System.out.println("Connection is not safe");
+			return 2;
+		}
+	}
 
 	}
-}
+

@@ -9,6 +9,8 @@ rpc MenuAns(Menu) returns (Status);
 
 rpc InsertUser(Create_User) returns (Status); 
 
+rpc VerifyUser(Verification) returns (Status);
+
 rpc RegisterClient(Stun_Info) returns (Status);
 
 rpc GetStunInfo(Request_Client) returns (Stun_Info);
@@ -51,6 +53,10 @@ message Create_User {
 	optional string verification_code = 5;
 }
 
+message Verification {
+	optional string username = 1;
+	optional string verify = 2;
+}
 message Stun_Info{
   string username = 1;
   string ip = 2;

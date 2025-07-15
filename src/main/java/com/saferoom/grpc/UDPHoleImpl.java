@@ -1,8 +1,6 @@
 package com.saferoom.grpc;
 
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.sql.SQLException;
 import java.util.Base64;
 
@@ -10,32 +8,42 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 import com.saferoom.crypto.CryptoUtils;
 import com.saferoom.crypto.KeyExchange;
+import com.saferoom.crypto.VerificationCodeGenerator;
 import com.saferoom.grpc.SafeRoomProto.FromTo;
-import com.saferoom.grpc.SafeRoomProto.HandshakeConfirm;
 import com.saferoom.grpc.SafeRoomProto.Menu;
-import com.saferoom.grpc.SafeRoomProto.PublicKeyMessage;
 import com.saferoom.grpc.SafeRoomProto.Request_Client;
 import com.saferoom.grpc.SafeRoomProto.Status;
 import com.saferoom.grpc.SafeRoomProto.Status.Builder;
+import com.saferoom.gui.VantaEffectFXMouse;
+import com.saferoom.gui.VerificationMenu;
 import com.saferoom.grpc.SafeRoomProto.Stun_Info;
+import com.saferoom.grpc.SafeRoomProto.Verification;
 import com.saferoom.server.MessageForwarder;
 import com.saferoom.grpc.SafeRoomProto.Create_User;
 import com.saferoom.grpc.SafeRoomProto.DecryptedPacket;
 import com.saferoom.grpc.SafeRoomProto.EncryptedAESKeyMessage;
 import com.saferoom.grpc.SafeRoomProto.EncryptedPacket;
 import com.saferoom.db.*;
+import com.saferoom.email.EmailSender;
 import com.saferoom.sessions.*;
 
 
 import io.grpc.stub.StreamObserver;
 
 public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
+	
+	private static final String ICON_PATH = "src/resources/Verificate.png";
+	static String Subject = "Verify Your Account!";
+	static String Body = "Hello,I believe this is belong to you! -->";
+	static String verCode = VerificationCodeGenerator.generateVerificationCode();
+	static String fullCode = Body + verCode;
+	
+
 	@Override
 	public void menuAns(Menu request, StreamObserver<Status> response){
 	String username = request.getUsername();
@@ -71,6 +79,8 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 	
 	}catch(Exception e ) {
 		System.out.println("DB Error Accoured: " + e);
+		response.onError(e);
+
 	}
 	}
 			
@@ -89,13 +99,18 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			response.onError(e);
+
 		}
 	
 		if(is_mail_valid == false){
 			try {
 				if(DBManager.createUser(username, password, email))
 				{
+					DBManager.setVerificationCode(username, verCode);
+					if(EmailSender.sendEmail(email, Subject, fullCode, ICON_PATH)) {
 					System.out.println("Successfully Registered!");
+					}
 					Status stat = Status.newBuilder()
 						.setMessage("SUCCESS")
 						.setCode(0)
@@ -113,6 +128,8 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				response.onError(e);
+
 			}
 	
 		}
@@ -125,6 +142,36 @@ public class UDPHoleImpl extends UDPHoleGrpc.UDPHoleImplBase {
 			response.onNext(invalid_mail);
 		}
 			response.onCompleted();
+	}
+	
+	@Override 
+	public void verifyUser(Verification verify_code, StreamObserver<Status> responseObserver)
+	{
+		String username = verify_code.getUsername();
+		String verCode = verify_code.getVerify();
+		try {
+		String db_search = DBManager.getVerificationCode(username);
+		if(verCode.equals(db_search)) {
+			DBManager.Verify(username);
+	        DBManager.updateVerificationAttempts(username);
+
+			Status situtation = Status.newBuilder()
+					.setCode(0)
+					.setMessage("MATCH")
+					.build();
+			responseObserver.onNext(situtation);
+		}else {
+			Status not_match = Status.newBuilder()
+					.setMessage("NOT_MATCH")
+					.setCode(1)
+					.build();
+			responseObserver.onNext(not_match);
+		}
+		}catch(Exception e) {
+			System.out.println(e);
+			responseObserver.onError(e);
+		}
+		responseObserver.onCompleted();
 	}
 	
 	@Override
