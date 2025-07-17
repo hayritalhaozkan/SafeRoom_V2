@@ -1,10 +1,6 @@
 package com.saferoom.gui;
 
-import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXDrawer;
-import com.jfoenix.controls.JFXHamburger;
-import com.jfoenix.controls.JFXTextField;
-import com.jfoenix.transitions.hamburger.HamburgerSlideCloseTransition;
+
 import com.saferoom.client.ClientMenu;
 import com.saferoom.db.DBManager;
 import javafx.animation.AnimationTimer;
@@ -20,19 +16,15 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.effect.BoxBlur;
-import javafx.scene.effect.Glow;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import com.saferoom.gui.MainDashboard; 
 
 
 import java.util.ArrayList;

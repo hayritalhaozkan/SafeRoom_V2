@@ -19,8 +19,6 @@ import com.saferoom.grpc.SafeRoomProto.Menu;
 import com.saferoom.grpc.SafeRoomProto.Request_Client;
 import com.saferoom.grpc.SafeRoomProto.Status;
 import com.saferoom.grpc.SafeRoomProto.Status.Builder;
-import com.saferoom.gui.VantaEffectFXMouse;
-import com.saferoom.gui.VerificationMenu;
 import com.saferoom.grpc.SafeRoomProto.Stun_Info;
 import com.saferoom.grpc.SafeRoomProto.Verification;
 import com.saferoom.server.MessageForwarder;

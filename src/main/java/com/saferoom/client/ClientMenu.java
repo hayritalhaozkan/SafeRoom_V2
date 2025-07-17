@@ -7,8 +7,8 @@ import com.saferoom.grpc.SafeRoomProto.Verification;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 public class ClientMenu{
-	public static String Server;
-	public static int Port;
+	public static String Server = "192.168.2.9";
+	public static int Port = 50051;
 
 		public static int Login(String username, String Password)
 		{

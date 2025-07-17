@@ -156,7 +156,7 @@ public class RegisterMenu {
 					System.out.println("Hesabı doğrulamak için emailinize gönderdiğimiz kodu girin:");
 					VantaEffectFXMouse.mode = 0;
 				    VerificationMenu.createVerificationMenu(username, menu);
-				    break;
+					break;
 				case 1:
 					System.out.println("Username Already Taken");
 					VantaEffectFXMouse.mode = 1;
@@ -168,9 +168,10 @@ public class RegisterMenu {
 				default:
 					System.out.println("Your Connection is unsafe");
 					VantaEffectFXMouse.mode = 2;
+					menu.getChildren().clear();
 					break;
 				    
-				}menu.getChildren().clear();
+				}
 				
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block

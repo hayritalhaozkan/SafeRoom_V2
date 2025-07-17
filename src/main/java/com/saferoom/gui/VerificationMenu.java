@@ -30,10 +30,11 @@ public class VerificationMenu {
                       "-fx-background-radius: 15;" +
                       "-fx-padding: 30;" +
                       "-fx-border-color: rgba(0,191,255,0.5);" + 
-                      "-fx-border-radius: 15;" +
-                      "-fx-backdrop-filter: blur(10px);"); 
+                      "-fx-border-radius: 15;"); 
 
         menu.setEffect(blur);
+       // menu.setEffect(new BoxBlur(10, 10, 3));  // veya new GaussianBlur(10)
+
 
         Label title = new Label("Enter the Verification Code");
         title.setFont(new Font("Arial", 26));

@@ -2,7 +2,6 @@
 package com.saferoom.gui;
 
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class SafeRoomApp extends Application {
