@@ -125,28 +125,23 @@ public class NatAnalyzer {
 							
 					
 				}
-							if(Public_PortList.size() >= 3) {
-							    boolean isSymmetric = false;
-							    for (int i = 0; i < Public_PortList.size() - 1; i++) {
-							        if (!Public_PortList.get(i).equals(Public_PortList.get(i + 1))) {
-							            isSymmetric = true;
-							            break;
-							        }
-							    }
-
-							    ByteBuffer msg;
-							    if (isSymmetric) {
-							        msg = Symmetric.duplicate(); 
-							    } else {
-							        msg = ByteBuffer.wrap((myPublicIP + ":" +  Public_PortList.getFirst()).getBytes());
-							    }
-
-							    channel.send(msg, serversocket);
+							while(Public_PortList.size() > 3) {
+							for(int i = 0; i < Public_PortList.size();i++) {
+								if(!Public_PortList.get(i).equals(Public_PortList.get(i + 1))) {
+									ByteBuffer symmetric = Symmetric;
+									channel.send(symmetric, serversocket);
+								}
+								else {
+									ByteBuffer message = ByteBuffer.wrap("Not_Symmetric".getBytes());
+									channel.send(message, serversocket);
+								}
+								
 							}
-		}
-						
-		}
-		
+							String need_parsing_integer = Public_PortList.get(0).toString();
+							ByteBuffer eventual_infos = ByteBuffer.wrap((myPublicIP + ":" + need_parsing_integer).getBytes());
+							channel.send(eventual_infos, serversocket);
+				}	}
+		}	
 	}
 	
 		
