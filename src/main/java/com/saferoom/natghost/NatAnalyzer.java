@@ -25,7 +25,6 @@ public class NatAnalyzer {
         {"stun.stunprotocol.org", "3478"},
         {"stun.ekiga.net", "3478"},
         {"stun.schlund.de", "3478"},
-        {"stun.ideasip.com", "3478"},
         {"stun.voipgate.com", "3478"},
         {"stun.xten.com", "3478"},
         {"stun.antisip.com", "3478"},
@@ -108,7 +107,7 @@ public class NatAnalyzer {
             }
 
             SocketAddress sockaddr = new InetSocketAddress(stun_server, stun_port);
-            ByteBuffer packet = Stun_Packet();
+            ByteBuffer packet = Stun_Packet().duplicate();
             channel.send(packet, sockaddr);
         }
 
