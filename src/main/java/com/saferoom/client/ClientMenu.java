@@ -3,12 +3,15 @@ package com.saferoom.client;
 import com.saferoom.grpc.SafeRoomProto;
 import com.saferoom.grpc.UDPHoleGrpc;
 import com.saferoom.grpc.SafeRoomProto.Verification;
-
+import com.saferoom.server.SafeRoomServer;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 public class ClientMenu{
-	public static String Server = "192.168.2.9";
-	public static int Port = 50051;
+	public static String Server = SafeRoomServer.ServerIP;
+	public static int Port = SafeRoomServer.grpcPort;
+	public static int UDP_Port = SafeRoomServer.udpPort1;
+	public static String myUsername;
+	public static String target_username;
 
 		public static int Login(String username, String Password)
 		{
