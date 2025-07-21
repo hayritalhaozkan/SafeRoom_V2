@@ -1,7 +1,7 @@
 package com.saferoom.natghost;
 
 import com.saferoom.client.ClientMenu;
-import com.saferoom.natghost.LLS;
+import com.saferoom.server.SafeRoomServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -197,7 +197,15 @@ public class NatAnalyzer {
 	}
 
 	
-	
+	public static void main(String[] args) {
+		InetSocketAddress server_addr = new InetSocketAddress(SafeRoomServer.ServerIP, SafeRoomServer.udpPort1);
+		try {
+			multiplexer(server_addr, 4);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 
 }
