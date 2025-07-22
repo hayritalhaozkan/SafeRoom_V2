@@ -155,9 +155,9 @@ public class NatAnalyzer {
             DatagramChannel ch = DatagramChannel.open();
             ch.configureBlocking(false);
             ch.bind(new InetSocketAddress(0));
-            ch.connect(Server_Address);
+            packet.flip();
+            ch.send(packet.duplicate(),Server_Address);
             ch.register(selector, SelectionKey.OP_READ);
-            ch.write(packet.duplicate());
             channels.add(ch);
         }
 
@@ -180,7 +180,7 @@ public class NatAnalyzer {
                         buf.flip();
                         byte[] data = new byte[buf.remaining()];
                         buf.get(data);
-                        System.out.println("✅ Cevap alındı: " + new String(data));
+                        System.out.println("Cevap alındı: " + new String(data));
                     }
                 }
             }
