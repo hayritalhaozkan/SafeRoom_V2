@@ -4,7 +4,6 @@ import javax.crypto.SecretKey;
 
 import com.saferoom.grpc.SafeRoomProto.Stun_Info;
 
-import java.security.KeyPair;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
