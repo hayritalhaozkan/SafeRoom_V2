@@ -150,12 +150,12 @@ public class NatAnalyzer {
         }
 
         ByteBuffer packet = LLS.New_Multiplex_Packet(signal, ClientMenu.myUsername, ClientMenu.target_username);
+      //  packet.flip();
 
         for (int i = 0; i < hole_count; i++) {
             DatagramChannel ch = DatagramChannel.open();
             ch.configureBlocking(false);
             ch.bind(new InetSocketAddress(0));
-            packet.flip();
             ch.send(packet.duplicate(),Server_Address);
             ch.register(selector, SelectionKey.OP_READ);
             channels.add(ch);
