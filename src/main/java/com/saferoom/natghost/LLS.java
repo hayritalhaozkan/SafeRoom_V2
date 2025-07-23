@@ -27,20 +27,18 @@ public class LLS {
 	}
 
 
-	public static ByteBuffer New_LLS_Packet(byte signal, String username, String target, InetAddress publicIp,int port ) {
-		ByteBuffer buffer = ByteBuffer.allocate(50);
-		
-		buffer.put(signal);
-		buffer.putShort((short) buffer.capacity());
-		
-		putFixedString(buffer, username, 20);
-		putFixedString(buffer, target, 20);
-		buffer.put(publicIp.getAddress());
-		
-		buffer.putInt(port);
-		 buffer.flip();
-		    return buffer;
-	}
+	 public static ByteBuffer New_LLS_Packet(byte signal, String username, String target, InetAddress publicIp, int port) {
+	        ByteBuffer buffer = ByteBuffer.allocate(51);
+	        buffer.put(signal);
+	        buffer.putShort((short) buffer.capacity());
+	        putFixedString(buffer, username, 20);
+	        putFixedString(buffer, target, 20);
+	        buffer.put(publicIp.getAddress());
+	        buffer.putInt(port);
+	        buffer.flip();
+	        return buffer;
+	    }
+
 	public static ByteBuffer New_Multiplex_Packet(byte signal, String username, String target) {
 		ByteBuffer packet = ByteBuffer.allocate(43);
 		
@@ -54,22 +52,22 @@ public class LLS {
 		
 		return packet;
 	}
-	public static List<Object> parseMultiple_Packet(ByteBuffer buffer){
-		List<Object> parsed = new ArrayList<>(4);
-		
-		byte type = buffer.get();
-		short len = buffer.getShort();
-		parsed.add(type);
-		parsed.add(len);
-		
-			String sender = getFixedString(buffer, 20);
-			String target = getFixedString(buffer, 20);
-			parsed.add(sender);
-			parsed.add(target);
-		
-		
-		return parsed;
-	}
+	 public static List<Object> parseMultiple_Packet(ByteBuffer buffer) {
+	        final int MIN_LENGTH = 1 + 2 + 20 + 20;
+	        if (buffer.remaining() < MIN_LENGTH) {
+	            throw new IllegalArgumentException("Packet too short for LLS multiplex: remaining=" + buffer.remaining());
+	        }
+	        List<Object> parsed = new ArrayList<>(4);
+	        byte type = buffer.get();
+	        short len = buffer.getShort();
+	        parsed.add(type);
+	        parsed.add(len);
+	        String sender = getFixedString(buffer, 20);
+	        String target = getFixedString(buffer, 20);
+	        parsed.add(sender);
+	        parsed.add(target);
+	        return parsed;
+	    }
 			
 	public static List<Object> parseLLSPacket(ByteBuffer buffer) throws UnknownHostException {
 	    List<Object> parsed = new ArrayList<>(7); 

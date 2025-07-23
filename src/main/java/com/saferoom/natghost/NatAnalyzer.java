@@ -193,7 +193,7 @@ public class NatAnalyzer {
     public static void main(String[] args) {
         InetSocketAddress server_addr = new InetSocketAddress(SafeRoomServer.ServerIP, SafeRoomServer.udpPort1);
         try {
-            multiplexer(server_addr, 4);
+            multiplexer(server_addr, 1);
         } catch (IOException e) {
             e.printStackTrace();
         }
