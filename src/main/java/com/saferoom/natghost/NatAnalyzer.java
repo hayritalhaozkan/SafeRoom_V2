@@ -127,7 +127,7 @@ public class NatAnalyzer {
         List<DatagramChannel> channels = new ArrayList<>(holeCount);
 
         // KeepAliveManager kuruluyor
-        KeepAliveManager KAM = new KeepAliveManager(15_000);
+        KeepAliveManager KAM = new KeepAliveManager(2_000);
         KAM.installShutdownHook();
 
         ByteBuffer hello = LLS.New_Hello_Packet(ClientMenu.myUsername, ClientMenu.target_username, LLS.SIG_HELLO);

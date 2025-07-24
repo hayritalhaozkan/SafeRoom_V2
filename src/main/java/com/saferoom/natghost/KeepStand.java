@@ -12,7 +12,7 @@ public class KeepStand extends Thread {
     private final ByteBuffer keepAlive;
 
     // 15 saniye çok sık/az geliyorsa değiştirilebilir
-    private static final long INTERVAL_MS = 15_000;
+    private static final long INTERVAL_MS = 3_000;
 
     public KeepStand(InetSocketAddress addr, DatagramChannel channel) {
         this.addr = addr;
