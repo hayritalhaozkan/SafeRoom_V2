@@ -168,6 +168,7 @@ public class NatAnalyzer {
 
             Set<SelectionKey> keys = selector.selectedKeys();
             Iterator<SelectionKey> iter = keys.iterator();
+            while(true) {
             while (iter.hasNext()) {
                 SelectionKey key = iter.next();
                 iter.remove();
@@ -200,7 +201,7 @@ public class NatAnalyzer {
                     }
                 }
             }
-        }
+        }}
         for (DatagramChannel ch : channels) ch.close();
         selector.close();
     }
@@ -208,7 +209,7 @@ public class NatAnalyzer {
     public static void main(String[] args) throws InterruptedException {
         InetSocketAddress server_addr = new InetSocketAddress(SafeRoomServer.ServerIP, SafeRoomServer.udpPort1);
         try {
-            multiplexer(server_addr, 1);
+            multiplexer(server_addr, 5);
         } catch (IOException e) {
             e.printStackTrace();
         }
