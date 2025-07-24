@@ -6,29 +6,34 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 
 public class KeepStand extends Thread {
+
     private final InetSocketAddress addr;
     private final DatagramChannel channel;
-    private final ByteBuffer pack;
+    private final ByteBuffer keepAlive;
+
+    // 15 saniye çok sık/az geliyorsa değiştirilebilir
+    private static final long INTERVAL_MS = 15_000;
 
     public KeepStand(InetSocketAddress addr, DatagramChannel channel) {
         this.addr = addr;
         this.channel = channel;
-        this.pack = LLS.GatePack();
+        this.keepAlive = LLS.New_KeepAlive_Packet(); // <-- GatePack yerine
+        setName("KeepStand-" + addr);
+        setDaemon(true); // Uygulama kapanırken bloklamasın
     }
-	
+
     @Override
     public void run() {
         try {
-            while (!Thread.interrupted()) {
-                pack.rewind();
-                channel.send(pack, addr);
-                Thread.sleep(15_000);
+            while (!isInterrupted()) {
+                keepAlive.rewind();          // Her gönderimden önce buffer başa
+                channel.send(keepAlive, addr);
+                Thread.sleep(INTERVAL_MS);
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
+            // Thread interrupt ile nazikçe sonlanır
         } catch (IOException e) {
-            System.err.println("Datagram Channel Error: " + e);
+            System.err.println("[KeepStand] DatagramChannel error: " + e);
         }
     }
-
-	
 }

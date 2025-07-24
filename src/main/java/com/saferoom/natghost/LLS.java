@@ -176,6 +176,18 @@ public class LLS {
 
         return parsed;
     }
+ // 1) Sabitlerin yanına
+    public static final byte SIG_KEEP = 0x1E; // client <-> client/server keepalive ping
+
+    // 2) Builder metotların yanına
+    public static ByteBuffer New_KeepAlive_Packet() {
+        // Sadece tip + len (payload yok) -> 3 byte
+        ByteBuffer b = ByteBuffer.allocate(3);
+        b.put(SIG_KEEP);
+        b.putShort((short) 3);
+        b.flip();
+        return b;
+    }
 
     // Convenience for client side parsing:
     public static List<Object> parsePortInfo(ByteBuffer buffer) throws UnknownHostException {
