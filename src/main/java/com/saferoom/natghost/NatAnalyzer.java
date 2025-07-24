@@ -40,7 +40,7 @@ public class NatAnalyzer {
             new InetSocketAddress(ClientMenu.Server, ClientMenu.UDP_Port);
 
     /* === Parametreler === */
-    private static final int   MIN_CHANNELS        = 1;
+    private static final int   MIN_CHANNELS        = 4;
     private static final long  MATCH_TIMEOUT_MS    = 10_000;  // Target'ı bekleme süresi
     private static final long  RESEND_INTERVAL_MS  = 1_000;   // Server'a keepalive/resend
     private static final long  SELECT_TIMEOUT_MS   = 50;      // select() blok süresi
