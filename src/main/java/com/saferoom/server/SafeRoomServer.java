@@ -10,7 +10,7 @@ public class SafeRoomServer {
 	
 		PeerListener Datagram = new PeerListener();
 		StreamListener Stream = new StreamListener();
-		Stream.start();
 		Datagram.start();
+		Stream.start();
 	}
 }

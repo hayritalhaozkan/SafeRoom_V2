@@ -188,6 +188,11 @@ public class NatAnalyzer {
                     	
                     	InetAddress public_IP = (InetAddress)peer_info_packet.get(4);
                     	int public_Port = (int)peer_info_packet.get(5);
+                    	System.out.println("[Incoming From]: " + message_from);
+                    	System.out.println("[Message Type]: " + message_type);
+                    	System.out.println("[Message Lenght]:" + message_len);
+                    	System.out.println(message_from + " 's Public IP: " + public_IP);
+                    	System.out.println(message_from + "'s Public Socket: " + public_Port);
                     	InetSocketAddress addr = new InetSocketAddress(public_IP, public_Port);
                         KeepStand runner = new KeepStand(addr, ch);
                         runner.start();
