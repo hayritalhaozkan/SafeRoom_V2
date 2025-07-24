@@ -13,15 +13,14 @@ import java.security.SecureRandom;
 import java.util.*;
 
 /**
- * Client tarafı: STUN analizi + çoklu UDP soketi açıp server'a paket gönderme,
- * server'dan gelenleri yakalayıp karşı tarafla P2P başlatma.
+ * Client: STUN → NAT sinyali → çoklu kanal aç → server'a paket gönder.
+ * Target yoksa hemen çıkma: belirli süre bekle, gerekirse tekrar gönder.
  */
 public class NatAnalyzer {
 
-    // ---- STUN & NAT TESPİT ----
     public static final List<Integer> Public_PortList = new ArrayList<>();
     public static String myPublicIP;
-    public static byte signal;
+    public static byte   signal;
 
     private static final SecureRandom RNG = new SecureRandom();
 
@@ -37,16 +36,21 @@ public class NatAnalyzer {
             {"stun.server.org", "3478"}
     };
 
-    // Server adresi (ClientMenu içinden geliyor)
     public static final SocketAddress SERVER_SOCKET =
             new InetSocketAddress(ClientMenu.Server, ClientMenu.UDP_Port);
 
-    /** STUN için 20 byte'lık basit Binding Request */
+    /* === Parametreler === */
+    private static final int   MIN_CHANNELS        = 1;
+    private static final long  MATCH_TIMEOUT_MS    = 10_000;  // Target'ı bekleme süresi
+    private static final long  RESEND_INTERVAL_MS  = 1_000;   // Server'a keepalive/resend
+    private static final long  SELECT_TIMEOUT_MS   = 50;      // select() blok süresi
+
+    // ---------- STUN ------------
     public static ByteBuffer Stun_Packet() {
         ByteBuffer packet = ByteBuffer.allocate(20);
-        packet.putShort((short) ((0x0001) & 0x3FFF)); // message type 0x0001 (binding) & mask
-        packet.putShort((short) 0);                   // length = 0
-        packet.putInt(0x2112A442);                    // magic cookie
+        packet.putShort((short) ((0x0001) & 0x3FFF));
+        packet.putShort((short) 0);
+        packet.putInt(0x2112A442);
 
         byte[] transactionID = new byte[12];
         RNG.nextBytes(transactionID);
@@ -55,7 +59,6 @@ public class NatAnalyzer {
         return packet;
     }
 
-    /** STUN cevabından MAPPED-ADDRESS çek */
     public static void parseStunResponse(ByteBuffer buffer, List<Integer> PublicPortList) {
         buffer.position(20);
         while (buffer.remaining() >= 4) {
@@ -63,8 +66,8 @@ public class NatAnalyzer {
             short attrLen  = buffer.getShort();
 
             if (attrType == 0x0001) { // MAPPED-ADDRESS
-                buffer.get(); // ignore 1 byte (unused)
-                buffer.get(); // family (IPv4 = 0x01)
+                buffer.get(); // ignore 1 byte
+                buffer.get(); // family
                 int port = buffer.getShort() & 0xFFFF;
                 byte[] addrBytes = new byte[4];
                 buffer.get(addrBytes);
@@ -73,8 +76,7 @@ public class NatAnalyzer {
                         addrBytes[0] & 0xFF,
                         addrBytes[1] & 0xFF,
                         addrBytes[2] & 0xFF,
-                        addrBytes[3] & 0xFF
-                );
+                        addrBytes[3] & 0xFF);
 
                 System.out.println("[STUN] Public IP: " + ip + " | Port: " + port);
                 myPublicIP = ip;
@@ -87,14 +89,12 @@ public class NatAnalyzer {
 
     public static <T> boolean allEqual(List<T> list) {
         if (list.isEmpty()) return true;
-        T first = list.get(0);
-        for (int i = 1; i < list.size(); i++) {
-            if (!Objects.equals(first, list.get(i))) return false;
-        }
+        T f = list.get(0);
+        for (int i = 1; i < list.size(); i++)
+            if (!Objects.equals(f, list.get(i))) return false;
         return true;
     }
 
-    /** STUN sunucularına parallel request atıp 100ms bekler, NAT tip sinyali döner */
     public static byte analyzer(String[][] stun_servers) throws IOException {
         Selector selector = Selector.open();
         DatagramChannel ch = DatagramChannel.open();
@@ -106,31 +106,28 @@ public class NatAnalyzer {
             String host = stun[0];
             int    port = Integer.parseInt(stun[1]);
             try {
-                InetAddress.getByName(host); // DNS test
+                InetAddress.getByName(host);
             } catch (UnknownHostException e) {
-                System.err.println("[STUN] DNS resolve fail: " + host);
+                System.err.println("[STUN] DNS fail: " + host);
                 continue;
             }
-            SocketAddress stunAddr = new InetSocketAddress(host, port);
-            ch.send(Stun_Packet().duplicate(), stunAddr);
+            ch.send(Stun_Packet().duplicate(), new InetSocketAddress(host, port));
         }
 
-        long deadline = System.nanoTime() + 100_000_000L; // 100ms
+        long deadline = System.nanoTime() + 100_000_000L;
         while (System.nanoTime() < deadline) {
             if (selector.selectNow() == 0) continue;
-
             Iterator<SelectionKey> it = selector.selectedKeys().iterator();
             while (it.hasNext()) {
                 SelectionKey key = it.next(); it.remove();
                 DatagramChannel rcvCh = (DatagramChannel) key.channel();
-
                 ByteBuffer recv = ByteBuffer.allocate(512);
                 rcvCh.receive(recv);
                 recv.flip();
                 parseStunResponse(recv, Public_PortList);
             }
         }
-        // dedupe
+        // uniq
         List<Integer> uniq = new ArrayList<>(new LinkedHashSet<>(Public_PortList));
         Public_PortList.clear();
         Public_PortList.addAll(uniq);
@@ -140,37 +137,20 @@ public class NatAnalyzer {
         } else {
             signal = (byte) 0xFE;
         }
-        System.out.println("[STUN] NAT Type Signal: " + String.format("0x%02X", signal));
+        System.out.println("[STUN] NAT signal = " + String.format("0x%02X", signal));
         return signal;
     }
 
-    // ---- MULTIPLEXER / HOLE-PUNCH ----
-
-    /**
-     * İstediğin gibi: KAÇ port açacağımız argüman değil.
-     * Burada iki seçenek var:
-     *  a) Aşağıdaki sabit ile belirle (ör: 5)
-     *  b) STUN’dan dönen port sayısını kullan
-     *
-     * Aşağıda b)’yi yaptım: Public_PortList.size() kadar kanal açıyor.
-     * Boşsa en az 1 yapıyoruz.
-     */
-    private static final int MIN_CHANNELS = 5;
-
-    public static void multiplexer(InetSocketAddress serverAddr) throws IOException, InterruptedException {
-        // STUN NAT analizi
+    // ---------- MULTIPLEXER ----------
+    public static void multiplexer(InetSocketAddress serverAddr) throws Exception {
         byte sig = analyzer(stunServers);
-
         if (ClientMenu.myUsername == null || ClientMenu.target_username == null)
-            throw new IllegalStateException("Kullanıcı adı veya hedef atanmadı!");
+            throw new IllegalStateException("Username/Target atanmadı!");
 
-        // Açacağımız kanal sayısı (parametre yok)
         int holeCount = Math.max(Public_PortList.size(), MIN_CHANNELS);
 
         Selector selector = Selector.open();
         List<DatagramChannel> channels = new ArrayList<>(holeCount);
-
-        // Sunucuya gidecek temel paket (IP/port’u server UDP header’dan okuyacak)
         ByteBuffer pkt = LLS.New_Multiplex_Packet(sig, ClientMenu.myUsername, ClientMenu.target_username);
 
         for (int i = 0; i < holeCount; i++) {
@@ -185,14 +165,17 @@ public class NatAnalyzer {
             System.out.println("[Client] Sent to server from local port: " + local.getPort());
         }
 
-        // Server’dan gelen peer info paketlerini al
-        // Not: 100ms agresif olabilir, biraz daha geniş tuttum.
-        long deadline = System.nanoTime() + 300_000_000L; // 300ms
-        Set<Integer> remotePorts = new LinkedHashSet<>(); // karşı tarafın port’ları
+        long start = System.currentTimeMillis();
+        long lastSend = start;
+        boolean matched = false;
+        Set<Integer> remotePorts = new LinkedHashSet<>();
 
-        while (System.nanoTime() < deadline) {
-            if (selector.selectNow() == 0) continue;
+        while ((System.currentTimeMillis() - start) < MATCH_TIMEOUT_MS && !matched) {
 
+            // Bekleme
+            selector.select(SELECT_TIMEOUT_MS);
+
+            // Gelen paketleri işle
             Iterator<SelectionKey> it = selector.selectedKeys().iterator();
             while (it.hasNext()) {
                 SelectionKey key = it.next(); it.remove();
@@ -204,30 +187,35 @@ public class NatAnalyzer {
                 if (from == null) continue;
                 buf.flip();
 
-                List<Object> pp = LLS.parseLLSPacket(buf);
-                byte  msgType   = (byte)  pp.get(0);
-                short msgLen    = (short) pp.get(1);
-                String fromUser = (String) pp.get(2);
-                String toUser   = (String) pp.get(3);
-                InetAddress peerIP   = (InetAddress) pp.get(4);
-                int        peerPort  = (int)        pp.get(5);
+                List<Object> info = LLS.parseLLSPacket(buf);
+                InetAddress peerIP  = (InetAddress) info.get(4);
+                int        peerPort = (int)        info.get(5);
 
-                System.out.printf("[Client] <<< from %s | IP:%s Port:%d (type=0x%02X len=%d)%n",
-                        fromUser, peerIP.getHostAddress(), peerPort, msgType, msgLen);
+                System.out.printf("[Client] <<< peer %s:%d\n",
+                        peerIP.getHostAddress(), peerPort);
 
                 remotePorts.add(peerPort);
 
-                // Bu kanalda karşıya keepalive başlat
-                InetSocketAddress peerSock = new InetSocketAddress(peerIP, peerPort);
-                new KeepStand(peerSock, dc).start();
+                // KeepStand başlat
+                new KeepStand(new InetSocketAddress(peerIP, peerPort), dc).start();
+                matched = true; // en az bir port geldiyse eşleşti sayıyoruz
+            }
+
+            // Target hâlâ gelmediyse periyodik resend
+            long now = System.currentTimeMillis();
+            if (!matched && (now - lastSend) >= RESEND_INTERVAL_MS) {
+                for (DatagramChannel dc : channels) {
+                    dc.send(pkt.duplicate(), serverAddr);
+                }
+                lastSend = now;
             }
         }
 
-        System.out.println("[Client] Remote port list (learned) = " + remotePorts);
-
-        // Kanalları burada kapatmak ister misin? P2P devreden sonra kapatmak mantıklı olabilir.
-        // channels.forEach(c -> { try { c.close(); } catch (IOException ignored) {} });
-        // selector.close();
+        if (!matched) {
+            System.out.println("[Client] Match timeout. Target don't responded yet.");
+        } else {
+            System.out.println("[Client] Remote ports learned: " + remotePorts);
+        }
     }
 
     public static void main(String[] args) {
