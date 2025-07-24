@@ -155,7 +155,7 @@ public class NatAnalyzer {
      * Aşağıda b)’yi yaptım: Public_PortList.size() kadar kanal açıyor.
      * Boşsa en az 1 yapıyoruz.
      */
-    private static final int MIN_CHANNELS = 1;
+    private static final int MIN_CHANNELS = 5;
 
     public static void multiplexer(InetSocketAddress serverAddr) throws IOException, InterruptedException {
         // STUN NAT analizi
