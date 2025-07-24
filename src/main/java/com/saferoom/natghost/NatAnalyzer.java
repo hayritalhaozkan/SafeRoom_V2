@@ -3,7 +3,6 @@ package com.saferoom.natghost;
 import com.saferoom.client.ClientMenu;
 import com.saferoom.server.SafeRoomServer;
 
-import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -13,8 +12,11 @@ import java.security.SecureRandom;
 import java.util.*;
 
 /**
- * Client: STUN → NAT sinyali → çoklu kanal aç → server'a paket gönder.
- * Target yoksa hemen çıkma: belirli süre bekle, gerekirse tekrar gönder.
+ * Client:
+ * - STUN ile NAT sinyali
+ * - Çoklu DatagramChannel açıp server'a paket gönder
+ * - Hedef gelene kadar tekrar tekrar gönder (resend)
+ * - İlk paketten sonra da kısa bir süre daha dinleyerek tüm portları toplar
  */
 public class NatAnalyzer {
 
@@ -36,121 +38,101 @@ public class NatAnalyzer {
             {"stun.server.org", "3478"}
     };
 
-    public static final SocketAddress SERVER_SOCKET =
-            new InetSocketAddress(ClientMenu.Server, ClientMenu.UDP_Port);
+    private static final int   MIN_CHANNELS        = 4;     // Minimum delik sayısı
+    private static final long  MATCH_TIMEOUT_MS    = 15_000;
+    private static final long  QUIET_AFTER_LAST_MS = 500;   // son paketten sonra beklenen sessizlik
+    private static final long  RESEND_INTERVAL_MS  = 1_000;
+    private static final long  SELECT_BLOCK_MS     = 50;
 
-    /* === Parametreler === */
-    private static final int   MIN_CHANNELS        = 4;
-    private static final long  MATCH_TIMEOUT_MS    = 10_000;  // Target'ı bekleme süresi
-    private static final long  RESEND_INTERVAL_MS  = 1_000;   // Server'a keepalive/resend
-    private static final long  SELECT_TIMEOUT_MS   = 50;      // select() blok süresi
-
-    // ---------- STUN ------------
-    public static ByteBuffer Stun_Packet() {
-        ByteBuffer packet = ByteBuffer.allocate(20);
-        packet.putShort((short) ((0x0001) & 0x3FFF));
-        packet.putShort((short) 0);
-        packet.putInt(0x2112A442);
-
-        byte[] transactionID = new byte[12];
-        RNG.nextBytes(transactionID);
-        packet.put(transactionID);
-        packet.flip();
-        return packet;
+    // ------------ STUN ------------
+    private static ByteBuffer stunPacket() {
+        ByteBuffer p = ByteBuffer.allocate(20);
+        p.putShort((short) ((0x0001) & 0x3FFF)); // binding request
+        p.putShort((short) 0);
+        p.putInt(0x2112A442);
+        byte[] tid = new byte[12];
+        RNG.nextBytes(tid);
+        p.put(tid);
+        p.flip();
+        return p;
     }
 
-    public static void parseStunResponse(ByteBuffer buffer, List<Integer> PublicPortList) {
-        buffer.position(20);
-        while (buffer.remaining() >= 4) {
-            short attrType = buffer.getShort();
-            short attrLen  = buffer.getShort();
-
-            if (attrType == 0x0001) { // MAPPED-ADDRESS
-                buffer.get(); // ignore 1 byte
-                buffer.get(); // family
-                int port = buffer.getShort() & 0xFFFF;
-                byte[] addrBytes = new byte[4];
-                buffer.get(addrBytes);
-
-                String ip = String.format("%d.%d.%d.%d",
-                        addrBytes[0] & 0xFF,
-                        addrBytes[1] & 0xFF,
-                        addrBytes[2] & 0xFF,
-                        addrBytes[3] & 0xFF);
-
-                System.out.println("[STUN] Public IP: " + ip + " | Port: " + port);
+    private static void parseStunResponse(ByteBuffer buf, List<Integer> list) {
+        buf.position(20);
+        while (buf.remaining() >= 4) {
+            short type = buf.getShort();
+            short len  = buf.getShort();
+            if (type == 0x0001) { // MAPPED-ADDRESS
+                buf.get(); // ignore
+                buf.get(); // family
+                int port = buf.getShort() & 0xFFFF;
+                byte[] ipb = new byte[4];
+                buf.get(ipb);
+                String ip = (ipb[0] & 0xFF) + "." + (ipb[1] & 0xFF) + "." + (ipb[2] & 0xFF) + "." + (ipb[3] & 0xFF);
                 myPublicIP = ip;
-                PublicPortList.add(port);
+                list.add(port);
             } else {
-                buffer.position(buffer.position() + attrLen);
+                buf.position(buf.position() + len);
             }
         }
     }
 
-    public static <T> boolean allEqual(List<T> list) {
-        if (list.isEmpty()) return true;
-        T f = list.get(0);
-        for (int i = 1; i < list.size(); i++)
-            if (!Objects.equals(f, list.get(i))) return false;
+    private static <T> boolean allEqual(List<T> l) {
+        if (l.isEmpty()) return true;
+        T f = l.get(0);
+        for (int i = 1; i < l.size(); i++) if (!Objects.equals(f, l.get(i))) return false;
         return true;
     }
 
-    public static byte analyzer(String[][] stun_servers) throws IOException {
-        Selector selector = Selector.open();
+    public static byte analyzer(String[][] servers) throws Exception {
+        Selector sel = Selector.open();
         DatagramChannel ch = DatagramChannel.open();
         ch.configureBlocking(false);
         ch.bind(new InetSocketAddress(0));
-        ch.register(selector, SelectionKey.OP_READ);
+        ch.register(sel, SelectionKey.OP_READ);
 
-        for (String[] stun : stun_servers) {
-            String host = stun[0];
-            int    port = Integer.parseInt(stun[1]);
-            try {
-                InetAddress.getByName(host);
-            } catch (UnknownHostException e) {
-                System.err.println("[STUN] DNS fail: " + host);
-                continue;
-            }
-            ch.send(Stun_Packet().duplicate(), new InetSocketAddress(host, port));
+        for (String[] s : servers) {
+            try { InetAddress.getByName(s[0]); } catch (UnknownHostException e) { continue; }
+            ch.send(stunPacket().duplicate(), new InetSocketAddress(s[0], Integer.parseInt(s[1])));
         }
 
-        long deadline = System.nanoTime() + 100_000_000L;
-        while (System.nanoTime() < deadline) {
-            if (selector.selectNow() == 0) continue;
-            Iterator<SelectionKey> it = selector.selectedKeys().iterator();
+        long dl = System.nanoTime() + 100_000_000L;
+        while (System.nanoTime() < dl) {
+            if (sel.selectNow() == 0) continue;
+            Iterator<SelectionKey> it = sel.selectedKeys().iterator();
             while (it.hasNext()) {
-                SelectionKey key = it.next(); it.remove();
-                DatagramChannel rcvCh = (DatagramChannel) key.channel();
-                ByteBuffer recv = ByteBuffer.allocate(512);
-                rcvCh.receive(recv);
-                recv.flip();
-                parseStunResponse(recv, Public_PortList);
+                SelectionKey k = it.next(); it.remove();
+                DatagramChannel rc = (DatagramChannel) k.channel();
+                ByteBuffer r = ByteBuffer.allocate(512);
+                rc.receive(r);
+                r.flip();
+                parseStunResponse(r, Public_PortList);
             }
         }
+
         // uniq
         List<Integer> uniq = new ArrayList<>(new LinkedHashSet<>(Public_PortList));
         Public_PortList.clear();
         Public_PortList.addAll(uniq);
 
-        if (Public_PortList.size() >= 2) {
-            signal = allEqual(Public_PortList) ? (byte) 0x00 : (byte) 0x11;
-        } else {
-            signal = (byte) 0xFE;
-        }
-        System.out.println("[STUN] NAT signal = " + String.format("0x%02X", signal));
+        signal = (Public_PortList.size() >= 2)
+                ? (allEqual(Public_PortList) ? (byte)0x00 : (byte)0x11)
+                : (byte)0xFE;
+
+        System.out.println("[STUN] NAT signal = 0x" + String.format("%02X", signal));
         return signal;
     }
 
-    // ---------- MULTIPLEXER ----------
+    // ------------ MULTIPLEXER ------------
     public static void multiplexer(InetSocketAddress serverAddr) throws Exception {
         byte sig = analyzer(stunServers);
         if (ClientMenu.myUsername == null || ClientMenu.target_username == null)
-            throw new IllegalStateException("Username/Target atanmadı!");
+            throw new IllegalStateException("Username/Target null!");
 
         int holeCount = Math.max(Public_PortList.size(), MIN_CHANNELS);
 
         Selector selector = Selector.open();
-        List<DatagramChannel> channels = new ArrayList<>(holeCount);
+        List<DatagramChannel> chans = new ArrayList<>(holeCount);
         ByteBuffer pkt = LLS.New_Multiplex_Packet(sig, ClientMenu.myUsername, ClientMenu.target_username);
 
         for (int i = 0; i < holeCount; i++) {
@@ -159,23 +141,23 @@ public class NatAnalyzer {
             dc.bind(new InetSocketAddress(0));
             dc.send(pkt.duplicate(), serverAddr);
             dc.register(selector, SelectionKey.OP_READ);
-            channels.add(dc);
+            chans.add(dc);
 
             InetSocketAddress local = (InetSocketAddress) dc.getLocalAddress();
             System.out.println("[Client] Sent to server from local port: " + local.getPort());
         }
 
-        long start = System.currentTimeMillis();
-        long lastSend = start;
-        boolean matched = false;
+        long start   = System.currentTimeMillis();
+        long lastRcv = 0;
+        long lastSnd = start;
+
         Set<Integer> remotePorts = new LinkedHashSet<>();
+        InetAddress  remoteIP    = null;
 
-        while ((System.currentTimeMillis() - start) < MATCH_TIMEOUT_MS && !matched) {
+        while (System.currentTimeMillis() - start < MATCH_TIMEOUT_MS) {
+            selector.select(SELECT_BLOCK_MS);
 
-            // Bekleme
-            selector.select(SELECT_TIMEOUT_MS);
-
-            // Gelen paketleri işle
+            boolean got = false;
             Iterator<SelectionKey> it = selector.selectedKeys().iterator();
             while (it.hasNext()) {
                 SelectionKey key = it.next(); it.remove();
@@ -185,42 +167,45 @@ public class NatAnalyzer {
                 ByteBuffer buf = ByteBuffer.allocate(512);
                 SocketAddress from = dc.receive(buf);
                 if (from == null) continue;
-                buf.flip();
 
+                buf.flip();
                 List<Object> info = LLS.parseLLSPacket(buf);
                 InetAddress peerIP  = (InetAddress) info.get(4);
                 int        peerPort = (int)        info.get(5);
 
-                System.out.printf("[Client] <<< peer %s:%d\n",
-                        peerIP.getHostAddress(), peerPort);
-
+                if (remoteIP == null) remoteIP = peerIP;
                 remotePorts.add(peerPort);
+                System.out.printf("[Client] <<< peer %s:%d%n", peerIP.getHostAddress(), peerPort);
 
-                // KeepStand başlat
                 new KeepStand(new InetSocketAddress(peerIP, peerPort), dc).start();
-                matched = true; // en az bir port geldiyse eşleşti sayıyoruz
+
+                lastRcv = System.currentTimeMillis();
+                got = true;
             }
 
-            // Target hâlâ gelmediyse periyodik resend
+            // Sessizlik koşulu: en az bir port aldıysan ve QUIET_AFTER_LAST_MS geçtiyse çık
+            if (!remotePorts.isEmpty() && lastRcv != 0 &&
+                (System.currentTimeMillis() - lastRcv) > QUIET_AFTER_LAST_MS) {
+                break;
+            }
+
+            // Hâlâ hiç cevap yoksa resend
             long now = System.currentTimeMillis();
-            if (!matched && (now - lastSend) >= RESEND_INTERVAL_MS) {
-                for (DatagramChannel dc : channels) {
+            if (remotePorts.isEmpty() && (now - lastSnd) >= RESEND_INTERVAL_MS) {
+                for (DatagramChannel dc : chans)
                     dc.send(pkt.duplicate(), serverAddr);
-                }
-                lastSend = now;
+                lastSnd = now;
             }
         }
 
-        if (!matched) {
-            System.out.println("[Client] Match timeout. Target don't responded yet.");
-        } else {
-            System.out.println("[Client] Remote ports learned: " + remotePorts);
-        }
+        System.out.println("[Client] Remote ports learned: " + remotePorts);
     }
 
     public static void main(String[] args) {
-        InetSocketAddress serverAddr =
-                new InetSocketAddress(SafeRoomServer.ServerIP, SafeRoomServer.udpPort1);
+        InetSocketAddress serverAddr = new InetSocketAddress(
+                SafeRoomServer.ServerIP,
+                SafeRoomServer.udpPort1
+        );
         try {
             multiplexer(serverAddr);
         } catch (Exception e) {

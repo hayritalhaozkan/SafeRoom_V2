@@ -1,7 +1,6 @@
 package com.saferoom.server;
 
 import com.saferoom.natghost.LLS;
-import com.saferoom.natghost.PeerInfo;
 
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -11,29 +10,32 @@ import java.nio.channels.Selector;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Server:
+ * - Her kullanıcıdan gelen TÜM portları saklar.
+ * - Karşı taraf da gelmişse sadece YENİ portları karşı tarafa pushlar.
+ * - State hemen silinmez; TTL süresi dolunca temizlenir.
+ */
 public class PeerListener extends Thread {
 
+    /** Tek kullanıcının durum bilgisi */
     static final class PeerState {
         final String host;
         final String target;
         final byte   signal;
-        InetAddress  ip;
+        InetAddress  ip;                      // son görülen IP
         final Set<Integer> ports = Collections.synchronizedSet(new LinkedHashSet<>());
 
-        // Karşı tarafa hangi portlarımızı yolladık?
+        // Bu kullanıcıdan gelen hangi portları karşı tarafa zaten gönderdik?
         final Set<Integer> sentToTarget = Collections.synchronizedSet(new HashSet<>());
-
-        // Karşı taraftan gelen portları hangi local portlara gönderdik?
-        // (gerekirse duplicate önlemek için kullanılır)
-        final Set<Integer> deliveredFromTarget = Collections.synchronizedSet(new HashSet<>());
 
         volatile long lastSeenMs;
 
         PeerState(String host, String target, byte signal, InetAddress ip, int port) {
-            this.host = host;
+            this.host   = host;
             this.target = target;
             this.signal = signal;
-            this.ip = ip;
+            this.ip     = ip;
             this.ports.add(port);
             this.lastSeenMs = System.currentTimeMillis();
         }
@@ -45,14 +47,14 @@ public class PeerListener extends Thread {
         }
     }
 
+    /** username -> state */
     private static final Map<String, PeerState> STATES = new ConcurrentHashMap<>();
 
     public static final int UDP_PORT = 45000;
-    private static final int MIN_PACKET_SIZE = 1 + 2 + 20 + 20;
 
-    // Temizlik parametreleri
-    private static final long STATE_TTL_MS        = 20_000;
-    private static final long CLEANUP_INTERVAL_MS = 5_000;
+    private static final int   MIN_PACKET_SIZE       = 1 + 2 + 20 + 20;
+    private static final long  STATE_TTL_MS          = 20_000; // target hiç gelmediyse 20 sn sonra sil
+    private static final long  CLEANUP_INTERVAL_MS   = 5_000;  // 5 sn'de bir temizlik
     private long lastCleanup = System.currentTimeMillis();
 
     @Override
@@ -78,6 +80,7 @@ public class PeerListener extends Thread {
                     SocketAddress from = channel.receive(buf);
                     if (from == null) continue;
                     buf.flip();
+
                     if (buf.remaining() < MIN_PACKET_SIZE) continue;
                     if (!(from instanceof InetSocketAddress inetAddr)) continue;
 
@@ -96,12 +99,12 @@ public class PeerListener extends Thread {
                         return old;
                     });
 
-                    System.out.printf(">> %s @ %s:%d ports=%s target=%s%n",
-                            sender, ip.getHostAddress(), port, me.ports, me.target);
+                    System.out.printf(">> %s @ %s:%d | target=%s | ports=%s%n",
+                            sender, ip.getHostAddress(), port, target, me.ports);
 
                     PeerState tgt = STATES.get(target);
                     if (tgt != null && tgt.target.equals(sender)) {
-                        // Her iki taraf da var. Sadece YENİ portları gönder.
+                        // Karşılıklı hedefleme tamam; yeni portları karşı tarafa pushla
                         pushDeltas(channel, me, tgt);
                         pushDeltas(channel, tgt, me);
                     }
@@ -120,19 +123,17 @@ public class PeerListener extends Thread {
     }
 
     /**
-     * 'from' tarafındaki yeni portları 'to' tarafına gönder.
-     * Her yeni portu 'to' tarafındaki tüm portlara dağıtıyoruz.
-     * (İstersen 1:1 map yapacak şekilde round-robin'e çevirebilirsin.)
+     * 'from' tarafında yeni eklenen portları 'to' tarafındaki TÜM portlara gönderir.
+     * Eğer 1:1 eşlemek istiyorsan round-robin yapabilirsin.
      */
     private void pushDeltas(DatagramChannel ch, PeerState from, PeerState to) throws Exception {
-        // from.ports - from.sentToTarget = yeni portlar
         List<Integer> newPorts = new ArrayList<>();
-        for (int p : from.ports)
-            if (!from.sentToTarget.contains(p))
-                newPorts.add(p);
-
+        for (int p : from.ports) {
+            if (!from.sentToTarget.contains(p)) newPorts.add(p);
+        }
         if (newPorts.isEmpty()) return;
 
+        // Broadcast tarzı: her yeni portu karşı tarafın tüm portlarına gönder
         for (int newP : newPorts) {
             for (int toPort : to.ports) {
                 ByteBuffer pkt = LLS.New_LLS_Packet(
@@ -144,8 +145,7 @@ public class PeerListener extends Thread {
             from.sentToTarget.add(newP);
         }
 
-        System.out.printf("<< Pushed %d new ports from %s to %s%n",
-                newPorts.size(), from.host, to.host);
+        System.out.printf("<< pushed %d new ports from %s to %s%n", newPorts.size(), from.host, to.host);
     }
 
     private void cleanupExpired(long nowMs) {
