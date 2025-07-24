@@ -163,8 +163,6 @@ public class NatAnalyzer {
 
         long deadline = System.nanoTime() + 100_000_000; // 100ms
 
-        while(true) 
-        {
         while (System.nanoTime() < deadline) {
             if (selector.selectNow() == 0) continue;
 
@@ -202,7 +200,7 @@ public class NatAnalyzer {
                     }
                 }
             }
-        }}
+        }
        // for (DatagramChannel ch : channels) ch.close();
         //selector.close();
     }
@@ -210,7 +208,7 @@ public class NatAnalyzer {
     public static void main(String[] args) throws InterruptedException {
         InetSocketAddress server_addr = new InetSocketAddress(SafeRoomServer.ServerIP, SafeRoomServer.udpPort1);
         try {
-            multiplexer(server_addr, 5);
+            multiplexer(server_addr, 1);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -104,8 +104,6 @@ public class PeerListener extends Thread {
 
                             PeerMap.remove(sender);
                             PeerMap.remove(target);
-                        }else {
-                        	Thread.sleep(250);
                         }
                     }
                 }
