@@ -125,7 +125,10 @@ public class NatAnalyzer {
 
         Selector selector = Selector.open();
         List<DatagramChannel> channels = new ArrayList<>(holeCount);
-        List<KeepStand> keepThreads = new ArrayList<>(); // <-- BURAYA ALDIK
+
+        // KeepAliveManager kuruluyor
+        KeepAliveManager KAM = new KeepAliveManager(15_000);
+        KAM.installShutdownHook();
 
         ByteBuffer hello = LLS.New_Hello_Packet(ClientMenu.myUsername, ClientMenu.target_username, LLS.SIG_HELLO);
 
@@ -137,6 +140,7 @@ public class NatAnalyzer {
             dc.send(hello.duplicate(), serverAddr);
             dc.register(selector, SelectionKey.OP_READ);
             channels.add(dc);
+
             InetSocketAddress local = (InetSocketAddress) dc.getLocalAddress();
             System.out.println("[Client] HELLO sent from local port: " + local.getPort());
         }
@@ -153,6 +157,9 @@ public class NatAnalyzer {
 
         Set<Integer> remotePorts = new LinkedHashSet<>();
         InetAddress  remoteIP    = null;
+
+        // 1:1 local→remote eşlemek için rr
+        int rrIdx = 0;
 
         while (System.currentTimeMillis() - start < MATCH_TIMEOUT_MS && !allDone) {
             selector.select(SELECT_BLOCK_MS);
@@ -179,9 +186,11 @@ public class NatAnalyzer {
                     if (remoteIP == null) remoteIP = pIP;
                     if (remotePorts.add(pPort)) {
                         System.out.printf("[Client] <<< PORT %s:%d\n", pIP.getHostAddress(), pPort);
-                        KeepStand ks = new KeepStand(new InetSocketAddress(pIP, pPort), dc);
-                        ks.start();
-                        keepThreads.add(ks);
+
+                        DatagramChannel chosen = channels.get(rrIdx % channels.size());
+                        rrIdx++;
+
+                        KAM.register(chosen, new InetSocketAddress(pIP, pPort));
                     }
                 } else if (type == LLS.SIG_ALL_DONE) {
                     List<Object> info = LLS.parseAllDone(buf.duplicate());
@@ -189,11 +198,11 @@ public class NatAnalyzer {
                     System.out.println("[Client] <<< ALL_DONE from " + who);
                     allDone = true;
                 } else {
-                    // SIG_KEEP vb. gelirse ignore
+                    // SIG_KEEP vb. -> ignore
                 }
             }
 
-            // Hiç cevap yoksa resend (HELLO + FIN)
+            // Cevap yoksa resend
             if (!allDone && remotePorts.isEmpty() &&
                 (System.currentTimeMillis() - lastSend) > RESEND_INTERVAL_MS) {
 
@@ -201,27 +210,19 @@ public class NatAnalyzer {
                     dc.send(hello.duplicate(), serverAddr);
                 }
                 channels.get(0).send(LLS.New_Fin_Packet(ClientMenu.myUsername, ClientMenu.target_username).duplicate(),
-                        serverAddr);
+                                     serverAddr);
                 lastSend = System.currentTimeMillis();
             }
         }
 
         if (!allDone) {
             System.out.println("[Client] Timeout without ALL_DONE.");
+            KAM.close();
         } else {
             System.out.println("[Client] Remote ports learned: " + remotePorts);
-        }
-
-        // ---- PROGRAMI AÇIK TUT ----
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            // kapatırken keepAlive thread'lerini bitir
-            for (KeepStand ks : keepThreads) ks.interrupt();
-        }));
-
-        System.out.println("[Client] KeepAlive threads running. Press Ctrl+C to exit.");
-        // Ana thread'i blokla (join)
-        for (KeepStand ks : keepThreads) {
-            try { ks.join(); } catch (InterruptedException ignored) {}
+            KAM.printSummary();
+            System.out.println("[Client] KeepAlives running. Press Ctrl+C to exit...");
+            KAM.blockMain();      // Ana thread burada kalır
         }
     }
 
