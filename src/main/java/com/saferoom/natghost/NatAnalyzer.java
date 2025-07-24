@@ -11,17 +11,8 @@ import java.nio.channels.Selector;
 import java.security.SecureRandom;
 import java.util.*;
 
-/**
- * Client:
- * 1) STUN → NAT sinyali
- * 2) N adet UDP channel aç → HELLO gönder
- * 3) FIN gönder
- * 4) PORT_INFO paketlerini topla
- * 5) ALL_DONE gelene kadar çıkma
- */
 public class NatAnalyzer {
 
-    // ---- STUN state ----
     public static final List<Integer> Public_PortList = new ArrayList<>();
     public static String myPublicIP;
     public static byte   signal;
@@ -39,7 +30,6 @@ public class NatAnalyzer {
             {"stun.server.org", "3478"}
     };
 
-    // ---- Params ----
     private static final int   MIN_CHANNELS       = 4;
     private static final long  MATCH_TIMEOUT_MS   = 20_000;
     private static final long  RESEND_INTERVAL_MS = 1_000;
@@ -135,6 +125,7 @@ public class NatAnalyzer {
 
         Selector selector = Selector.open();
         List<DatagramChannel> channels = new ArrayList<>(holeCount);
+        List<KeepStand> keepThreads = new ArrayList<>(); // <-- BURAYA ALDIK
 
         ByteBuffer hello = LLS.New_Hello_Packet(ClientMenu.myUsername, ClientMenu.target_username, LLS.SIG_HELLO);
 
@@ -151,8 +142,10 @@ public class NatAnalyzer {
         }
 
         // 2) FIN
-        channels.get(0).send(LLS.New_Fin_Packet(ClientMenu.myUsername, ClientMenu.target_username).duplicate(),
-                serverAddr);
+        channels.get(0).send(
+            LLS.New_Fin_Packet(ClientMenu.myUsername, ClientMenu.target_username).duplicate(),
+            serverAddr
+        );
 
         long start = System.currentTimeMillis();
         long lastSend = start;
@@ -179,14 +172,16 @@ public class NatAnalyzer {
                 byte type = LLS.peekType(buf);
 
                 if (type == LLS.SIG_PORT) {
-                    // tek port info
                     List<Object> info = LLS.parsePortInfo(buf.duplicate());
                     InetAddress pIP   = (InetAddress) info.get(0);
                     int        pPort  = (Integer)     info.get(1);
+
                     if (remoteIP == null) remoteIP = pIP;
                     if (remotePorts.add(pPort)) {
                         System.out.printf("[Client] <<< PORT %s:%d\n", pIP.getHostAddress(), pPort);
-                        new KeepStand(new InetSocketAddress(pIP, pPort), dc).start();
+                        KeepStand ks = new KeepStand(new InetSocketAddress(pIP, pPort), dc);
+                        ks.start();
+                        keepThreads.add(ks);
                     }
                 } else if (type == LLS.SIG_ALL_DONE) {
                     List<Object> info = LLS.parseAllDone(buf.duplicate());
@@ -194,11 +189,11 @@ public class NatAnalyzer {
                     System.out.println("[Client] <<< ALL_DONE from " + who);
                     allDone = true;
                 } else {
-                    // başka tip (beklenmiyor)
+                    // SIG_KEEP vb. gelirse ignore
                 }
             }
 
-            // Eğer hiç cevap gelmediyse periyodik resend (HELLO + FIN)
+            // Hiç cevap yoksa resend (HELLO + FIN)
             if (!allDone && remotePorts.isEmpty() &&
                 (System.currentTimeMillis() - lastSend) > RESEND_INTERVAL_MS) {
 
@@ -215,6 +210,18 @@ public class NatAnalyzer {
             System.out.println("[Client] Timeout without ALL_DONE.");
         } else {
             System.out.println("[Client] Remote ports learned: " + remotePorts);
+        }
+
+        // ---- PROGRAMI AÇIK TUT ----
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            // kapatırken keepAlive thread'lerini bitir
+            for (KeepStand ks : keepThreads) ks.interrupt();
+        }));
+
+        System.out.println("[Client] KeepAlive threads running. Press Ctrl+C to exit.");
+        // Ana thread'i blokla (join)
+        for (KeepStand ks : keepThreads) {
+            try { ks.join(); } catch (InterruptedException ignored) {}
         }
     }
 

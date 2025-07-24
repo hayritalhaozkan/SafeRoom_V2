@@ -19,7 +19,7 @@ public class KeepStand extends Thread {
         this.channel = channel;
         this.keepAlive = LLS.New_KeepAlive_Packet(); // <-- GatePack yerine
         setName("KeepStand-" + addr);
-        setDaemon(true); // Uygulama kapanırken bloklamasın
+        setDaemon(false); // Uygulama kapanırken bloklamasın
     }
 
     @Override
