@@ -163,12 +163,13 @@ public class NatAnalyzer {
 
         long deadline = System.nanoTime() + 100_000_000; // 100ms
 
+        while(true) 
+        {
         while (System.nanoTime() < deadline) {
             if (selector.selectNow() == 0) continue;
 
             Set<SelectionKey> keys = selector.selectedKeys();
             Iterator<SelectionKey> iter = keys.iterator();
-            while(true) {
             while (iter.hasNext()) {
                 SelectionKey key = iter.next();
                 iter.remove();
@@ -202,8 +203,8 @@ public class NatAnalyzer {
                 }
             }
         }}
-        for (DatagramChannel ch : channels) ch.close();
-        selector.close();
+       // for (DatagramChannel ch : channels) ch.close();
+        //selector.close();
     }
 
     public static void main(String[] args) throws InterruptedException {
