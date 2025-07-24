@@ -140,7 +140,7 @@ public class NatAnalyzer {
         return signal;
     }
 
-    public static void multiplexer(InetSocketAddress Server_Address, int hole_count) throws IOException {
+    public static void multiplexer(InetSocketAddress Server_Address, int hole_count) throws IOException, InterruptedException {
         List<DatagramChannel> channels = new ArrayList<>();
         Selector selector = Selector.open();
 
@@ -150,8 +150,6 @@ public class NatAnalyzer {
         }
 
         ByteBuffer packet = LLS.New_Multiplex_Packet(signal, ClientMenu.myUsername, ClientMenu.target_username);
-      //  packet.flip();
-
         for (int i = 0; i < hole_count; i++) {
             DatagramChannel ch = DatagramChannel.open();
             ch.configureBlocking(false);
@@ -160,6 +158,8 @@ public class NatAnalyzer {
             ch.register(selector, SelectionKey.OP_READ);
             channels.add(ch);
         }
+    	int i = 0;
+
 
         long deadline = System.nanoTime() + 100_000_000; // 100ms
 
@@ -176,21 +176,31 @@ public class NatAnalyzer {
                     DatagramChannel ch = (DatagramChannel) key.channel();
                     ByteBuffer buf = ByteBuffer.allocate(512);
                     SocketAddress from = ch.receive(buf);
-                    if (from != null) {
-                        buf.flip();
-                        byte[] data = new byte[buf.remaining()];
-                        buf.get(data);
-                        System.out.println("Cevap alındı: " + new String(data));
+                    if(from == null) continue;
+                    buf.flip();
+                    if(from instanceof InetSocketAddress inet_addr) {
+                    	List<Object> peer_info_packet = LLS.parseLLSPacket(buf);
+                    	byte message_type = (byte)peer_info_packet.get(0);
+                    	short message_len = (short)peer_info_packet.get(1);
+                    	
+                    	String message_from = (String)peer_info_packet.get(2);
+                    	String message_to = (String)peer_info_packet.get(3);
+                    	
+                    	InetAddress public_IP = (InetAddress)peer_info_packet.get(4);
+                    	int public_Port = (int)peer_info_packet.get(5);
+                    	InetSocketAddress addr = new InetSocketAddress(public_IP, public_Port);
+                        KeepStand runner = new KeepStand(addr, ch);
+                        runner.start();
+                    	
                     }
                 }
             }
         }
-
         for (DatagramChannel ch : channels) ch.close();
         selector.close();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         InetSocketAddress server_addr = new InetSocketAddress(SafeRoomServer.ServerIP, SafeRoomServer.udpPort1);
         try {
             multiplexer(server_addr, 1);

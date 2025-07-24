@@ -18,9 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerListener extends Thread {
     public static final Map<String, PeerInfo> PeerMap    = new ConcurrentHashMap<>();
-    public static final Map<PeerInfo, PeerInfo> MatchMap = new ConcurrentHashMap<>();
 
-    // Gelen host adreslerini ve kullanıcı adlarını saklamak için
     public static final Set<String> HostSet     = ConcurrentHashMap.newKeySet();
     public static final Set<String> UsernameSet = ConcurrentHashMap.newKeySet();
 
@@ -37,7 +35,6 @@ public class PeerListener extends Thread {
 
             System.out.println("UDP Listener running on port " + udpPort1);
 
-            // sadece header+username+target: 1+2+20+20 = 43 byte
             final int MIN_PACKET_SIZE = 1 + 2 + 20 + 20;
 
             while (true) {
@@ -53,7 +50,6 @@ public class PeerListener extends Thread {
                     if (clientAddr == null) continue;
 
                     buffer.flip();
-
                     if (buffer.remaining() < MIN_PACKET_SIZE) {
                         System.out.println("Gelen paket çok kısa (" 
                             + buffer.remaining() + " bytes), atlanıyor.");
@@ -61,38 +57,31 @@ public class PeerListener extends Thread {
                     }
 
                     if (clientAddr instanceof InetSocketAddress inetAddr) {
-                        // 1) Parse sadece header, username, target
                         List<Object> parsed = LLS.parseMultiple_Packet(buffer.duplicate());
                         byte   signal   = (Byte)  parsed.get(0);
                         short  length   = (Short) parsed.get(1);
                         String sender   = (String) parsed.get(2);
                         String target   = (String) parsed.get(3);
 
-                        // 2) UDP soket bilgisinden al public IP ve port
                         InetAddress publicIp = inetAddr.getAddress();
                         int         port     = inetAddr.getPort();
 
-                        // 3) Hepsini logla
                         System.out.printf(
                             ">> Packet received from %s:%d → signal=0x%02X, length=%d, sender=%s, target=%s%n",
                             publicIp.getHostAddress(), port, signal, length, sender, target
                         );
 
-                        // 4) HostSet ve UsernameSet’e ekle
                         String hostKey = publicIp.getHostAddress() + ":" + port;
                         HostSet.add(hostKey);
                         UsernameSet.add(sender);
                         System.out.println("   HostSet: " + HostSet);
                         System.out.println("   UsernameSet: " + UsernameSet);
 
-                        // 5) PeerMap’e ekle
                         PeerInfo peer = new PeerInfo(sender, target, signal, publicIp, port);
                         PeerMap.put(sender, peer);
 
-                        // 6) Eşleşme kontrolü ve hole-punch
                         PeerInfo targetInfo = PeerMap.get(target);
                         if (targetInfo != null && targetInfo.Target.equals(sender)) {
-                            // karşılıklı bilgi gönderimi
                             ByteBuffer toHost = LLS.New_LLS_Packet(
                                 targetInfo.signal,
                                 targetInfo.Host,

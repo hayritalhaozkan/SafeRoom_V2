@@ -25,6 +25,14 @@ public class LLS {
 	    while (realLen < len && bytes[realLen] != 0) realLen++;
 	    return new String(bytes, 0, realLen, StandardCharsets.UTF_8);
 	}
+	
+	public static ByteBuffer GatePack() {
+		ByteBuffer buffer = ByteBuffer.allocate(25);
+		buffer.put((byte) 0x18);
+		putFixedString(buffer, "Hello, Sexter Morgan", 20);
+		buffer.flip();
+		return buffer;
+	}
 
 
 	 public static ByteBuffer New_LLS_Packet(byte signal, String username, String target, InetAddress publicIp, int port) {
@@ -74,13 +82,13 @@ public class LLS {
 
 	    byte type = buffer.get();
 	    short len = buffer.getShort();
-	    parsed.add(type); 
-	    parsed.add(len);  
+	    parsed.add(type); // packet.get(0)-->Message Type
+	    parsed.add(len);  //packet.get(1)-->Message Length
 
 	    String sender = getFixedString(buffer, 20);
 	    String target = getFixedString(buffer, 20);
-	    parsed.add(sender); 
-	    parsed.add(target); 
+	    parsed.add(sender); //packet.get(2)-->Sender
+	    parsed.add(target); //packet.get(3)-->Target
 
 	    if (buffer.remaining() < 4 + 1)
 	        throw new IllegalArgumentException("Packet too short for IP and port count");
@@ -88,10 +96,10 @@ public class LLS {
 	    byte[] ipBytes = new byte[4];
 	    buffer.get(ipBytes);
 	    InetAddress ip = InetAddress.getByAddress(ipBytes);
-	    parsed.add(ip); 
+	    parsed.add(ip); //packet.get(4)-->Public IP
 
 	    int port = buffer.getInt();
-	    parsed.add(port);
+	    parsed.add(port); //packet.get(5)-->Public Port
 	    
 
 	    return parsed;
