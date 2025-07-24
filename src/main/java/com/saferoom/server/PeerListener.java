@@ -11,21 +11,23 @@ import java.nio.channels.Selector;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Server: Gelen her paketten kullanıcıya ait public port'u kaydeder.
- * Target geldiğinde port-port eşleme yapıp her porta ayrı yanıt yollar.
- * Target henüz gelmediyse state bekletilir; TTL dolunca temizlenir.
- */
 public class PeerListener extends Thread {
 
-    /** Tek kullanıcının state'i */
     static final class PeerState {
         final String host;
         final String target;
         final byte   signal;
-        InetAddress  ip;                  // son görülen public IP
+        InetAddress  ip;
         final Set<Integer> ports = Collections.synchronizedSet(new LinkedHashSet<>());
-        volatile long lastSeen;           // en son paket zamanı (ms)
+
+        // Karşı tarafa hangi portlarımızı yolladık?
+        final Set<Integer> sentToTarget = Collections.synchronizedSet(new HashSet<>());
+
+        // Karşı taraftan gelen portları hangi local portlara gönderdik?
+        // (gerekirse duplicate önlemek için kullanılır)
+        final Set<Integer> deliveredFromTarget = Collections.synchronizedSet(new HashSet<>());
+
+        volatile long lastSeenMs;
 
         PeerState(String host, String target, byte signal, InetAddress ip, int port) {
             this.host = host;
@@ -33,28 +35,25 @@ public class PeerListener extends Thread {
             this.signal = signal;
             this.ip = ip;
             this.ports.add(port);
-            this.lastSeen = System.currentTimeMillis();
+            this.lastSeenMs = System.currentTimeMillis();
         }
 
         void add(InetAddress ip, int port) {
             this.ip = ip;
             this.ports.add(port);
-            this.lastSeen = System.currentTimeMillis();
+            this.lastSeenMs = System.currentTimeMillis();
         }
     }
 
-    /** username -> PeerState */
     private static final Map<String, PeerState> STATES = new ConcurrentHashMap<>();
 
     public static final int UDP_PORT = 45000;
-
-    // Bekleme / temizlik parametreleri
-    private static final long STATE_TTL_MS       = 20_000; // target gelmezse 20 sn sonra sil
-    private static final long CLEANUP_INTERVAL_MS= 5_000;  // 5 sn'de bir state temizle
-    private long lastCleanup = System.currentTimeMillis();
-
-    // Paket kontrolü için minimum boy (yaklaşık)
     private static final int MIN_PACKET_SIZE = 1 + 2 + 20 + 20;
+
+    // Temizlik parametreleri
+    private static final long STATE_TTL_MS        = 20_000;
+    private static final long CLEANUP_INTERVAL_MS = 5_000;
+    private long lastCleanup = System.currentTimeMillis();
 
     @Override
     public void run() {
@@ -68,88 +67,88 @@ public class PeerListener extends Thread {
             System.out.println("UDP Listener running on port " + UDP_PORT);
 
             while (true) {
-                // 5ms bekleyip bloklama (çok yüksek frekansta dönmesin)
                 selector.select(5);
 
                 Iterator<SelectionKey> it = selector.selectedKeys().iterator();
                 while (it.hasNext()) {
-                    SelectionKey key = it.next();
-                    it.remove();
+                    SelectionKey key = it.next(); it.remove();
                     if (!key.isReadable()) continue;
 
-                    ByteBuffer buffer = ByteBuffer.allocate(1024);
-                    SocketAddress clientAddr = channel.receive(buffer);
-                    if (clientAddr == null) continue;
-                    buffer.flip();
-                    if (buffer.remaining() < MIN_PACKET_SIZE) continue;
+                    ByteBuffer buf = ByteBuffer.allocate(1024);
+                    SocketAddress from = channel.receive(buf);
+                    if (from == null) continue;
+                    buf.flip();
+                    if (buf.remaining() < MIN_PACKET_SIZE) continue;
+                    if (!(from instanceof InetSocketAddress inetAddr)) continue;
 
-                    if (!(clientAddr instanceof InetSocketAddress inetAddr)) continue;
-
-                    // LLS parse
-                    List<Object> parsed = LLS.parseMultiple_Packet(buffer.duplicate());
+                    List<Object> parsed = LLS.parseMultiple_Packet(buf.duplicate());
                     byte   signal = (Byte)  parsed.get(0);
-                    short  length = (Short) parsed.get(1);
+                    short  len    = (Short) parsed.get(1);
                     String sender = (String) parsed.get(2);
                     String target = (String) parsed.get(3);
 
-                    InetAddress ip = inetAddr.getAddress();
+                    InetAddress ip   = inetAddr.getAddress();
                     int         port = inetAddr.getPort();
 
-                    // STATE güncelle
-                    PeerState a = STATES.compute(sender, (k, old) -> {
+                    PeerState me = STATES.compute(sender, (k, old) -> {
                         if (old == null) return new PeerState(sender, target, signal, ip, port);
                         old.add(ip, port);
                         return old;
                     });
 
-                    System.out.printf(">> %s @ %s:%d (target=%s, ports=%s)\n",
-                            sender, ip.getHostAddress(), port, target, a.ports);
+                    System.out.printf(">> %s @ %s:%d ports=%s target=%s%n",
+                            sender, ip.getHostAddress(), port, me.ports, me.target);
 
-                    // Target geldiyse eşleşmeyi yap
-                    PeerState b = STATES.get(target);
-                    if (b != null && b.target.equals(sender)) {
-                        crossSendPairwise(channel, a, b);
-                        STATES.remove(a.host);
-                        STATES.remove(b.host);
+                    PeerState tgt = STATES.get(target);
+                    if (tgt != null && tgt.target.equals(sender)) {
+                        // Her iki taraf da var. Sadece YENİ portları gönder.
+                        pushDeltas(channel, me, tgt);
+                        pushDeltas(channel, tgt, me);
                     }
                 }
 
-                // Periyodik temizlik
                 long now = System.currentTimeMillis();
                 if (now - lastCleanup >= CLEANUP_INTERVAL_MS) {
-                    cleanupExpiredStates(now);
+                    cleanupExpired(now);
                     lastCleanup = now;
                 }
             }
-        } catch (Exception ex) {
-            System.err.println("Datagram Channel ERROR in PeerListener: " + ex);
+
+        } catch (Exception e) {
+            System.err.println("PeerListener ERROR: " + e);
         }
     }
 
-    /** A ve B'nin port listelerini 1:1 mapleyerek çift yönlü gönder. */
-    private void crossSendPairwise(DatagramChannel ch, PeerState a, PeerState b) throws Exception {
-        List<Integer> aPorts = new ArrayList<>(a.ports);
-        List<Integer> bPorts = new ArrayList<>(b.ports);
-        int max = Math.max(aPorts.size(), bPorts.size());
+    /**
+     * 'from' tarafındaki yeni portları 'to' tarafına gönder.
+     * Her yeni portu 'to' tarafındaki tüm portlara dağıtıyoruz.
+     * (İstersen 1:1 map yapacak şekilde round-robin'e çevirebilirsin.)
+     */
+    private void pushDeltas(DatagramChannel ch, PeerState from, PeerState to) throws Exception {
+        // from.ports - from.sentToTarget = yeni portlar
+        List<Integer> newPorts = new ArrayList<>();
+        for (int p : from.ports)
+            if (!from.sentToTarget.contains(p))
+                newPorts.add(p);
 
-        for (int i = 0; i < max; i++) {
-            int aPort = aPorts.get(i % aPorts.size());
-            int bPort = bPorts.get(i % bPorts.size());
+        if (newPorts.isEmpty()) return;
 
-            // B bilgisi A'nın portuna
-            ByteBuffer toA = LLS.New_LLS_Packet(b.signal, b.host, b.target, b.ip, bPort);
-            ch.send(toA, new InetSocketAddress(a.ip, aPort));
-
-            // A bilgisi B'nin portuna
-            ByteBuffer toB = LLS.New_LLS_Packet(a.signal, a.host, a.target, a.ip, aPort);
-            ch.send(toB, new InetSocketAddress(b.ip, bPort));
+        for (int newP : newPorts) {
+            for (int toPort : to.ports) {
+                ByteBuffer pkt = LLS.New_LLS_Packet(
+                        from.signal, from.host, from.target,
+                        from.ip, newP
+                );
+                ch.send(pkt, new InetSocketAddress(to.ip, toPort));
+            }
+            from.sentToTarget.add(newP);
         }
 
-        System.out.printf("<< Match %s ↔ %s (sent %d pairwise pkts)\n", a.host, b.host, max * 2);
+        System.out.printf("<< Pushed %d new ports from %s to %s%n",
+                newPorts.size(), from.host, to.host);
     }
 
-    /** Target hiç gelmemişse, TTL dolunca state'i sil. */
-    private void cleanupExpiredStates(long now) {
-        STATES.entrySet().removeIf(e -> (now - e.getValue().lastSeen) > STATE_TTL_MS);
+    private void cleanupExpired(long nowMs) {
+        STATES.entrySet().removeIf(e -> (nowMs - e.getValue().lastSeenMs) > STATE_TTL_MS);
     }
 }
