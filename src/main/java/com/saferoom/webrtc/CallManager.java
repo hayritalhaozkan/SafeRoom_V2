@@ -10,6 +10,8 @@ import dev.onvoid.webrtc.RTCPeerConnection;
 import dev.onvoid.webrtc.media.video.VideoTrack;
 import dev.onvoid.webrtc.media.MediaStreamTrack;
 
+import com.saferoom.log.Logger;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
  */
 public class CallManager {
 
+    private static final Logger logger = Logger.getLogger(CallManager.class);
     private static CallManager instance;
 
     private String myUsername;
@@ -107,14 +110,13 @@ public class CallManager {
     public void initialize(String username) {
         // 🔧 Prevent re-initialization
         if (isInitialized) {
-            System.out.printf("[CallManager] ⚠️ Already initialized for user: %s (current: %s)%n", myUsername,
-                    username);
+            logger.warn(String.format("⚠️ Already initialized for user: %s (current: %s)", myUsername, username));
             return;
         }
 
         this.myUsername = username;
 
-        System.out.printf("[CallManager] 🔧 Initializing for user: %s%n", username);
+        logger.info("🔧 Initializing for user: " + username);
 
         // Initialize WebRTC client library
         if (!WebRTCClient.isInitialized()) {
@@ -132,7 +134,7 @@ public class CallManager {
 
         this.isInitialized = true; // 🔧 Mark as initialized
 
-        System.out.println("[CallManager] ✅ Initialization complete");
+        logger.info("✅ Initialization complete");
     }
 
     /**
@@ -146,7 +148,7 @@ public class CallManager {
      * Handle async failures during call setup (after UI success)
      */
     private void handleAsyncCallError(String context, Throwable ex) {
-        System.err.printf("[CallManager] ❌ %s: %s%n", context, ex.getMessage());
+        logger.error(String.format("%s: %s", context, ex.getMessage()), ex);
 
         // Notify user via existing callbacks (treat as call end)
         if (this.currentCallId != null && onCallEndedCallback != null) {
@@ -166,12 +168,12 @@ public class CallManager {
      */
     public CompletableFuture<String> startCall(String targetUsername, boolean audioEnabled, boolean videoEnabled) {
         if (currentState != CallState.IDLE) {
-            System.err.printf("[CallManager] ❌ Cannot start call - current state: %s%n", currentState);
+            logger.error("Cannot start call - current state: " + currentState, null);
             return CompletableFuture.failedFuture(new IllegalStateException("Already in a call"));
         }
 
-        System.out.printf("[CallManager] 📞 Starting call to %s (audio=%b, video=%b)%n",
-                targetUsername, audioEnabled, videoEnabled);
+        logger.info(String.format("📞 Starting call to %s (audio=%b, video=%b)",
+                targetUsername, audioEnabled, videoEnabled));
 
         this.remoteUsername = targetUsername;
         this.isOutgoingCall = true;
@@ -181,7 +183,7 @@ public class CallManager {
         return signalingClient.sendCallRequest(targetUsername, audioEnabled, videoEnabled)
                 .thenApply(callId -> {
                     this.currentCallId = callId;
-                    System.out.printf("[CallManager] ✅ Call request sent, callId: %s%n", callId);
+                    logger.info("✅ Call request sent, callId: " + callId);
 
                     // Create WebRTC peer connection
                     webrtcClient = new WebRTCClient(callId, targetUsername);
@@ -196,20 +198,20 @@ public class CallManager {
 
                     // 🎤 Add audio track if audio enabled (Async)
                     if (audioEnabled) {
-                        System.out.println("[CallManager] 🎤 Adding audio track for outgoing call...");
+                        logger.info("🎤 Adding audio track for outgoing call...");
                         trackFutures.add(webrtcClient.addAudioTrack());
                     }
 
                     // 📹 Add video track if video enabled (Sync)
                     if (videoEnabled) {
-                        System.out.println("[CallManager] 📹 Adding video track for outgoing call...");
+                        logger.info("📹 Adding video track for outgoing call...");
                         webrtcClient.addVideoTrack();
                         registerCameraWithScreenShareController();
                     }
 
                     // 🎥 Notify GUI that local tracks are ready (for CALLER)
                     if (onLocalTracksReadyCallback != null) {
-                        System.out.println("[CallManager] 🎥 Local tracks ready (caller) - notifying GUI");
+                        logger.info("🎥 Local tracks ready (caller) - notifying GUI");
                         onLocalTracksReadyCallback.run();
                     }
 
@@ -218,12 +220,12 @@ public class CallManager {
                     CompletableFuture.allOf(trackFutures.toArray(new CompletableFuture[0]))
                             .thenCompose(v -> {
                                 // ⚡ FAST P2P: Generate OFFER now (during RINGING) so it's ready instantly
-                                System.out.println("[CallManager] ⚡ Generating Early Offer during RINGING...");
+                                logger.info("⚡ Generating Early Offer during RINGING...");
                                 return webrtcClient.createOffer()
                                         .orTimeout(5, TimeUnit.SECONDS) // Fix: Timeout
                                         .thenAccept(sdp -> {
                                             this.preGeneratedOffer = sdp;
-                                            System.out.println("[CallManager] ⚡ Early Offer generated and ready!");
+                                            logger.info("⚡ Early Offer generated and ready!");
                                         });
                             })
                             .exceptionally(ex -> {
@@ -234,7 +236,7 @@ public class CallManager {
                     return callId;
                 })
                 .exceptionally(e -> {
-                    System.err.printf("[CallManager] ❌ Failed to start call: %s%n", e.getMessage());
+                    logger.error("Failed to start call: " + e.getMessage(), e);
                     this.currentState = CallState.IDLE;
                     return null;
                 });
@@ -245,11 +247,11 @@ public class CallManager {
      */
     public void cancelCall() {
         if (!isOutgoingCall || currentState != CallState.RINGING) {
-            System.err.println("[CallManager] ⚠️ No outgoing call to cancel");
+            logger.warn("No outgoing call to cancel");
             return;
         }
 
-        System.out.printf("[CallManager] 🚫 Cancelling call: %s%n", currentCallId);
+        logger.info("🚫 Cancelling call: " + currentCallId);
 
         // Send CALL_CANCEL
         signalingClient.sendCallCancel(currentCallId, remoteUsername);
@@ -271,18 +273,18 @@ public class CallManager {
      */
     public void acceptCall(String callId) {
         if (currentState != CallState.RINGING || isOutgoingCall) {
-            System.err.println("[CallManager] ⚠️ No incoming call to accept");
+            logger.warn("No incoming call to accept");
             return;
         }
 
-        System.out.printf("[CallManager] ✅ Accepting call: %s%n", callId);
+        logger.info("✅ Accepting call: " + callId);
 
         // ═══════════════════════════════════════════════════════════════
         // Create peer connection but DO NOT add tracks yet!
         // Tracks must be added AFTER setRemoteDescription in handleOffer()
         // to ensure proper transceiver direction matching
         // ═══════════════════════════════════════════════════════════════
-        System.out.println("[CallManager] 🔧 Creating peer connection (tracks will be added after OFFER)...");
+        logger.info("🔧 Creating peer connection (tracks will be added after OFFER)...");
 
         webrtcClient = new WebRTCClient(currentCallId, remoteUsername);
         webrtcClient.createPeerConnection(pendingAudioEnabled, pendingVideoEnabled);
@@ -300,14 +302,14 @@ public class CallManager {
 
             // 🔧 DON'T add tracks or create answer here!
             // Wait for OFFER → setRemoteDescription → addTracks → createAnswer
-            System.out.println("[CallManager] ⏳ Waiting for SDP offer from caller...");
-            System.out.println("[CallManager] 📋 Media will start when OFFER is received");
+            logger.info("⏳ Waiting for SDP offer from caller...");
+            logger.info("📋 Media will start when OFFER is received");
 
             if (onCallAcceptedCallback != null) {
                 onCallAcceptedCallback.accept(callId);
             }
         } else {
-            System.err.println("[CallManager] ❌ Failed to accept call");
+            logger.error("Failed to accept call", null);
             cleanup();
         }
     }
@@ -317,11 +319,11 @@ public class CallManager {
      */
     public void rejectCall(String callId) {
         if (currentState != CallState.RINGING || isOutgoingCall) {
-            System.err.println("[CallManager] ⚠️ No incoming call to reject");
+            logger.warn("No incoming call to reject");
             return;
         }
 
-        System.out.printf("[CallManager] ❌ Rejecting call: %s%n", callId);
+        logger.info("❌ Rejecting call: " + callId);
 
         // Send CALL_REJECT
         signalingClient.sendCallReject(callId, remoteUsername);
@@ -343,11 +345,11 @@ public class CallManager {
      */
     public void endCall() {
         if (currentState == CallState.IDLE || currentState == CallState.ENDED) {
-            System.err.println("[CallManager] ⚠️ No active call to end");
+            logger.warn("No active call to end");
             return;
         }
 
-        System.out.printf("[CallManager] 📴 Ending call: %s%n", currentCallId);
+        logger.info("📴 Ending call: " + currentCallId);
 
         // Send CALL_END
         signalingClient.sendCallEnd(currentCallId, remoteUsername);
@@ -400,7 +402,7 @@ public class CallManager {
                 (type == SignalType.ICE_CANDIDATE && callId != null && callId.startsWith("p2p-")));
 
         if (isP2PSignal) {
-            System.out.printf("[CallManager] Routing %s to P2PConnectionManager (callId: %s)%n", type, callId);
+            logger.info(String.format("Routing %s to P2PConnectionManager (callId: %s)", type, callId));
             try {
                 com.saferoom.p2p.P2PConnectionManager p2pManager = com.saferoom.p2p.P2PConnectionManager.getInstance();
 
@@ -410,67 +412,66 @@ public class CallManager {
                 method.setAccessible(true);
                 method.invoke(p2pManager, signal);
 
-                System.out.printf("[CallManager] Routed %s to P2PConnectionManager%n", type);
+                logger.info("Routed " + type + " to P2PConnectionManager");
             } catch (Exception e) {
-                System.err.printf("[CallManager] Failed to route P2P signal: %s%n", e.getMessage());
-                e.printStackTrace();
+                logger.error("Failed to route P2P signal: " + e.getMessage(), e);
             }
             return; // Don't process P2P signals in CallManager
         }
 
         // Handle voice/video call signals normally
-        System.out.printf("[CallManager] Received %s from %s (callId: %s, currentState: %s)%n",
-                type, from, callId, currentState);
+        logger.info(String.format("Received %s from %s (callId: %s, currentState: %s)",
+                type, from, callId, currentState));
 
         switch (type) {
             case CALL_REQUEST:
-                System.out.println("[CallManager] Processing CALL_REQUEST...");
+                logger.info("Processing CALL_REQUEST...");
                 handleIncomingCallRequest(signal);
                 break;
 
             case CALL_ACCEPT:
-                System.out.println("[CallManager] Processing CALL_ACCEPT...");
+                logger.info("Processing CALL_ACCEPT...");
                 handleCallAccepted(signal);
                 break;
 
             case CALL_REJECT:
             case CALL_CANCEL:
-                System.out.println("[CallManager] Processing CALL_REJECT/CANCEL...");
+                logger.info("Processing CALL_REJECT/CANCEL...");
                 handleCallRejected(signal);
                 break;
 
             case CALL_END:
-                System.out.println("[CallManager] Processing CALL_END...");
+                logger.info("Processing CALL_END...");
                 handleCallEnded(signal);
                 break;
 
             case OFFER:
-                System.out.println("[CallManager] Processing OFFER...");
+                logger.info("Processing OFFER...");
                 handleOffer(signal);
                 break;
 
             case ANSWER:
-                System.out.println("[CallManager] Processing ANSWER...");
+                logger.info("Processing ANSWER...");
                 handleAnswer(signal);
                 break;
 
             case ICE_CANDIDATE:
-                System.out.println("[CallManager] Processing ICE_CANDIDATE...");
+                logger.info("Processing ICE_CANDIDATE...");
                 handleIceCandidate(signal);
                 break;
 
             case SCREEN_SHARE_OFFER:
-                System.out.println("[CallManager] Processing SCREEN_SHARE_OFFER...");
+                logger.info("Processing SCREEN_SHARE_OFFER...");
                 handleScreenShareOffer(signal);
                 break;
 
             case SCREEN_SHARE_STOP:
-                System.out.println("[CallManager] Processing SCREEN_SHARE_STOP...");
+                logger.info("Processing SCREEN_SHARE_STOP...");
                 handleScreenShareStop(signal);
                 break;
 
             default:
-                System.err.printf("[CallManager] Unknown signal type: %s%n", type);
+                logger.warn("Unknown signal type: " + type);
         }
     }
 
@@ -486,11 +487,11 @@ public class CallManager {
      * Media capture should only start AFTER user accepts the call.
      */
     private void handleIncomingCallRequest(WebRTCSignal signal) {
-        System.out.printf("[CallManager] Incoming call from %s (audio=%b, video=%b)%n",
-                signal.getFrom(), signal.getAudioEnabled(), signal.getVideoEnabled());
+        logger.info(String.format("Incoming call from %s (audio=%b, video=%b)",
+                signal.getFrom(), signal.getAudioEnabled(), signal.getVideoEnabled()));
 
         if (currentState != CallState.IDLE) {
-            System.err.printf("[CallManager] Already in a call (state: %s) - rejecting%n", currentState);
+            logger.warn("Already in a call (state: " + currentState + ") - rejecting");
             signalingClient.sendCallReject(signal.getCallId(), signal.getFrom());
             return;
         }
@@ -504,8 +505,8 @@ public class CallManager {
         this.pendingAudioEnabled = signal.getAudioEnabled();
         this.pendingVideoEnabled = signal.getVideoEnabled();
 
-        System.out.printf("[CallManager] Call state updated: RINGING (callId: %s)%n", currentCallId);
-        System.out.println("[CallManager] ⏸️ Media capture DEFERRED until user accepts call");
+        logger.info(String.format("Call state updated: RINGING (callId: %s)", currentCallId));
+        logger.info("⏸️ Media capture DEFERRED until user accepts call");
 
         // ═══════════════════════════════════════════════════════════════
         // DO NOT create peer connection or add tracks here!
@@ -515,7 +516,7 @@ public class CallManager {
 
         // Notify GUI to show incoming call dialog
         if (onIncomingCallCallback != null) {
-            System.out.printf("[CallManager] Triggering incoming call callback for GUI...%n");
+            logger.info("Triggering incoming call callback for GUI...");
             IncomingCallInfo info = new IncomingCallInfo(
                     signal.getCallId(),
                     signal.getFrom(),
@@ -523,9 +524,9 @@ public class CallManager {
                     signal.getVideoEnabled(),
                     signal.getTimestamp());
             onIncomingCallCallback.accept(info);
-            System.out.println("[CallManager] Incoming call callback triggered successfully");
+            logger.info("Incoming call callback triggered successfully");
         } else {
-            System.err.println("[CallManager] WARNING: onIncomingCallCallback is NULL! Dialog won't show!");
+            logger.warn("WARNING: onIncomingCallCallback is NULL! Dialog won't show!");
         }
     }
 
@@ -536,7 +537,7 @@ public class CallManager {
         if (!isOutgoingCall)
             return;
 
-        System.out.println("[CallManager] Call accepted by remote user");
+        logger.info("Call accepted by remote user");
 
         this.currentState = CallState.CONNECTING;
 
@@ -544,20 +545,20 @@ public class CallManager {
 
         // ⚡ FAST P2P: Send pre-generated offer if available
         if (preGeneratedOffer != null) {
-            System.out.println("[CallManager] ⚡ Sending Early Offer immediately!");
+            logger.info("⚡ Sending Early Offer immediately!");
             signalingClient.sendOffer(currentCallId, remoteUsername, preGeneratedOffer);
             preGeneratedOffer = null; // Consume it
         } else {
             // Fallback (race condition where answer happened before offer gen finished?)
-            System.out.println("[CallManager] ⚠️ Early offer not ready, generating now...");
+            logger.warn("⚠️ Early offer not ready, generating now...");
             webrtcClient.createOffer()
                     .orTimeout(5, TimeUnit.SECONDS) // Fix: Timeout
                     .thenAccept(sdp -> {
                         signalingClient.sendOffer(currentCallId, remoteUsername, sdp);
-                        System.out.println("[CallManager] Offer sent");
+                        logger.info("Offer sent");
                     })
                     .exceptionally(ex -> {
-                        System.err.printf("[CallManager] ❌ Failed to generate Offer (Fallback): %s%n", ex.getMessage());
+                        logger.error("Failed to generate Offer (Fallback): " + ex.getMessage(), ex);
                         return null;
                     });
         }
@@ -571,7 +572,7 @@ public class CallManager {
      * Handle call rejected/cancelled
      */
     private void handleCallRejected(WebRTCSignal signal) {
-        System.out.println("[CallManager] Call rejected/cancelled");
+        logger.info("Call rejected/cancelled");
 
         if (onCallRejectedCallback != null) {
             onCallRejectedCallback.accept(currentCallId);
@@ -584,7 +585,7 @@ public class CallManager {
      * Handle call ended
      */
     private void handleCallEnded(WebRTCSignal signal) {
-        System.out.println("[CallManager] Call ended by remote user");
+        logger.info("Call ended by remote user");
 
         if (onCallEndedCallback != null) {
             onCallEndedCallback.accept(currentCallId);
@@ -600,7 +601,7 @@ public class CallManager {
      * This ensures proper transceiver direction matching (SEND_RECV not SEND_ONLY)
      */
     private void handleOffer(WebRTCSignal signal) {
-        System.out.println("[CallManager] Received SDP offer");
+        logger.info("Received SDP offer");
 
         // Set remote description FIRST
         webrtcClient.setRemoteDescription("offer", signal.getSdp());
@@ -614,17 +615,17 @@ public class CallManager {
             // ═══════════════════════════════════════════════════════════════
 
             if (!tracksAddedForIncomingCall) {
-                System.out.println("[CallManager] 🎥 Adding media tracks AFTER remote offer (correct order)...");
+                logger.info("🎥 Adding media tracks AFTER remote offer (correct order)...");
 
                 List<CompletableFuture<Void>> trackFutures = new ArrayList<>();
 
                 if (pendingAudioEnabled) {
-                    System.out.println("[CallManager] Adding audio track...");
+                    logger.info("Adding audio track...");
                     trackFutures.add(webrtcClient.addAudioTrack());
                 }
 
                 if (pendingVideoEnabled) {
-                    System.out.println("[CallManager] Adding video track...");
+                    logger.info("Adding video track...");
                     webrtcClient.addVideoTrack();
                     registerCameraWithScreenShareController();
                 }
@@ -633,23 +634,22 @@ public class CallManager {
 
                 // 🎥 Notify GUI that local tracks are ready (for CALLEE)
                 if (onLocalTracksReadyCallback != null) {
-                    System.out.println("[CallManager] 🎥 Local tracks ready (callee) - notifying GUI");
+                    logger.info("🎥 Local tracks ready (callee) - notifying GUI");
                     onLocalTracksReadyCallback.run();
                 }
 
                 // Wait for tracks, then create answer
                 CompletableFuture.allOf(trackFutures.toArray(new CompletableFuture[0]))
                         .thenRun(() -> {
-                            System.out.println("[CallManager] Creating SDP answer (after tracks added)...");
+                            logger.info("Creating SDP answer (after tracks added)...");
                             webrtcClient.createAnswer()
                                     .orTimeout(5, TimeUnit.SECONDS) // Fix: Timeout
                                     .thenAccept(sdp -> {
                                         // Send ANSWER to caller
                                         signalingClient.sendAnswer(currentCallId, remoteUsername, sdp);
-                                        System.out.println("[CallManager] Answer sent to caller");
+                                        logger.info("Answer sent to caller");
                                     }).exceptionally(ex -> {
-                                        System.err.printf("[CallManager] Failed to create answer: %s%n",
-                                                ex.getMessage());
+                                        logger.error("Failed to create answer: " + ex.getMessage(), ex);
                                         return null;
                                     });
                         });
@@ -664,7 +664,7 @@ public class CallManager {
      * Handle SDP answer
      */
     private void handleAnswer(WebRTCSignal signal) {
-        System.out.println("[CallManager] Received SDP answer");
+        logger.info("Received SDP answer");
 
         // Set remote description
         webrtcClient.setRemoteDescription("answer", signal.getSdp());
@@ -684,7 +684,7 @@ public class CallManager {
      * Handle ICE candidate
      */
     private void handleIceCandidate(WebRTCSignal signal) {
-        System.out.println("[CallManager] Received ICE candidate");
+        logger.info("Received ICE candidate");
 
         // 🧊 Check if we are ready to accept ICE candidates
         // We need: 1. WebRTCClient initialized, 2. PeerConnection created, 3. Remote
@@ -697,6 +697,11 @@ public class CallManager {
             System.out.println(
                     "[CallManager] 🧊 Remote description not set yet (or client null), buffering ICE candidate");
             synchronized (pendingIceCandidates) {
+                // 🛡️ MEMORY LEAK FIX: Cap the buffer size
+                if (pendingIceCandidates.size() >= 100) {
+                    logger.warn("⚠️ ICE candidate buffer full (100). Dropping oldest candidate.");
+                    pendingIceCandidates.remove(0);
+                }
                 pendingIceCandidates.add(signal);
             }
             return;
@@ -708,7 +713,7 @@ public class CallManager {
                     signal.getSdpMid(),
                     signal.getSdpMLineIndex());
         } catch (Exception e) {
-            System.err.printf("[CallManager] ❌ Failed to add ICE candidate: %s%n", e.getMessage());
+            logger.error("Failed to add ICE candidate: " + e.getMessage(), e);
         }
     }
 
@@ -720,8 +725,7 @@ public class CallManager {
             if (pendingIceCandidates.isEmpty())
                 return;
 
-            System.out.printf("[CallManager] 🧊 Replaying %d buffered ICE candidates...%n",
-                    pendingIceCandidates.size());
+            logger.info("🧊 Replaying " + pendingIceCandidates.size() + " buffered ICE candidates...");
 
             for (WebRTCSignal signal : pendingIceCandidates) {
                 try {
@@ -733,7 +737,7 @@ public class CallManager {
                                 signal.getSdpMLineIndex());
                     }
                 } catch (Exception e) {
-                    System.err.printf("[CallManager] ❌ Failed to replay ICE candidate: %s%n", e.getMessage());
+                    logger.error("Failed to replay ICE candidate: " + e.getMessage(), e);
                 }
             }
             pendingIceCandidates.clear();
@@ -744,10 +748,10 @@ public class CallManager {
      * Handle screen share offer (renegotiation)
      */
     private void handleScreenShareOffer(WebRTCSignal signal) {
-        System.out.println("[CallManager] Received screen share offer - remote peer started sharing");
+        logger.info("Received screen share offer - remote peer started sharing");
 
         if (webrtcClient == null) {
-            System.err.println("[CallManager] WebRTC client not initialized");
+            logger.error("WebRTC client not initialized", null);
             return;
         }
 
@@ -755,21 +759,20 @@ public class CallManager {
 
         // Set remote description (this is a renegotiation)
         webrtcClient.setRemoteDescription("offer", remoteSdp);
-        System.out.println("[CallManager] Screen share offer set as remote description");
+        logger.info("Screen share offer set as remote description");
 
         // Create answer for renegotiation
         webrtcClient.createAnswer()
                 .thenAccept(answerSdp -> {
-                    System.out.println("[CallManager] Sending answer for screen share");
+                    logger.info("Sending answer for screen share");
 
                     // Send answer back
                     signalingClient.sendAnswer(currentCallId, remoteUsername, answerSdp);
 
-                    System.out.println("[CallManager] Screen share renegotiation complete");
+                    logger.info("Screen share renegotiation complete");
                 })
                 .exceptionally(e -> {
-                    System.err.printf("[CallManager] Failed to handle screen share offer: %s%n", e.getMessage());
-                    e.printStackTrace();
+                    logger.error("Failed to handle screen share offer: " + e.getMessage(), e);
                     return null;
                 });
     }
@@ -778,14 +781,14 @@ public class CallManager {
      * Handle screen share stop notification
      */
     private void handleScreenShareStop(WebRTCSignal signal) {
-        System.out.println("[CallManager] 🛑 Remote peer stopped screen sharing");
+        logger.info("🛑 Remote peer stopped screen sharing");
 
         // Notify GUI that remote screen share ended
         if (onRemoteScreenShareStoppedCallback != null) {
             onRemoteScreenShareStoppedCallback.run();
         }
 
-        System.out.println("[CallManager] ✅ Remote screen share stop handled");
+        logger.info("✅ Remote screen share stop handled");
     }
 
     // ===============================
@@ -798,13 +801,13 @@ public class CallManager {
     private void setupWebRTCCallbacks() {
         // SDP callback
         webrtcClient.setOnLocalSDPCallback(sdp -> {
-            System.out.println("[CallManager] Local SDP generated");
+            logger.info("Local SDP generated");
             // SDP is sent in createOffer/createAnswer methods
         });
 
         // ICE candidate callback
         webrtcClient.setOnIceCandidateCallback(candidate -> {
-            System.out.printf("[CallManager] ICE candidate generated: %s%n", candidate.sdp);
+            logger.debug("ICE candidate generated: " + candidate.sdp);
 
             // Send ICE candidate to remote peer via signaling
             signalingClient.sendIceCandidate(
@@ -817,7 +820,7 @@ public class CallManager {
 
         // Connection established callback
         webrtcClient.setOnConnectionEstablishedCallback(() -> {
-            System.out.println("[CallManager] WebRTC connection established");
+            logger.info("WebRTC connection established");
             this.currentState = CallState.CONNECTED;
 
             if (onCallConnectedCallback != null) {
@@ -827,14 +830,14 @@ public class CallManager {
 
         // Connection closed callback
         webrtcClient.setOnConnectionClosedCallback(() -> {
-            System.out.println("[CallManager] WebRTC connection closed");
+            logger.info("WebRTC connection closed");
             cleanup();
         });
 
         // Remote track callback (for video/audio tracks)
         webrtcClient.setOnRemoteTrackCallback(track -> {
-            System.out.printf("[CallManager] Remote track received: %s (kind=%s)%n",
-                    track.getId(), track.getKind());
+            logger.info(String.format("Remote track received: %s (kind=%s)",
+                    track.getId(), track.getKind()));
 
             if (onRemoteTrackCallback != null) {
                 onRemoteTrackCallback.accept(track);
@@ -848,12 +851,12 @@ public class CallManager {
         }
         PeerConnectionFactory factory = WebRTCClient.getFactory();
         if (factory == null) {
-            System.err.println("[CallManager] ScreenShareController unavailable: factory is null");
+            logger.error("ScreenShareController unavailable: factory is null", null);
             return;
         }
         RTCPeerConnection peerConnection = webrtcClient.getPeerConnection();
         if (peerConnection == null) {
-            System.err.println("[CallManager] ScreenShareController unavailable: peer connection not ready");
+            logger.error("ScreenShareController unavailable: peer connection not ready", null);
             return;
         }
         screenShareManager = new ScreenShareManager(factory, peerConnection, new CallScreenShareRenegotiationHandler());
@@ -865,7 +868,8 @@ public class CallManager {
         if (screenShareController == null || webrtcClient == null) {
             return;
         }
-        if (webrtcClient.getVideoSender() != null && webrtcClient.getLocalVideoTrack() != null) {
+        if (webrtcClient.getVideoSender() != null && webrtcClient.getLocalVideoTrack() != null
+                && webrtcClient.getLocalVideoTrack().isEnabled()) {
             screenShareController.registerCameraSource(
                     webrtcClient.getVideoSender(),
                     webrtcClient.getLocalVideoTrack());
@@ -898,11 +902,11 @@ public class CallManager {
      * Cleanup call resources
      */
     private void cleanup() {
-        System.out.println("[CallManager] Cleaning up call resources...");
+        logger.info("Cleaning up call resources...");
 
         // Prevent infinite recursion: check if already cleaning up
         if (currentState == CallState.IDLE) {
-            System.out.println("[CallManager] Already cleaned up, skipping");
+            logger.debug("Already cleaned up, skipping");
             return;
         }
 
@@ -1004,9 +1008,9 @@ public class CallManager {
 
     public VideoTrack getLocalVideoTrack() {
         VideoTrack track = webrtcClient != null ? webrtcClient.getLocalVideoTrack() : null;
-        System.out.printf("[CallManager] getLocalVideoTrack called: webrtcClient=%s, track=%s%n",
+        logger.debug(String.format("getLocalVideoTrack called: webrtcClient=%s, track=%s",
                 webrtcClient != null ? "EXISTS" : "NULL",
-                track != null ? "EXISTS" : "NULL");
+                track != null ? "EXISTS" : "NULL"));
         return track;
     }
 
@@ -1036,7 +1040,7 @@ public class CallManager {
      * Shutdown call manager
      */
     public void shutdown() {
-        System.out.println("[CallManager] Shutting down...");
+        logger.info("Shutting down...");
 
         // End any active call
         if (isInCall()) {
@@ -1052,7 +1056,7 @@ public class CallManager {
         // Shutdown WebRTC
         WebRTCClient.shutdown();
 
-        System.out.println("[CallManager] Shutdown complete");
+        logger.info("Shutdown complete");
     }
 
     /**
@@ -1067,7 +1071,7 @@ public class CallManager {
                 WebRTCClient.getFactory().dispose();
             }
         } catch (Exception e) {
-            System.err.println("[CallManager] Error disposing factory: " + e.getMessage());
+            logger.error("Error disposing factory: " + e.getMessage(), e);
         }
     }
 }

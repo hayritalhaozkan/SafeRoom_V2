@@ -6,6 +6,8 @@ import dev.onvoid.webrtc.RTCRtpSendParameters;
 import dev.onvoid.webrtc.media.MediaStreamTrack;
 import dev.onvoid.webrtc.media.video.VideoTrack;
 
+import com.saferoom.log.Logger;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
@@ -30,6 +32,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class GroupCallManager {
 
+    private static final Logger logger = Logger.getLogger(GroupCallManager.class);
     private static GroupCallManager instance;
 
     // Room state
@@ -83,7 +86,7 @@ public class GroupCallManager {
         this.signalingClient = signalingClient;
         this.localUsername = username;
 
-        System.out.println("[GroupCallManager] Initialized for user: " + username);
+        logger.info("Initialized for user: " + username);
 
         // Register signal handlers for group call signals
         setupSignalHandlers();
@@ -94,7 +97,7 @@ public class GroupCallManager {
      */
     private void setupSignalHandlers() {
         if (signalingClient == null) {
-            System.err.println("[GroupCallManager] Cannot setup handlers - signaling client null");
+            logger.error("Cannot setup handlers - signaling client null", null);
             return;
         }
 
@@ -144,11 +147,11 @@ public class GroupCallManager {
      *               existing)
      */
     public CompletableFuture<Void> joinRoom(String roomId, boolean audio, boolean video, String mode) {
-        System.out.printf("[GroupCallManager] Joining room: %s (mode=%s, audio=%b, video=%b)%n",
-                roomId, mode, audio, video);
+        logger.info(String.format("Joining room: %s (mode=%s, audio=%b, video=%b)",
+                roomId, mode, audio, video));
 
         if (inRoom) {
-            System.err.println("[GroupCallManager] Already in a room, leave first!");
+            logger.warn("Already in a room, leave first!");
             return CompletableFuture.failedFuture(new IllegalStateException("Already in room"));
         }
 
@@ -175,10 +178,10 @@ public class GroupCallManager {
 
             return signalingClient.sendSignal(joinSignal)
                     .thenAccept(response -> {
-                        System.out.printf("[GroupCallManager] Room join signal sent (mode=%s)%n", mode);
+                        logger.info(String.format("Room join signal sent (mode=%s)", mode));
                     });
         }).exceptionally(ex -> {
-            System.err.printf("[GroupCallManager] Failed to join room: %s%n", ex.getMessage());
+            logger.error("Failed to join room: " + ex.getMessage(), ex);
             inRoom = false; // Reset state on failure
             return null;
         });
@@ -197,11 +200,11 @@ public class GroupCallManager {
      */
     public CompletableFuture<Void> leaveRoom() {
         if (!inRoom) {
-            System.out.println("[GroupCallManager] Not in a room");
+            logger.warn("Not in a room");
             return CompletableFuture.completedFuture(null);
         }
 
-        System.out.printf("[GroupCallManager] Leaving room: %s%n", currentRoomId);
+        logger.info("Leaving room: " + currentRoomId);
 
         // Send ROOM_LEAVE signal
         WebRTCSignal leaveSignal = WebRTCSignal.newBuilder()
@@ -213,11 +216,11 @@ public class GroupCallManager {
 
         return signalingClient.sendSignal(leaveSignal)
                 .thenAccept(response -> {
-                    System.out.println("[GroupCallManager] Left room successfully");
+                    logger.info("Left room successfully");
                     cleanup();
                 })
                 .exceptionally(ex -> {
-                    System.err.printf("[GroupCallManager] Error leaving room: %s%n", ex.getMessage());
+                    logger.error("Error leaving room: " + ex.getMessage(), ex);
                     cleanup(); // Cleanup anyway
                     return null;
                 });
@@ -227,10 +230,10 @@ public class GroupCallManager {
      * Handle ROOM_JOINED signal (server sends peer list)
      */
     private void handleRoomJoined(WebRTCSignal signal) {
-        System.out.println("[GroupCallManager] Room joined confirmation received");
+        logger.info("Room joined confirmation received");
 
         List<String> peerList = signal.getPeerListList();
-        System.out.printf("[GroupCallManager] Current peers in room: %s%n", peerList);
+        logger.info("Current peers in room: " + peerList);
 
         // Create peer connections for existing peers
         for (String peerUsername : peerList) {
@@ -244,14 +247,16 @@ public class GroupCallManager {
         }
 
         maybeReconfigureLocalVideoTrack().exceptionally(ex -> {
-            System.err.printf("[GroupCallManager] ❌ Reconfiguration failed after room join: %s%n", ex.getMessage());
+            logger.error("❌ Reconfiguration failed after room join: " + ex.getMessage(), ex);
             return null;
         });
 
-        // Notify UI
         if (onRoomJoinedCallback != null) {
             onRoomJoinedCallback.run();
         }
+
+        // Fix Bug 3-13: Distribute bandwidth after joining
+        distributeUploadBandwidth();
     }
 
     /**
@@ -259,7 +264,7 @@ public class GroupCallManager {
      */
     private void handlePeerJoined(WebRTCSignal signal) {
         String newPeerUsername = signal.getFrom();
-        System.out.printf("[GroupCallManager] New peer joined: %s%n", newPeerUsername);
+        logger.info("New peer joined: " + newPeerUsername);
 
         if (newPeerUsername.equals(localUsername)) {
             // Ignore self
@@ -275,9 +280,12 @@ public class GroupCallManager {
         }
 
         maybeReconfigureLocalVideoTrack().exceptionally(ex -> {
-            System.err.printf("[GroupCallManager] ❌ Reconfiguration failed after peer join: %s%n", ex.getMessage());
+            logger.error("❌ Reconfiguration failed after peer join: " + ex.getMessage(), ex);
             return null;
         });
+
+        // Fix Bug 3-13: Redistribute bandwidth when new peer joins
+        distributeUploadBandwidth();
     }
 
     /**
@@ -285,22 +293,28 @@ public class GroupCallManager {
      */
     private void handlePeerLeft(WebRTCSignal signal) {
         String peerUsername = signal.getFrom();
-        System.out.printf("[GroupCallManager] Peer left: %s%n", peerUsername);
+        logger.info("Peer left: " + peerUsername);
 
-        // Close and remove peer connection
-        WebRTCClient client = peerConnections.remove(peerUsername);
-        if (client != null) {
-            client.close();
-            System.out.printf("[GroupCallManager] Connection to %s closed%n", peerUsername);
-        }
+        // Fix Bug 3-15: Move cleanup inside Platform.runLater to avoid crash
+        javafx.application.Platform.runLater(() -> {
+            // 1. Notify UI first (detach video sink)
+            if (onPeerLeftCallback != null) {
+                onPeerLeftCallback.onPeerLeft(peerUsername);
+            }
 
-        // Notify UI
-        if (onPeerLeftCallback != null) {
-            onPeerLeftCallback.onPeerLeft(peerUsername);
-        }
+            // 2. Then close and remove peer connection
+            WebRTCClient client = peerConnections.remove(peerUsername);
+            if (client != null) {
+                client.close();
+                logger.info("Connection to " + peerUsername + " closed");
+            }
+
+            // Fix Bug 3-13: Redistribute bandwidth NOW (After removal is guaranteed)
+            distributeUploadBandwidth();
+        });
 
         maybeReconfigureLocalVideoTrack().exceptionally(ex -> {
-            System.err.printf("[GroupCallManager] ❌ Reconfiguration failed after peer left: %s%n", ex.getMessage());
+            logger.error("❌ Reconfiguration failed after peer left: " + ex.getMessage(), ex);
             return null;
         });
     }
@@ -312,7 +326,7 @@ public class GroupCallManager {
         String errorType = signal.hasMetadata() ? signal.getMetadata() : "UNKNOWN_ERROR";
         String roomId = signal.getRoomId();
 
-        System.err.printf("[GroupCallManager] ❌ Room error: %s (room=%s)%n", errorType, roomId);
+        logger.error(String.format("❌ Room error: %s (room=%s)", errorType, roomId), null);
 
         // Reset state
         inRoom = false;
@@ -336,11 +350,11 @@ public class GroupCallManager {
         String peerUsername = signal.getFrom();
         String sdp = signal.getSdp();
 
-        System.out.printf("[GroupCallManager] Received MESH_OFFER from %s%n", peerUsername);
+        logger.info("Received MESH_OFFER from " + peerUsername);
 
         WebRTCClient client = peerConnections.get(peerUsername);
         if (client == null) {
-            System.err.printf("[GroupCallManager] No connection found for peer: %s%n", peerUsername);
+            logger.warn("No connection found for peer: " + peerUsername);
             return;
         }
 
@@ -352,7 +366,7 @@ public class GroupCallManager {
         client.createAnswer()
                 .orTimeout(5, TimeUnit.SECONDS)
                 .thenAccept(answerSDP -> {
-                    System.out.printf("[GroupCallManager] Sending MESH_ANSWER to %s%n", peerUsername);
+                    logger.info("Sending MESH_ANSWER to " + peerUsername);
 
                     WebRTCSignal answerSignal = WebRTCSignal.newBuilder()
                             .setType(WebRTCSignal.SignalType.MESH_ANSWER)
@@ -366,7 +380,7 @@ public class GroupCallManager {
                     signalingClient.sendSignal(answerSignal);
                 })
                 .exceptionally(e -> {
-                    System.err.printf("[GroupCallManager] ❌ Failed to create/send answer: %s%n", e.getMessage());
+                    logger.error("❌ Failed to create/send answer: " + e.getMessage(), e);
                     return null;
                 });
     }
@@ -378,11 +392,11 @@ public class GroupCallManager {
         String peerUsername = signal.getFrom();
         String sdp = signal.getSdp();
 
-        System.out.printf("[GroupCallManager] Received MESH_ANSWER from %s%n", peerUsername);
+        logger.info("Received MESH_ANSWER from " + peerUsername);
 
         WebRTCClient client = peerConnections.get(peerUsername);
         if (client == null) {
-            System.err.printf("[GroupCallManager] No connection found for peer: %s%n", peerUsername);
+            logger.warn("No connection found for peer: " + peerUsername);
             return;
         }
 
@@ -399,11 +413,11 @@ public class GroupCallManager {
         String sdpMid = signal.getSdpMid();
         int sdpMLineIndex = signal.getSdpMLineIndex();
 
-        System.out.printf("[GroupCallManager] Received MESH_ICE_CANDIDATE from %s%n", peerUsername);
+        logger.info("Received MESH_ICE_CANDIDATE from " + peerUsername);
 
         WebRTCClient client = peerConnections.get(peerUsername);
         if (client == null) {
-            System.err.printf("[GroupCallManager] No connection found for peer: %s%n", peerUsername);
+            logger.warn("No connection found for peer: " + peerUsername);
             return;
         }
 
@@ -420,12 +434,12 @@ public class GroupCallManager {
      */
     private void createPeerConnection(String peerUsername, boolean initiateOffer) {
         if (peerConnections.containsKey(peerUsername)) {
-            System.out.printf("[GroupCallManager] Connection to %s already exists%n", peerUsername);
+            logger.debug(String.format("Connection to %s already exists", peerUsername));
             return;
         }
 
-        System.out.printf("[GroupCallManager] Creating peer connection to: %s (initiate=%b)%n",
-                peerUsername, initiateOffer);
+        logger.info(String.format("Creating peer connection to: %s (initiate=%b)",
+                peerUsername, initiateOffer));
 
         // Create unique callId for this peer connection
         String callId = UUID.randomUUID().toString();
@@ -451,9 +465,9 @@ public class GroupCallManager {
             // Use SHARED video track from GroupCallManager (don't create new camera source)
             if (localVideoTrack != null) {
                 client.addSharedVideoTrack(localVideoTrack);
-                applyVideoBitrateCap(client);
+                // Bandwidth distributed dynamically now
             } else {
-                System.err.println("[GroupCallManager] Local video track not ready!");
+                logger.error("Local video track not ready!", null);
             }
         }
 
@@ -466,7 +480,7 @@ public class GroupCallManager {
                         client.createOffer()
                                 .orTimeout(5, TimeUnit.SECONDS)
                                 .thenAccept(offerSDP -> {
-                                    System.out.printf("[GroupCallManager] Sending MESH_OFFER to %s%n", peerUsername);
+                                    logger.info("Sending MESH_OFFER to " + peerUsername);
 
                                     WebRTCSignal offerSignal = WebRTCSignal.newBuilder()
                                             .setType(WebRTCSignal.SignalType.MESH_OFFER)
@@ -482,8 +496,7 @@ public class GroupCallManager {
                                     signalingClient.sendSignal(offerSignal);
                                 })
                                 .exceptionally(e -> {
-                                    System.err.printf("[GroupCallManager] ❌ Failed to create offer: %s%n",
-                                            e.getMessage());
+                                    logger.error("❌ Failed to create offer: " + e.getMessage(), e);
                                     return null;
                                 });
                     }
@@ -496,7 +509,7 @@ public class GroupCallManager {
     private void setupPeerCallbacks(WebRTCClient client, String peerUsername) {
         // ICE candidate callback
         client.setOnIceCandidateCallback(candidate -> {
-            System.out.printf("[GroupCallManager] Sending MESH_ICE_CANDIDATE to %s%n", peerUsername);
+            logger.debug("Sending MESH_ICE_CANDIDATE to " + peerUsername);
 
             WebRTCSignal iceSignal = WebRTCSignal.newBuilder()
                     .setType(WebRTCSignal.SignalType.MESH_ICE_CANDIDATE)
@@ -514,19 +527,19 @@ public class GroupCallManager {
 
         // Connection established callback
         client.setOnConnectionEstablishedCallback(() -> {
-            System.out.printf("[GroupCallManager] Connection established with %s%n", peerUsername);
+            logger.info("Connection established with " + peerUsername);
         });
 
         // Connection closed callback
         client.setOnConnectionClosedCallback(() -> {
-            System.out.printf("[GroupCallManager] Connection closed with %s%n", peerUsername);
+            logger.info("Connection closed with " + peerUsername);
             peerConnections.remove(peerUsername);
         });
 
         // Remote track callback
         client.setOnRemoteTrackCallback(track -> {
-            System.out.printf("[GroupCallManager] Remote track from %s: %s (%s)%n",
-                    peerUsername, track.getId(), track.getKind());
+            logger.info(String.format("Remote track from %s: %s (%s)",
+                    peerUsername, track.getId(), track.getKind()));
 
             // Notify UI
             if (onRemoteTrackCallback != null) {
@@ -539,11 +552,11 @@ public class GroupCallManager {
      * Cleanup all connections
      */
     private void cleanup() {
-        System.out.println("[GroupCallManager] Cleaning up all connections...");
+        logger.info("Cleaning up all connections...");
 
         // Close all peer connections
         for (Map.Entry<String, WebRTCClient> entry : peerConnections.entrySet()) {
-            System.out.printf("[GroupCallManager] Closing connection to %s%n", entry.getKey());
+            logger.debug("Closing connection to " + entry.getKey());
             entry.getValue().close();
         }
 
@@ -554,9 +567,9 @@ public class GroupCallManager {
             try {
                 localVideoSource.stop();
                 localVideoSource.dispose();
-                System.out.println("[GroupCallManager] Local video source stopped and disposed");
+                logger.info("Local video source stopped and disposed");
             } catch (Exception e) {
-                System.err.println("[GroupCallManager] Error disposing video source: " + e.getMessage());
+                logger.error("Error disposing video source: " + e.getMessage(), e);
             }
             localVideoSource = null;
         }
@@ -565,9 +578,9 @@ public class GroupCallManager {
             try {
                 localVideoTrack.setEnabled(false);
                 localVideoTrack.dispose();
-                System.out.println("[GroupCallManager] Local video track disposed");
+                logger.info("Local video track disposed");
             } catch (Exception e) {
-                System.err.println("[GroupCallManager] Error disposing video track: " + e.getMessage());
+                logger.error("Error disposing video track: " + e.getMessage(), e);
             }
             localVideoTrack = null;
         }
@@ -595,8 +608,7 @@ public class GroupCallManager {
             client.toggleAudio(enabled);
         }
 
-        System.out.printf("[GroupCallManager] Audio %s for all peers%n",
-                enabled ? "enabled" : "muted");
+        logger.info(String.format("Audio %s for all peers", enabled ? "enabled" : "muted"));
     }
 
     /**
@@ -608,8 +620,7 @@ public class GroupCallManager {
         // CRITICAL: Toggle local video track itself (for self-preview)
         if (localVideoTrack != null) {
             localVideoTrack.setEnabled(enabled);
-            System.out.printf("[GroupCallManager] Local video track %s%n",
-                    enabled ? "enabled" : "disabled");
+            logger.info(String.format("Local video track %s", enabled ? "enabled" : "disabled"));
         }
 
         // Toggle video for all peer connections (for remote peers)
@@ -617,8 +628,7 @@ public class GroupCallManager {
             client.toggleVideo(enabled);
         }
 
-        System.out.printf("[GroupCallManager] Video %s for all peers%n",
-                enabled ? "enabled" : "disabled");
+        logger.info(String.format("Video %s for all peers", enabled ? "enabled" : "disabled"));
     }
 
     /**
@@ -639,7 +649,7 @@ public class GroupCallManager {
     private CompletableFuture<Void> createLocalVideoTrack() {
         return CompletableFuture.runAsync(() -> {
             try {
-                System.out.println("[GroupCallManager] Creating local video track for preview...");
+                logger.info("Creating local video track for preview...");
                 CameraCaptureService.CaptureProfile profile = adaptiveCapturePolicy
                         .selectProfile(getExpectedParticipantCount());
                 CameraCaptureService.CameraCaptureResource resource = CameraCaptureService
@@ -649,11 +659,13 @@ public class GroupCallManager {
                 localVideoTrack = resource.getTrack();
                 currentCaptureProfile = profile;
 
-                System.out.println("[GroupCallManager] ✅ Local video track created, enabled, and started");
+                // FIX: Explicitly start capture
+                resource.startCapture();
+
+                logger.info("✅ Local video track created, enabled, and started");
 
             } catch (Exception e) {
-                System.err.printf("[GroupCallManager] Failed to create local video track: %s%n", e.getMessage());
-                e.printStackTrace();
+                logger.error("Failed to create local video track: " + e.getMessage(), e);
                 throw new RuntimeException("Failed to create local video track", e);
             }
         });
@@ -668,8 +680,8 @@ public class GroupCallManager {
         if (desired.equals(currentCaptureProfile)) {
             return CompletableFuture.completedFuture(null);
         }
-        System.out.printf("[GroupCallManager] Adjusting capture profile to %dx%d@%dfps%n",
-                desired.width(), desired.height(), desired.fps());
+        logger.info(String.format("Adjusting capture profile to %dx%d@%dfps",
+                desired.width(), desired.height(), desired.fps()));
 
         if (localVideoSource == null) {
             // FIX: Return the future so caller knows when it's ready
@@ -685,35 +697,54 @@ public class GroupCallManager {
             currentCaptureProfile = desired;
             return CompletableFuture.completedFuture(null);
         } catch (Exception ex) {
-            System.err.printf("[GroupCallManager] Failed to reconfigure camera: %s%n", ex.getMessage());
+            logger.error("Failed to reconfigure camera: " + ex.getMessage(), ex);
             return CompletableFuture.failedFuture(ex);
         }
     }
 
-    private void applyVideoBitrateCap(WebRTCClient client) {
+    /**
+     * Fix Bug 3-13: Dynamic bandwidth distribution
+     * Distributes 2500kbps across all active peers (min 200kbps)
+     */
+    private void distributeUploadBandwidth() {
+        if (peerConnections.isEmpty()) {
+            return;
+        }
+
+        int activePeers = peerConnections.size();
+        final int TOTAL_UPLOAD_BUDGET_KBPS = 2500;
+        final int MIN_BITRATE_KBPS = 200;
+
+        // Calculate target per peer
+        int targetBitrateKbps = Math.max(MIN_BITRATE_KBPS, TOTAL_UPLOAD_BUDGET_KBPS / activePeers);
+        int targetBitrateBps = targetBitrateKbps * 1000;
+
+        logger.info(String.format("Distributing bandwidth: %dkbps total / %d peers = %dkbps each",
+                TOTAL_UPLOAD_BUDGET_KBPS, activePeers, targetBitrateKbps));
+
+        // Apply to all peers
+        for (WebRTCClient client : peerConnections.values()) {
+            applyBitrateToClient(client, targetBitrateBps);
+        }
+    }
+
+    private void applyBitrateToClient(WebRTCClient client, int bitrateBps) {
         if (client == null || client.getVideoSender() == null) {
             return;
         }
         try {
-            int participantCount = getExpectedParticipantCount();
-            int targetBitrate = adaptiveCapturePolicy.targetBitrateKbps(participantCount) * 1000;
-            double maxFps = adaptiveCapturePolicy.selectProfile(participantCount).fps();
             RTCRtpSendParameters params = client.getVideoSender().getParameters();
             if (params == null || params.encodings == null) {
                 return;
             }
             for (RTCRtpEncodingParameters encoding : params.encodings) {
-                if (encoding == null) {
+                if (encoding == null)
                     continue;
-                }
-                encoding.maxBitrate = targetBitrate;
-                encoding.maxFramerate = (double) maxFps;
+                encoding.maxBitrate = bitrateBps;
             }
             client.getVideoSender().setParameters(params);
-            System.out.printf("[GroupCallManager] Applied video cap %dkbps @ %.0ffps%n",
-                    targetBitrate / 1000, maxFps);
         } catch (Exception ex) {
-            System.err.printf("[GroupCallManager] Failed to apply bitrate cap: %s%n", ex.getMessage());
+            logger.error("Failed to update bitrate: " + ex.getMessage(), ex);
         }
     }
 

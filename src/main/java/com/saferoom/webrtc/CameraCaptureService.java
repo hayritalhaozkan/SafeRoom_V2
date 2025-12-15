@@ -19,7 +19,8 @@ public final class CameraCaptureService {
     private static final int DEFAULT_HEIGHT = 480;
     private static final int DEFAULT_FPS = 30;
 
-    private CameraCaptureService() {}
+    private CameraCaptureService() {
+    }
 
     public static CameraCaptureResource createCameraTrack(String trackId) {
         return createCameraTrack(trackId, new CaptureProfile(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_FPS));
@@ -28,7 +29,7 @@ public final class CameraCaptureService {
     public static CameraCaptureResource createCameraTrack(String trackId, CaptureProfile profile) {
         System.out.println("[CameraCaptureService] ═══════════════════════════════════════════");
         System.out.println("[CameraCaptureService] Creating camera track: " + trackId);
-        
+
         PeerConnectionFactory factory = WebRTCClient.getFactory();
         if (factory == null) {
             throw new IllegalStateException("[CameraCaptureService] PeerConnectionFactory bulunamadı");
@@ -40,7 +41,7 @@ public final class CameraCaptureService {
         for (int i = 0; i < cameras.size(); i++) {
             System.out.printf("  [%d] %s%n", i, cameras.get(i).getName());
         }
-        
+
         if (cameras.isEmpty()) {
             throw new IllegalStateException("[CameraCaptureService] Kamera bulunamadı");
         }
@@ -53,28 +54,18 @@ public final class CameraCaptureService {
         System.out.println("[CameraCaptureService] VideoDeviceSource created");
 
         VideoCaptureCapability capability = new VideoCaptureCapability(
-            profile.width(),
-            profile.height(),
-            profile.fps()
-        );
+                profile.width(),
+                profile.height(),
+                profile.fps());
         source.setVideoCaptureCapability(capability);
         System.out.printf("[CameraCaptureService] Capture capability set: %dx%d@%dfps%n",
-            profile.width(), profile.height(), profile.fps());
+                profile.width(), profile.height(), profile.fps());
 
         VideoTrack track = factory.createVideoTrack(trackId, source);
         track.setEnabled(true);
-        System.out.printf("[CameraCaptureService] VideoTrack created: id=%s, enabled=%b%n", 
-            track.getId(), track.isEnabled());
+        System.out.printf("[CameraCaptureService] VideoTrack created: id=%s, enabled=%b%n",
+                track.getId(), track.isEnabled());
 
-        try {
-            source.start();
-            System.out.println("[CameraCaptureService] ✅ Camera capture STARTED successfully");
-        } catch (Exception e) {
-            System.err.printf("[CameraCaptureService] ❌ Failed to start camera: %s%n", e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Camera start failed", e);
-        }
-        
         System.out.println("[CameraCaptureService] ═══════════════════════════════════════════");
         return new CameraCaptureResource(source, track);
     }
@@ -82,6 +73,7 @@ public final class CameraCaptureService {
     public static final class CameraCaptureResource {
         private final VideoDeviceSource source;
         private final VideoTrack track;
+        private boolean isStarted = false;
 
         public CameraCaptureResource(VideoDeviceSource source, VideoTrack track) {
             this.source = source;
@@ -95,8 +87,33 @@ public final class CameraCaptureService {
         public VideoTrack getTrack() {
             return track;
         }
+
+        public synchronized void startCapture() {
+            if (isStarted)
+                return;
+            try {
+                source.start();
+                isStarted = true;
+                System.out.println("[CameraCaptureService] ✅ Camera capture STARTED successfully");
+            } catch (Exception e) {
+                System.err.printf("[CameraCaptureService] ❌ Failed to start camera: %s%n", e.getMessage());
+                throw new RuntimeException("Camera start failed", e);
+            }
+        }
+
+        public synchronized void stopCapture() {
+            if (!isStarted)
+                return;
+            try {
+                source.stop();
+                isStarted = false;
+                System.out.println("[CameraCaptureService] 🛑 Camera capture STOPPED");
+            } catch (Exception e) {
+                System.err.printf("[CameraCaptureService] ❌ Failed to stop camera: %s%n", e.getMessage());
+            }
+        }
     }
 
-    public record CaptureProfile(int width, int height, int fps) {}
+    public record CaptureProfile(int width, int height, int fps) {
+    }
 }
-
