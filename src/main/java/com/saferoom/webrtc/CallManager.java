@@ -11,7 +11,10 @@ import dev.onvoid.webrtc.media.video.VideoTrack;
 import dev.onvoid.webrtc.media.MediaStreamTrack;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Call Manager
@@ -139,6 +142,21 @@ public class CallManager {
         return isInitialized;
     }
 
+    /**
+     * Handle async failures during call setup (after UI success)
+     */
+    private void handleAsyncCallError(String context, Throwable ex) {
+        System.err.printf("[CallManager] ❌ %s: %s%n", context, ex.getMessage());
+
+        // Notify user via existing callbacks (treat as call end)
+        if (this.currentCallId != null && onCallEndedCallback != null) {
+            onCallEndedCallback.accept(this.currentCallId);
+        }
+
+        // Ensure cleanup
+        cleanup();
+    }
+
     // ===============================
     // Outgoing Call Flow
     // ===============================
@@ -170,21 +188,24 @@ public class CallManager {
                     webrtcClient.createPeerConnection(audioEnabled, videoEnabled);
                     ensureScreenShareController();
 
-                    // 🎤 Add audio track if audio enabled
+                    // Set up callbacks
+                    setupWebRTCCallbacks();
+
+                    // Collect track futures
+                    List<CompletableFuture<Void>> trackFutures = new ArrayList<>();
+
+                    // 🎤 Add audio track if audio enabled (Async)
                     if (audioEnabled) {
                         System.out.println("[CallManager] 🎤 Adding audio track for outgoing call...");
-                        webrtcClient.addAudioTrack();
+                        trackFutures.add(webrtcClient.addAudioTrack());
                     }
 
-                    // 📹 Add video track if video enabled
+                    // 📹 Add video track if video enabled (Sync)
                     if (videoEnabled) {
                         System.out.println("[CallManager] 📹 Adding video track for outgoing call...");
                         webrtcClient.addVideoTrack();
                         registerCameraWithScreenShareController();
                     }
-
-                    // Set up callbacks
-                    setupWebRTCCallbacks();
 
                     // 🎥 Notify GUI that local tracks are ready (for CALLER)
                     if (onLocalTracksReadyCallback != null) {
@@ -192,15 +213,23 @@ public class CallManager {
                         onLocalTracksReadyCallback.run();
                     }
 
-                    // ⚡ FAST P2P: Generate OFFER now (during RINGING) so it's ready instantly
-                    System.out.println("[CallManager] ⚡ Generating Early Offer during RINGING...");
-                    webrtcClient.createOffer().thenAccept(sdp -> {
-                        this.preGeneratedOffer = sdp;
-                        System.out.println("[CallManager] ⚡ Early Offer generated and ready!");
-                    }).exceptionally(ex -> {
-                        System.err.printf("[CallManager] ❌ Failed to generate Early Offer: %s%n", ex.getMessage());
-                        return null;
-                    });
+                    // Wait for tracks, then generate offer
+
+                    CompletableFuture.allOf(trackFutures.toArray(new CompletableFuture[0]))
+                            .thenCompose(v -> {
+                                // ⚡ FAST P2P: Generate OFFER now (during RINGING) so it's ready instantly
+                                System.out.println("[CallManager] ⚡ Generating Early Offer during RINGING...");
+                                return webrtcClient.createOffer()
+                                        .orTimeout(5, TimeUnit.SECONDS) // Fix: Timeout
+                                        .thenAccept(sdp -> {
+                                            this.preGeneratedOffer = sdp;
+                                            System.out.println("[CallManager] ⚡ Early Offer generated and ready!");
+                                        });
+                            })
+                            .exceptionally(ex -> {
+                                handleAsyncCallError("Call setup failed (media/offer)", ex);
+                                return null;
+                            });
 
                     return callId;
                 })
@@ -521,10 +550,16 @@ public class CallManager {
         } else {
             // Fallback (race condition where answer happened before offer gen finished?)
             System.out.println("[CallManager] ⚠️ Early offer not ready, generating now...");
-            webrtcClient.createOffer().thenAccept(sdp -> {
-                signalingClient.sendOffer(currentCallId, remoteUsername, sdp);
-                System.out.println("[CallManager] Offer sent");
-            });
+            webrtcClient.createOffer()
+                    .orTimeout(5, TimeUnit.SECONDS) // Fix: Timeout
+                    .thenAccept(sdp -> {
+                        signalingClient.sendOffer(currentCallId, remoteUsername, sdp);
+                        System.out.println("[CallManager] Offer sent");
+                    })
+                    .exceptionally(ex -> {
+                        System.err.printf("[CallManager] ❌ Failed to generate Offer (Fallback): %s%n", ex.getMessage());
+                        return null;
+                    });
         }
 
         if (onCallAcceptedCallback != null) {
@@ -581,9 +616,11 @@ public class CallManager {
             if (!tracksAddedForIncomingCall) {
                 System.out.println("[CallManager] 🎥 Adding media tracks AFTER remote offer (correct order)...");
 
+                List<CompletableFuture<Void>> trackFutures = new ArrayList<>();
+
                 if (pendingAudioEnabled) {
                     System.out.println("[CallManager] Adding audio track...");
-                    webrtcClient.addAudioTrack();
+                    trackFutures.add(webrtcClient.addAudioTrack());
                 }
 
                 if (pendingVideoEnabled) {
@@ -599,20 +636,24 @@ public class CallManager {
                     System.out.println("[CallManager] 🎥 Local tracks ready (callee) - notifying GUI");
                     onLocalTracksReadyCallback.run();
                 }
-            }
 
-            System.out.println("[CallManager] Creating SDP answer (after tracks added)...");
-            webrtcClient.createAnswer().thenAccept(sdp -> {
-                // Send ANSWER to caller
-                signalingClient.sendAnswer(currentCallId, remoteUsername, sdp);
-                System.out.println("[CallManager] Answer sent to caller");
-            }).exceptionally(ex -> {
-                System.err.printf("[CallManager] Failed to create answer: %s%n", ex.getMessage());
-                return null;
-            }).exceptionally(ex -> {
-                System.err.printf("[CallManager] Failed to create answer: %s%n", ex.getMessage());
-                return null;
-            });
+                // Wait for tracks, then create answer
+                CompletableFuture.allOf(trackFutures.toArray(new CompletableFuture[0]))
+                        .thenRun(() -> {
+                            System.out.println("[CallManager] Creating SDP answer (after tracks added)...");
+                            webrtcClient.createAnswer()
+                                    .orTimeout(5, TimeUnit.SECONDS) // Fix: Timeout
+                                    .thenAccept(sdp -> {
+                                        // Send ANSWER to caller
+                                        signalingClient.sendAnswer(currentCallId, remoteUsername, sdp);
+                                        System.out.println("[CallManager] Answer sent to caller");
+                                    }).exceptionally(ex -> {
+                                        System.err.printf("[CallManager] Failed to create answer: %s%n",
+                                                ex.getMessage());
+                                        return null;
+                                    });
+                        });
+            }
         }
 
         // 🧊 Replay any buffered ICE candidates that arrived before OFFER

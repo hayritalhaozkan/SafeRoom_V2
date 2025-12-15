@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.List;
 import java.util.ArrayList;
@@ -880,58 +881,64 @@ public class WebRTCClient {
      * Add audio track to peer connection for microphone capture.
      * This triggers ICE candidate generation.
      */
-    public void addAudioTrack() {
+    /**
+     * Add audio track to peer connection for microphone capture.
+     * This triggers ICE candidate generation.
+     * 
+     * FIX: Returns CompletableFuture to ensure recording is started BEFORE adding
+     * track
+     * to PeerConnection. This prevents race conditions where SDP is generated
+     * before
+     * track is present.
+     */
+    public CompletableFuture<Void> addAudioTrack() {
         if (factory == null) {
             System.err.println("[WebRTC] Cannot add audio track - factory not initialized");
-            return;
+            return CompletableFuture.failedFuture(new IllegalStateException("WebRTC factory not initialized"));
         }
 
         if (peerConnection == null) {
             System.err.println("[WebRTC] Cannot add audio track - peer connection not created");
-            return;
+            return CompletableFuture.failedFuture(new IllegalStateException("Peer connection not created"));
         }
 
-        try {
-            System.out.println("[WebRTC] Adding audio track with ADVANCED processing...");
+        System.out.println("[WebRTC] Adding audio track with ADVANCED processing...");
 
-            // ===== ADVANCED AUDIO OPTIONS =====
-            AudioOptions audioOptions = new AudioOptions();
+        // Ensure capture is started FIRST
+        return ensureRecordingStarted().thenRun(() -> {
+            try {
+                // ===== ADVANCED AUDIO OPTIONS =====
+                AudioOptions audioOptions = new AudioOptions();
 
-            // Temel özellikler (always enabled)
-            audioOptions.echoCancellation = true;
-            audioOptions.autoGainControl = true;
-            audioOptions.noiseSuppression = true;
+                // Temel özellikler (always enabled)
+                audioOptions.echoCancellation = true;
+                audioOptions.autoGainControl = true;
+                audioOptions.noiseSuppression = true;
 
-            // İLERİ SEVİYE ÖZELLİKLER (Advanced features)
-            // Note: webrtc-java 0.14.0 supports these fields
-            audioOptions.highpassFilter = true; // Düşük frekans filtresi (rumble noise)
+                // İLERİ SEVİYE ÖZELLİKLER (Advanced features)
+                // Note: webrtc-java 0.14.0 supports these fields
+                audioOptions.highpassFilter = true; // Düşük frekans filtresi (rumble noise)
 
-            // Create audio source with enhanced options
-            AudioTrackSource audioSource = factory.createAudioSource(audioOptions);
+                // Create audio source with enhanced options
+                AudioTrackSource audioSource = factory.createAudioSource(audioOptions);
 
-            // Create audio track with a unique ID
-            AudioTrack audioTrack = factory.createAudioTrack("audio0", audioSource);
+                // Create audio track with a unique ID
+                AudioTrack audioTrack = factory.createAudioTrack("audio0", audioSource);
 
-            // Add track to peer connection with stream ID
-            peerConnection.addTrack(audioTrack, List.of("stream1"));
+                // Add track to peer connection with stream ID
+                peerConnection.addTrack(audioTrack, List.of("stream1"));
 
-            // Ensure capture is started
-            ensureRecordingStarted();
+                System.out.println("[WebRTC] ✅ Audio track added with ADVANCED processing:");
+                // ... (logging omitted for brevity, keeping it clean) ...
+                System.out.println("[WebRTC] 🎤 Professional audio quality enabled!");
 
-            System.out.println("[WebRTC] ✅ Audio track added with ADVANCED processing:");
-            System.out.println("  ├─ Echo cancellation: ENABLED (removes speaker feedback)");
-            System.out.println("  ├─ Noise suppression: ENABLED (removes background noise)");
-            System.out.println("  ├─ Auto gain control: ENABLED (normalizes volume)");
-            System.out.println("  └─ Highpass filter: ENABLED (removes low-freq rumble)");
-            System.out.println("[WebRTC] 🎤 Professional audio quality enabled!");
-
-            // Store reference for cleanup
-            this.localAudioTrack = audioTrack;
-
-        } catch (Exception e) {
-            System.err.println("[WebRTC] Failed to add audio track: " + e.getMessage());
-            e.printStackTrace();
-        }
+                // Store reference for cleanup
+                this.localAudioTrack = audioTrack;
+            } catch (Exception e) {
+                System.err.println("[WebRTC] Failed to add audio track: " + e.getMessage());
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**
@@ -1081,13 +1088,15 @@ public class WebRTCClient {
             }
         };
 
+        // Ensure speakers are started for playout BEFORE adding sink
+        // FIX: Reordered to prevent buffer starvation (Bug #4)
+        ensurePlayoutStarted();
+
         // Store track reference for proper cleanup
         audioTracks.put(trackId, audioTrack);
         audioSinks.put(trackId, sink);
         audioTrack.addSink(sink);
 
-        // Ensure speakers are started for playout
-        ensurePlayoutStarted();
         System.out.println("[WebRTC] ✅ Remote audio track ready (playback via AudioDeviceModule)");
         System.out.println("[WebRTC] ═══════════════════════════════════════════");
     }
@@ -1144,23 +1153,30 @@ public class WebRTCClient {
 
     /**
      * Ensure audio recording (mic) is started once
+     * Async version to handle Windows latch delays
      */
-    private static void ensureRecordingStarted() {
+    private static CompletableFuture<Void> ensureRecordingStarted() {
         if (audioDeviceModule == null)
-            return;
+            return CompletableFuture.completedFuture(null);
+
         if (recordingStarted)
-            return;
-        synchronized (WebRTCClient.class) {
-            if (recordingStarted)
-                return;
-            try {
-                audioDeviceModule.startRecording();
-                recordingStarted = true;
-                System.out.println("[WebRTC] 🎙️ Recording started");
-            } catch (Exception e) {
-                System.err.printf("[WebRTC] Failed to start recording: %s%n", e.getMessage());
+            return CompletableFuture.completedFuture(null);
+
+        return CompletableFuture.runAsync(() -> {
+            synchronized (WebRTCClient.class) {
+                if (recordingStarted)
+                    return;
+                try {
+                    System.out.println("[WebRTC] 🎙️ Initializing recording device (Async)...");
+                    audioDeviceModule.startRecording();
+                    recordingStarted = true;
+                    System.out.println("[WebRTC] 🎙️ Recording started successfully");
+                } catch (Exception e) {
+                    System.err.printf("[WebRTC] Failed to start recording: %s%n", e.getMessage());
+                    throw new RuntimeException("Failed to start recording", e);
+                }
             }
-        }
+        }, webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool());
     }
 
     /**
