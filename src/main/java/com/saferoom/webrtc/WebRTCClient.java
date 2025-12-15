@@ -366,6 +366,9 @@ public class WebRTCClient {
 
         System.out.println("[WebRTC] Shutting down WebRTC...");
 
+        // Stop device monitoring
+        isMonitoring = false;
+
         // Shutdown Virtual Thread executor
         if (webrtcExecutor != null) {
             webrtcExecutor.shutdown();
@@ -387,9 +390,28 @@ public class WebRTCClient {
             System.out.println("[WebRTC] PeerConnectionFactory disposed");
         }
 
-        // Dispose AudioDeviceModule
+        // 🛑 STOP AUDIO BEFORE DISPOSING MODULE
+        // This is critical to prevent "ghost audio" threads
         if (audioDeviceModule != null) {
+            System.out.println("[WebRTC] Stopping AudioDeviceModule...");
             try {
+                if (playoutStarted) {
+                    audioDeviceModule.stopPlayout();
+                    playoutStarted = false;
+                    System.out.println("[WebRTC] Playout stopped");
+                }
+                if (recordingStarted) {
+                    audioDeviceModule.stopRecording();
+                    recordingStarted = false;
+                    System.out.println("[WebRTC] Recording stopped");
+                }
+
+                // Give native audio threads a moment to spin down
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ignored) {
+                }
+
                 audioDeviceModule.dispose();
             } catch (Exception e) {
                 System.err.println("[WebRTC] Error disposing AudioDeviceModule: " + e.getMessage());
