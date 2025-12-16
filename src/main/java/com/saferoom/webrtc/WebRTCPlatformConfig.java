@@ -135,26 +135,49 @@ final class WebRTCPlatformConfig {
     }
 
     /**
-     * Reorder codecs - FORCE VP8 ONLY for maximum cross-platform compatibility.
-     * Prevents H.264 profile mismatches between Win/Mac.
+     * Reorder codecs - Prioritize H264 for Mac/Windows hardware support.
+     * Keep all codecs available for fallback.
      */
     private static List<RTCRtpCodecCapability> reorderCodecsKeepAll(RTCRtpCapabilities capabilities) {
         if (capabilities == null || capabilities.getCodecs() == null) {
             return List.of();
         }
 
-        // Filter for VP8 only
-        List<RTCRtpCodecCapability> codecs = capabilities.getCodecs().stream()
-                .filter(Objects::nonNull)
-                .filter(codec -> {
-                    String name = codec.getName();
-                    return name != null && name.toUpperCase(Locale.ROOT).contains("VP8");
-                })
-                .toList();
+        List<RTCRtpCodecCapability> codecs = new ArrayList<>(
+                capabilities.getCodecs().stream()
+                        .filter(Objects::nonNull)
+                        .toList());
 
-        System.out.println("[WebRTC] ⚠️ FORCING VP8 ONLY (Filtering out H264/VP9) for compatibility");
+        if (codecs.isEmpty()) {
+            return List.of();
+        }
 
-        return codecs;
+        // H264 > VP8 > VP9
+        java.util.function.Predicate<RTCRtpCodecCapability> isH264 = codec -> {
+            String name = codec.getName();
+            return name != null && name.toUpperCase(Locale.ROOT).contains("H264");
+        };
+
+        java.util.function.Predicate<RTCRtpCodecCapability> isVP8 = codec -> {
+            String name = codec.getName();
+            return name != null && name.toUpperCase(Locale.ROOT).contains("VP8");
+        };
+
+        java.util.function.Predicate<RTCRtpCodecCapability> isVP9 = codec -> {
+            String name = codec.getName();
+            return name != null && name.toUpperCase(Locale.ROOT).contains("VP9");
+        };
+
+        codecs.sort((a, b) -> {
+            // Prioritize H264 (3 points), then VP8 (2 points), then VP9 (1 point)
+            int scoreA = isH264.test(a) ? 3 : isVP8.test(a) ? 2 : isVP9.test(a) ? 1 : 0;
+            int scoreB = isH264.test(b) ? 3 : isVP8.test(b) ? 2 : isVP9.test(b) ? 1 : 0;
+            return Integer.compare(scoreB, scoreA);
+        });
+
+        System.out.println("[WebRTC] Codec order: H264 > VP8 > VP9 (Keeping all)");
+
+        return codecs; // Return mutable list copy wrapped or as is (since we created new ArrayList)
     }
 
     @Override
