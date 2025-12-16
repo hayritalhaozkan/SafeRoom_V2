@@ -205,9 +205,14 @@ public class CallManager {
                     // 📹 Add video track if video enabled (Async)
                     if (videoEnabled) {
                         logger.info("📹 Adding video track for outgoing call...");
-                        trackFutures.add(webrtcClient.addVideoTrack().thenRun(() -> {
-                            registerCameraWithScreenShareController();
-                        }));
+                        trackFutures.add(webrtcClient.addVideoTrack()
+                                .orTimeout(5, TimeUnit.SECONDS)
+                                .thenRun(() -> {
+                                    registerCameraWithScreenShareController();
+                                }).exceptionally(e -> {
+                                    logger.error("Failed to add video track (timeout or error): " + e.getMessage(), e);
+                                    return null;
+                                }));
                     }
 
                     // 🎥 Notify GUI that local tracks are ready (for CALLER)
@@ -627,9 +632,14 @@ public class CallManager {
 
                 if (pendingVideoEnabled) {
                     logger.info("Adding video track...");
-                    trackFutures.add(webrtcClient.addVideoTrack().thenRun(() -> {
-                        registerCameraWithScreenShareController();
-                    }));
+                    trackFutures.add(webrtcClient.addVideoTrack()
+                            .orTimeout(5, TimeUnit.SECONDS)
+                            .thenRun(() -> {
+                                registerCameraWithScreenShareController();
+                            }).exceptionally(e -> {
+                                logger.error("Failed to add video track (timeout or error): " + e.getMessage(), e);
+                                return null;
+                            }));
                 }
 
                 tracksAddedForIncomingCall = true;
