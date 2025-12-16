@@ -1,0 +1,766 @@
+[2025-12-16 20:01:08.165] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: I_am_CEO_bitch
+[2025-12-16 20:01:08.571] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2025-12-16 20:01:08.583] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2025-12-16 20:01:22.300] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Initialized for user: I_am_CEO_bitch
+[2025-12-16 20:01:22.304] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Joining room: sr-f91b-a4c8 (mode=JOIN_MODE, audio=false, video=false)
+[2025-12-16 20:01:22.308] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Room join signal sent (mode=JOIN_MODE)
+[2025-12-16 20:01:22.537] [INFO ] [grpc-default-executor-2] [GroupCallManager] - Room joined confirmation received
+[2025-12-16 20:01:22.538] [INFO ] [grpc-default-executor-2] [GroupCallManager] - Current peers in room: [abkarada, Talha]
+[2025-12-16 20:01:22.539] [INFO ] [grpc-default-executor-2] [GroupCallManager] - Creating peer connection to: abkarada (initiate=true)
+[2025-12-16 20:01:22.539] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=c3152919-6ae1-4ca8-83bb-6ef3181f01ec, Peer=abkarada} - WebRTCClient created for peer: abkarada
+[2025-12-16 20:01:22.540] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=c3152919-6ae1-4ca8-83bb-6ef3181f01ec, Peer=abkarada} - Creating peer connection (audio=false, video=false)
+[2025-12-16 20:01:22.545] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=c3152919-6ae1-4ca8-83bb-6ef3181f01ec, Peer=abkarada} - Creating SDP offer...
+[2025-12-16 20:01:22.547] [ERROR] [Thread-7] [WebRTCClient] - Failed to set local description: [INTERNAL_ERROR] Failed to set local offer sdp: max-bundle configured but session description has no BUNDLE group
+[2025-12-16 20:01:22.548] [INFO ] [Thread-7] [WebRTCClient] - Create Offer failed ([INTERNAL_ERROR] Failed to set local offer sdp: max-bundle configured but session description has no BUNDLE group), retrying in 500ms...
+[2025-12-16 20:01:22.548] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=c3152919-6ae1-4ca8-83bb-6ef3181f01ec, Peer=abkarada} - Creating peer connection to: Talha (initiate=true)
+[2025-12-16 20:01:22.548] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=d082b55d-ed7c-4d4a-9f41-32ad6ffd00db, Peer=Talha} - WebRTCClient created for peer: Talha
+[2025-12-16 20:01:22.549] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=d082b55d-ed7c-4d4a-9f41-32ad6ffd00db, Peer=Talha} - Creating peer connection (audio=false, video=false)
+[2025-12-16 20:01:22.550] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=d082b55d-ed7c-4d4a-9f41-32ad6ffd00db, Peer=Talha} - Creating SDP offer...
+[2025-12-16 20:01:22.551] [ERROR] [Thread-7] [WebRTCClient] - Failed to set local description: [INTERNAL_ERROR] Failed to set local offer sdp: max-bundle configured but session description has no BUNDLE group
+[2025-12-16 20:01:22.551] [INFO ] [Thread-7] [WebRTCClient] - Create Offer failed ([INTERNAL_ERROR] Failed to set local offer sdp: max-bundle configured but session description has no BUNDLE group), retrying in 500ms...
+[2025-12-16 20:01:22.551] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=d082b55d-ed7c-4d4a-9f41-32ad6ffd00db, Peer=Talha} - Distributing bandwidth: 2500kbps total / 2 peers = 1250kbps each
+[2025-12-16 20:01:22.552] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Leaving room: sr-f91b-a4c8
+[2025-12-16 20:01:22.552] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Left room successfully
+[2025-12-16 20:01:22.552] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Cleaning up all connections...
+[2025-12-16 20:01:22.552] [DEBUG] [JavaFX Application Thread] [GroupCallManager] - Closing connection to abkarada
+[2025-12-16 20:01:22.553] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Closing peer connection...
+[2025-12-16 20:01:22.553] [INFO ] [Thread-7] [WebRTCClient] - ICE Connection state: CLOSED
+[2025-12-16 20:01:22.554] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Connection closed
+[2025-12-16 20:01:22.555] [DEBUG] [JavaFX Application Thread] [GroupCallManager] - Closing connection to Talha
+[2025-12-16 20:01:22.555] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Closing peer connection...
+[2025-12-16 20:01:22.555] [INFO ] [Thread-7] [WebRTCClient] - ICE Connection state: CLOSED
+[2025-12-16 20:01:22.556] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Connection closed
+[2025-12-16 20:01:22.867] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Initialized for user: I_am_CEO_bitch
+[2025-12-16 20:01:22.869] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Joining room: sr-f91b-a4c8 (mode=JOIN_MODE, audio=true, video=true)
+[2025-12-16 20:01:22.870] [INFO ] [ForkJoinPool.commonPool-worker-2] [GroupCallManager] - Creating local video track for preview...
+[2025-12-16 20:01:23.036] [INFO ] [ForkJoinPool.commonPool-worker-2] [GroupCallManager] - ✅ Local video track created, enabled, and started
+[2025-12-16 20:01:23.037] [INFO ] [ForkJoinPool.commonPool-worker-2] [GroupCallManager] - Room join signal sent (mode=JOIN_MODE)
+[2025-12-16 20:01:23.050] [INFO ] [] [WebRTCClient] - Creating SDP offer...
+[2025-12-16 20:01:23.051] [WARN ] [] [WebRTCClient] - Using mock SDP (peer connection not available)
+[2025-12-16 20:01:23.052] [INFO ] [] [GroupCallManager] - Sending MESH_OFFER to abkarada
+[2025-12-16 20:01:23.053] [INFO ] [] [WebRTCClient] - Creating SDP offer...
+[2025-12-16 20:01:23.053] [WARN ] [] [WebRTCClient] - Using mock SDP (peer connection not available)
+[2025-12-16 20:01:23.053] [INFO ] [] [GroupCallManager] - Sending MESH_OFFER to Talha
+[2025-12-16 20:01:23.110] [INFO ] [grpc-default-executor-1] [GroupCallManager] - Room joined confirmation received
+[2025-12-16 20:01:23.110] [INFO ] [grpc-default-executor-1] [GroupCallManager] - Current peers in room: [abkarada, Talha]
+[2025-12-16 20:01:23.111] [INFO ] [grpc-default-executor-1] [GroupCallManager] - Creating peer connection to: abkarada (initiate=true)
+[2025-12-16 20:01:23.111] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=b6b75acc-579d-400b-bde0-e2afe95729ee, Peer=abkarada} - WebRTCClient created for peer: abkarada
+[2025-12-16 20:01:23.111] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=b6b75acc-579d-400b-bde0-e2afe95729ee, Peer=abkarada} - Creating peer connection (audio=true, video=true)
+[2025-12-16 20:01:23.114] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=b6b75acc-579d-400b-bde0-e2afe95729ee, Peer=abkarada} - Adding audio track with ADVANCED processing...
+[2025-12-16 20:01:23.114] [INFO ] [] [WebRTCClient] - 🎙️ Initializing recording device (Async)...
+[2025-12-16 20:01:23.115] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=b6b75acc-579d-400b-bde0-e2afe95729ee, Peer=abkarada} - Adding SHARED video track to peer connection...
+[2025-12-16 20:01:23.116] [INFO ] [] [WebRTCClient] - 🎙️ Recording started successfully
+[2025-12-16 20:01:23.118] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=b6b75acc-579d-400b-bde0-e2afe95729ee, Peer=abkarada} - ✅ Shared video track added successfully
+[2025-12-16 20:01:23.118] [INFO ] [] [WebRTCClient] - ✅ Audio track added with ADVANCED processing
+[2025-12-16 20:01:23.118] [INFO ] [grpc-default-executor-1] [GroupCallManager] {CallID=b6b75acc-579d-400b-bde0-e2afe95729ee, Peer=abkarada} - Creating peer connection to: Talha (initiate=true)
+[2025-12-16 20:01:23.118] [INFO ] [] [WebRTCClient] - 🎤 Professional audio quality enabled!
+[2025-12-16 20:01:23.119] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - WebRTCClient created for peer: Talha
+[2025-12-16 20:01:23.119] [INFO ] [] [WebRTCClient] - Creating SDP offer...
+[2025-12-16 20:01:23.119] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - Creating peer connection (audio=true, video=true)
+[2025-12-16 20:01:23.124] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - Adding audio track with ADVANCED processing...
+[2025-12-16 20:01:23.132] [INFO ] [Thread-7] [WebRTCClient] - Offer created and set as local description
+[2025-12-16 20:01:23.134] [DEBUG] [Thread-7] [WebRTCClient] - Optimized SDP from 5058 bytes to 5058 bytes
+[2025-12-16 20:01:23.134] [INFO ] [Thread-7] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-16 20:01:23.134] [INFO ] [Thread-7] [WebRTCClient] - SDP OFFER - Video Codec Analysis
+[2025-12-16 20:01:23.140] [INFO ] [Thread-7] [WebRTCClient] -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 96 97 103 104 107 108 109 114 115 116 117 118 39 40 
+[2025-12-16 20:01:23.140] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 96 VP8/90000
+[2025-12-16 20:01:23.141] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 97 rtx/90000
+[2025-12-16 20:01:23.141] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 103 H264/90000
+[2025-12-16 20:01:23.141] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+[2025-12-16 20:01:23.141] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 104 rtx/90000
+[2025-12-16 20:01:23.141] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 107 H264/90000
+[2025-12-16 20:01:23.141] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
+[2025-12-16 20:01:23.142] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 108 rtx/90000
+[2025-12-16 20:01:23.142] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 109 H264/90000
+[2025-12-16 20:01:23.142] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2025-12-16 20:01:23.143] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 114 rtx/90000
+[2025-12-16 20:01:23.143] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 115 H264/90000
+[2025-12-16 20:01:23.144] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
+[2025-12-16 20:01:23.144] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 116 rtx/90000
+[2025-12-16 20:01:23.144] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 117 H264/90000
+[2025-12-16 20:01:23.144] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
+[2025-12-16 20:01:23.144] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 118 rtx/90000
+[2025-12-16 20:01:23.145] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 39 H264/90000
+[2025-12-16 20:01:23.145] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
+[2025-12-16 20:01:23.145] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 40 rtx/90000
+[2025-12-16 20:01:23.145] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 98 VP9/90000
+[2025-12-16 20:01:23.145] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 99 rtx/90000
+[2025-12-16 20:01:23.145] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 100 VP9/90000
+[2025-12-16 20:01:23.145] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 101 rtx/90000
+[2025-12-16 20:01:23.146] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 45 AV1/90000
+[2025-12-16 20:01:23.146] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 46 rtx/90000
+[2025-12-16 20:01:23.147] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 119 red/90000
+[2025-12-16 20:01:23.147] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 120 rtx/90000
+[2025-12-16 20:01:23.147] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 121 ulpfec/90000
+[2025-12-16 20:01:23.147] [INFO ] [Thread-7] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-16 20:01:23.148] [INFO ] [Thread-7] [GroupCallManager] - Sending MESH_OFFER to abkarada
+[2025-12-16 20:01:23.148] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:340551260 1 udp 2122260223 10.144.180.90 52568 typ host generation 0 ufrag kS1y network-id 1
+[2025-12-16 20:01:23.149] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:01:23.150] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:1651629351 1 udp 2122194687 192.168.137.1 52569 typ host generation 0 ufrag kS1y network-id 2 network-cost 10
+[2025-12-16 20:01:23.150] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:01:23.151] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - ✅ Audio track added with ADVANCED processing
+[2025-12-16 20:01:23.151] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - 🎤 Professional audio quality enabled!
+[2025-12-16 20:01:23.151] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - Adding SHARED video track to peer connection...
+[2025-12-16 20:01:23.153] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - ✅ Shared video track added successfully
+[2025-12-16 20:01:23.153] [INFO ] [grpc-default-executor-1] [WebRTCClient] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - Creating SDP offer...
+[2025-12-16 20:01:23.159] [INFO ] [Thread-7] [WebRTCClient] - Offer created and set as local description
+[2025-12-16 20:01:23.160] [DEBUG] [Thread-7] [WebRTCClient] - Optimized SDP from 5058 bytes to 5058 bytes
+[2025-12-16 20:01:23.160] [INFO ] [Thread-7] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-16 20:01:23.160] [INFO ] [Thread-7] [WebRTCClient] - SDP OFFER - Video Codec Analysis
+[2025-12-16 20:01:23.162] [INFO ] [Thread-7] [WebRTCClient] -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 96 97 103 104 107 108 109 114 115 116 117 118 39 40 
+[2025-12-16 20:01:23.163] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 96 VP8/90000
+[2025-12-16 20:01:23.163] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 97 rtx/90000
+[2025-12-16 20:01:23.163] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 103 H264/90000
+[2025-12-16 20:01:23.163] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+[2025-12-16 20:01:23.164] [INFO ] [grpc-default-executor-1] [GroupCallManager] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - Adjusting capture profile to 640x360@24fps
+[2025-12-16 20:01:23.164] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 104 rtx/90000
+[2025-12-16 20:01:23.164] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 107 H264/90000
+[2025-12-16 20:01:23.164] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
+[2025-12-16 20:01:23.164] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 108 rtx/90000
+[2025-12-16 20:01:23.164] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 109 H264/90000
+[2025-12-16 20:01:23.164] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2025-12-16 20:01:23.166] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 114 rtx/90000
+[2025-12-16 20:01:23.166] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 115 H264/90000
+[2025-12-16 20:01:23.166] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
+[2025-12-16 20:01:23.166] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 116 rtx/90000
+[2025-12-16 20:01:23.166] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 117 H264/90000
+[2025-12-16 20:01:23.166] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
+[2025-12-16 20:01:23.167] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 118 rtx/90000
+[2025-12-16 20:01:23.168] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 39 H264/90000
+[2025-12-16 20:01:23.168] [INFO ] [Thread-7] [WebRTCClient] -   Profile: 39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
+[2025-12-16 20:01:23.168] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 40 rtx/90000
+[2025-12-16 20:01:23.168] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 98 VP9/90000
+[2025-12-16 20:01:23.169] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 99 rtx/90000
+[2025-12-16 20:01:23.169] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 100 VP9/90000
+[2025-12-16 20:01:23.169] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 101 rtx/90000
+[2025-12-16 20:01:23.169] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 45 AV1/90000
+[2025-12-16 20:01:23.169] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 46 rtx/90000
+[2025-12-16 20:01:23.171] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 119 red/90000
+[2025-12-16 20:01:23.171] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 120 rtx/90000
+[2025-12-16 20:01:23.171] [INFO ] [Thread-7] [WebRTCClient] -   Codec: 121 ulpfec/90000
+[2025-12-16 20:01:23.171] [INFO ] [Thread-7] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-16 20:01:23.171] [INFO ] [Thread-7] [GroupCallManager] - Sending MESH_OFFER to Talha
+[2025-12-16 20:01:23.172] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:3356160327 1 udp 2122260223 10.144.180.90 64818 typ host generation 0 ufrag zGj9 network-id 1
+[2025-12-16 20:01:23.172] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:01:23.173] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:1014606092 1 udp 2122194687 192.168.137.1 64819 typ host generation 0 ufrag zGj9 network-id 2 network-cost 10
+[2025-12-16 20:01:23.173] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:01:23.189] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:3582079254 1 udp 1686052607 212.175.193.53 52568 typ srflx raddr 10.144.180.90 rport 52568 generation 0 ufrag kS1y network-id 1
+[2025-12-16 20:01:23.190] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:01:23.192] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:2747239021 1 udp 1685987071 212.175.193.53 63076 typ srflx raddr 192.168.137.1 rport 52569 generation 0 ufrag kS1y network-id 2 network-cost 10
+[2025-12-16 20:01:23.193] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:01:23.213] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:2089016229 1 udp 1685987071 212.175.193.53 63077 typ srflx raddr 192.168.137.1 rport 64819 generation 0 ufrag zGj9 network-id 2 network-cost 10
+[2025-12-16 20:01:23.214] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:01:23.215] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:2297463790 1 udp 1686052607 212.175.193.53 64818 typ srflx raddr 10.144.180.90 rport 64818 generation 0 ufrag zGj9 network-id 1
+[2025-12-16 20:01:23.215] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:01:23.234] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:3940987592 1 tcp 1518280447 10.144.180.90 55018 typ host tcptype passive generation 0 ufrag kS1y network-id 1
+[2025-12-16 20:01:23.234] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:01:23.235] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:2631600563 1 tcp 1518214911 192.168.137.1 55019 typ host tcptype passive generation 0 ufrag kS1y network-id 2 network-cost 10
+[2025-12-16 20:01:23.235] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:01:23.259] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:3940987592 1 tcp 1518280447 10.144.180.90 55020 typ host tcptype passive generation 0 ufrag kS1y network-id 1
+[2025-12-16 20:01:23.259] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:01:23.260] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:2631600563 1 tcp 1518214911 192.168.137.1 55021 typ host tcptype passive generation 0 ufrag kS1y network-id 2 network-cost 10
+[2025-12-16 20:01:23.260] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:01:23.261] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:3063206986 1 tcp 1518280447 10.144.180.90 55022 typ host tcptype passive generation 0 ufrag zGj9 network-id 1
+[2025-12-16 20:01:23.261] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:01:23.262] [DEBUG] [Thread-7] [WebRTCClient] - ICE Candidate generated: candidate:1122470913 1 tcp 1518214911 192.168.137.1 55023 typ host tcptype passive generation 0 ufrag zGj9 network-id 2 network-cost 10
+[2025-12-16 20:01:23.262] [DEBUG] [Thread-7] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:01:23.572] [INFO ] [grpc-default-executor-1] [GroupCallManager] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - Distributing bandwidth: 2500kbps total / 2 peers = 1250kbps each
+[2025-12-16 20:01:23.574] [INFO ] [grpc-default-executor-1] [GroupCallManager] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - Peer left: Talha
+[2025-12-16 20:01:23.575] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Closing peer connection...
+[2025-12-16 20:01:23.576] [INFO ] [grpc-default-executor-1] [GroupCallManager] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - Peer left: abkarada
+[2025-12-16 20:01:23.576] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: audio0
+[2025-12-16 20:01:23.576] [INFO ] [grpc-default-executor-1] [GroupCallManager] {CallID=244ab2e6-7d76-4429-9e4a-d17b0a2d5524, Peer=Talha} - Adjusting capture profile to 960x540@30fps
+[2025-12-16 20:01:23.576] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: group_local_video
+[2025-12-16 20:01:23.577] [INFO ] [Thread-7] [WebRTCClient] - ICE Connection state: CLOSED
+[2025-12-16 20:01:23.578] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Audio track disposed
+[2025-12-16 20:01:23.578] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Video track is shared - not disposing (GroupCallManager owns it)
+[2025-12-16 20:01:23.578] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Connection closed
+[2025-12-16 20:01:23.579] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Connection to Talha closed
+[2025-12-16 20:01:23.579] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Distributing bandwidth: 2500kbps total / 1 peers = 2500kbps each
+[2025-12-16 20:01:23.588] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Closing peer connection...
+[2025-12-16 20:01:23.588] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: group_local_video
+[2025-12-16 20:01:23.589] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: audio0
+[2025-12-16 20:01:23.589] [INFO ] [Thread-7] [WebRTCClient] - ICE Connection state: CLOSED
+[2025-12-16 20:01:23.590] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Audio track disposed
+[2025-12-16 20:01:23.591] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Video track is shared - not disposing (GroupCallManager owns it)
+[2025-12-16 20:01:23.591] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Connection closed
+[2025-12-16 20:01:23.591] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Connection to abkarada closed
+[2025-12-16 20:02:17.436] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Leaving room: sr-f91b-a4c8
+[2025-12-16 20:02:17.437] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Left room successfully
+[2025-12-16 20:02:17.437] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Cleaning up all connections...
+[2025-12-16 20:02:17.695] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Local video source stopped and disposed
+[2025-12-16 20:02:17.695] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Local video track disposed
+[2025-12-16 20:02:18.431] [INFO ] [JavaFX Application Thread] [CallManager] - Cleaning up call resources...
+[2025-12-16 20:02:18.432] [DEBUG] [JavaFX Application Thread] [CallManager] - Already cleaned up, skipping
+[2025-12-16 20:02:18.432] [INFO ] [JavaFX Application Thread] [CallManager] - Shutting down...
+[2025-12-16 20:02:18.558] [INFO ] [webrtc-device-monitor] [WebRTCClient] - Device monitor stopped
+[2025-12-16 20:02:18.706] [INFO ] [JavaFX Application Thread] [CallManager] - Shutdown complete
+[2025-12-16 20:08:37.344] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: I_am_CEO_bitch
+[2025-12-16 20:08:37.638] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2025-12-16 20:08:37.652] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2025-12-16 20:09:01.546] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Initialized for user: I_am_CEO_bitch
+[2025-12-16 20:09:01.549] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Joining room: sr-f91b-a4c8 (mode=CREATE_MODE, audio=true, video=true)
+[2025-12-16 20:09:01.550] [INFO ] [ForkJoinPool.commonPool-worker-2] [GroupCallManager] - Creating local video track for preview...
+[2025-12-16 20:09:01.707] [INFO ] [ForkJoinPool.commonPool-worker-2] [GroupCallManager] - ✅ Local video track created, enabled, and started
+[2025-12-16 20:09:01.715] [INFO ] [ForkJoinPool.commonPool-worker-2] [GroupCallManager] - Room join signal sent (mode=CREATE_MODE)
+[2025-12-16 20:09:01.784] [INFO ] [grpc-default-executor-2] [GroupCallManager] - Room joined confirmation received
+[2025-12-16 20:09:01.785] [INFO ] [grpc-default-executor-2] [GroupCallManager] - Current peers in room: []
+[2025-12-16 20:09:15.811] [INFO ] [grpc-default-executor-2] [GroupCallManager] - New peer joined: Talha
+[2025-12-16 20:09:15.811] [INFO ] [grpc-default-executor-2] [GroupCallManager] - Creating peer connection to: Talha (initiate=false)
+[2025-12-16 20:09:15.812] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=fa5b5524-86d2-4c54-8b62-c8fbbba13642, Peer=Talha} - WebRTCClient created for peer: Talha
+[2025-12-16 20:09:15.812] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=fa5b5524-86d2-4c54-8b62-c8fbbba13642, Peer=Talha} - Creating peer connection (audio=true, video=true)
+[2025-12-16 20:09:15.816] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=fa5b5524-86d2-4c54-8b62-c8fbbba13642, Peer=Talha} - Adding audio track with ADVANCED processing...
+[2025-12-16 20:09:15.817] [INFO ] [] [WebRTCClient] - 🎙️ Initializing recording device (Async)...
+[2025-12-16 20:09:15.817] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=fa5b5524-86d2-4c54-8b62-c8fbbba13642, Peer=Talha} - Adding SHARED video track to peer connection...
+[2025-12-16 20:09:15.819] [INFO ] [] [WebRTCClient] - 🎙️ Recording started successfully
+[2025-12-16 20:09:15.821] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=fa5b5524-86d2-4c54-8b62-c8fbbba13642, Peer=Talha} - ✅ Shared video track added successfully
+[2025-12-16 20:09:15.821] [INFO ] [] [WebRTCClient] - ✅ Audio track added with ADVANCED processing
+[2025-12-16 20:09:15.821] [INFO ] [] [WebRTCClient] - 🎤 Professional audio quality enabled!
+[2025-12-16 20:09:15.822] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=fa5b5524-86d2-4c54-8b62-c8fbbba13642, Peer=Talha} - Distributing bandwidth: 2500kbps total / 1 peers = 2500kbps each
+[2025-12-16 20:09:15.872] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=fa5b5524-86d2-4c54-8b62-c8fbbba13642, Peer=Talha} - Peer left: Talha
+[2025-12-16 20:09:15.873] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Closing peer connection...
+[2025-12-16 20:09:15.874] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: group_local_video
+[2025-12-16 20:09:15.875] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: audio0
+[2025-12-16 20:09:15.876] [INFO ] [Thread-8] [WebRTCClient] - ICE Connection state: CLOSED
+[2025-12-16 20:09:15.877] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Audio track disposed
+[2025-12-16 20:09:15.877] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Video track is shared - not disposing (GroupCallManager owns it)
+[2025-12-16 20:09:15.878] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Connection closed
+[2025-12-16 20:09:15.878] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Connection to Talha closed
+[2025-12-16 20:09:16.025] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=fa5b5524-86d2-4c54-8b62-c8fbbba13642, Peer=Talha} - New peer joined: Talha
+[2025-12-16 20:09:16.025] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=fa5b5524-86d2-4c54-8b62-c8fbbba13642, Peer=Talha} - Creating peer connection to: Talha (initiate=false)
+[2025-12-16 20:09:16.026] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - WebRTCClient created for peer: Talha
+[2025-12-16 20:09:16.026] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Creating peer connection (audio=true, video=true)
+[2025-12-16 20:09:16.028] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Adding audio track with ADVANCED processing...
+[2025-12-16 20:09:16.029] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - ✅ Audio track added with ADVANCED processing
+[2025-12-16 20:09:16.029] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - 🎤 Professional audio quality enabled!
+[2025-12-16 20:09:16.030] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Adding SHARED video track to peer connection...
+[2025-12-16 20:09:16.031] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - ✅ Shared video track added successfully
+[2025-12-16 20:09:16.032] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Distributing bandwidth: 2500kbps total / 1 peers = 2500kbps each
+[2025-12-16 20:09:16.154] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Received MESH_OFFER from Talha
+[2025-12-16 20:09:16.154] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Setting remote offer
+[2025-12-16 20:09:16.155] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - ═══════════════════════════════════════════
+[2025-12-16 20:09:16.155] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - SDP REMOTE OFFER - Video Codec Analysis
+[2025-12-16 20:09:16.156] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 100 101 96 97 98 99 103 104 35 36 107 108 109
+[2025-12-16 20:09:16.156] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 100 VP8/90000
+[2025-12-16 20:09:16.156] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 101 rtx/90000
+[2025-12-16 20:09:16.157] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 96 H264/90000
+[2025-12-16 20:09:16.157] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Profile: 96 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f
+[2025-12-16 20:09:16.157] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 97 rtx/90000
+[2025-12-16 20:09:16.157] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 98 H264/90000
+[2025-12-16 20:09:16.158] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Profile: 98 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2025-12-16 20:09:16.158] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 99 rtx/90000
+[2025-12-16 20:09:16.158] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 103 VP9/90000
+[2025-12-16 20:09:16.158] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 104 rtx/90000
+[2025-12-16 20:09:16.159] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 35 AV1/90000
+[2025-12-16 20:09:16.159] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 36 rtx/90000
+[2025-12-16 20:09:16.159] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 107 red/90000
+[2025-12-16 20:09:16.159] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 108 rtx/90000
+[2025-12-16 20:09:16.159] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} -   Codec: 109 ulpfec/90000
+[2025-12-16 20:09:16.159] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - ═══════════════════════════════════════════
+[2025-12-16 20:09:16.166] [INFO ] [Thread-8] [WebRTCClient] - 🔊 Setting up remote audio playback...
+[2025-12-16 20:09:16.167] [DEBUG] [Thread-8] [WebRTCClient] -   Track ID: 2b3f1a9f-ee7d-4cd7-81de-fc79a457b35f
+[2025-12-16 20:09:16.167] [DEBUG] [Thread-8] [WebRTCClient] -   Enabled: true
+[2025-12-16 20:09:16.170] [INFO ] [Thread-8] [WebRTCClient] - 🔊 Playout started
+[2025-12-16 20:09:16.170] [INFO ] [Thread-8] [WebRTCClient] - ✅ Remote audio track ready (playback via AudioDeviceModule)
+[2025-12-16 20:09:16.171] [INFO ] [Thread-8] [GroupCallManager] - Remote track from Talha: 2b3f1a9f-ee7d-4cd7-81de-fc79a457b35f (audio)
+[2025-12-16 20:09:16.171] [INFO ] [Thread-8] [WebRTCClient] - 🎥 HANDLING REMOTE VIDEO TRACK
+[2025-12-16 20:09:16.171] [DEBUG] [Thread-8] [WebRTCClient] -   Track ID: 8a02340a-41b8-4cfd-879e-6d7f036cd736
+[2025-12-16 20:09:16.171] [DEBUG] [Thread-8] [WebRTCClient] -   Enabled: true
+[2025-12-16 20:09:16.171] [DEBUG] [Thread-8] [WebRTCClient] -   State: LIVE
+[2025-12-16 20:09:16.173] [INFO ] [Thread-8] [WebRTCClient] -   ✅ Debug sink attached to remote video track
+[2025-12-16 20:09:16.173] [INFO ] [Thread-8] [WebRTCClient] -   Waiting for VideoPanel attachment via callback...
+[2025-12-16 20:09:16.173] [INFO ] [Thread-8] [GroupCallManager] - Remote track from Talha: 8a02340a-41b8-4cfd-879e-6d7f036cd736 (video)
+[2025-12-16 20:09:16.174] [INFO ] [Thread-8] [WebRTCClient] - Remote description set
+[2025-12-16 20:09:16.179] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Received MESH_ICE_CANDIDATE from Talha
+[2025-12-16 20:09:16.179] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Adding ICE candidate: candidate:1165497325 1 udp 2122260223 10.5.49.39 57346 typ host generation 0 ufrag c2BI network-id 1 network-cost 50
+[2025-12-16 20:09:16.182] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - ICE candidate added
+[2025-12-16 20:09:16.183] [INFO ] [Thread-8] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-16 20:09:16.184] [INFO ] [Thread-8] [WebRTCClient] - SDP ANSWER - Video Codec Analysis
+[2025-12-16 20:09:16.184] [INFO ] [Thread-8] [WebRTCClient] -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 100 101 98 99 103 104 35 36 107 108 109
+[2025-12-16 20:09:16.184] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 100 VP8/90000
+[2025-12-16 20:09:16.184] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 101 rtx/90000
+[2025-12-16 20:09:16.184] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 98 H264/90000
+[2025-12-16 20:09:16.184] [INFO ] [Thread-8] [WebRTCClient] -   Profile: 98 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2025-12-16 20:09:16.184] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 99 rtx/90000
+[2025-12-16 20:09:16.185] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 103 VP9/90000
+[2025-12-16 20:09:16.185] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 104 rtx/90000
+[2025-12-16 20:09:16.185] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 35 AV1/90000
+[2025-12-16 20:09:16.186] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 36 rtx/90000
+[2025-12-16 20:09:16.186] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 107 red/90000
+[2025-12-16 20:09:16.186] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 108 rtx/90000
+[2025-12-16 20:09:16.186] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 109 ulpfec/90000
+[2025-12-16 20:09:16.187] [INFO ] [Thread-8] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-16 20:09:16.187] [INFO ] [Thread-8] [GroupCallManager] - Sending MESH_ANSWER to Talha
+[2025-12-16 20:09:16.188] [INFO ] [Thread-8] [WebRTCClient] - ICE Connection state: CHECKING
+[2025-12-16 20:09:16.189] [INFO ] [Thread-8] [WebRTCClient] - ℹ️ ICE is checking connectivity between candidates...
+[2025-12-16 20:09:16.189] [INFO ] [Thread-8] [WebRTCClient] - ℹ️ This can take up to 15s depending on network conditions
+[2025-12-16 20:09:16.190] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:3217340746 1 udp 2122260223 10.144.180.90 60996 typ host generation 0 ufrag J9kO network-id 1
+[2025-12-16 20:09:16.190] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:09:16.190] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:3388539441 1 udp 2122194687 192.168.137.1 60997 typ host generation 0 ufrag J9kO network-id 2 network-cost 10
+[2025-12-16 20:09:16.190] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:09:16.229] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Received MESH_ICE_CANDIDATE from Talha
+[2025-12-16 20:09:16.230] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Adding ICE candidate: candidate:889054258 1 udp 1686052607 149.86.157.82 57346 typ srflx raddr 10.5.49.39 rport 57346 generation 0 ufrag c2BI network-id 1 network-cost 50
+[2025-12-16 20:09:16.230] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - ICE candidate added
+[2025-12-16 20:09:16.245] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:2114645504 1 udp 1686052607 212.175.193.53 60996 typ srflx raddr 10.144.180.90 rport 60996 generation 0 ufrag J9kO network-id 1
+[2025-12-16 20:09:16.246] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:09:16.246] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:137844091 1 udp 1685987071 212.175.193.53 63148 typ srflx raddr 192.168.137.1 rport 60997 generation 0 ufrag J9kO network-id 2 network-cost 10
+[2025-12-16 20:09:16.247] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:09:16.251] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Received MESH_ICE_CANDIDATE from Talha
+[2025-12-16 20:09:16.251] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Adding ICE candidate: candidate:1004943072 1 tcp 1518280447 10.5.49.39 60208 typ host tcptype passive generation 0 ufrag c2BI network-id 1 network-cost 50
+[2025-12-16 20:09:16.251] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - ICE candidate added
+[2025-12-16 20:09:16.288] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:1097756126 1 tcp 1518280447 10.144.180.90 55827 typ host tcptype passive generation 0 ufrag J9kO network-id 1
+[2025-12-16 20:09:16.288] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:09:16.289] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:928241317 1 tcp 1518214911 192.168.137.1 55829 typ host tcptype passive generation 0 ufrag J9kO network-id 2 network-cost 10
+[2025-12-16 20:09:16.289] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to Talha
+[2025-12-16 20:09:21.174] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [2b3f1a9f]: 500 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:21.637] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - New peer joined: abkarada
+[2025-12-16 20:09:21.637] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=888820aa-ff12-4b4f-bdda-a5cfe2e32dc0, Peer=Talha} - Creating peer connection to: abkarada (initiate=false)
+[2025-12-16 20:09:21.637] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - WebRTCClient created for peer: abkarada
+[2025-12-16 20:09:21.637] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - Creating peer connection (audio=true, video=true)
+[2025-12-16 20:09:21.640] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - Adding audio track with ADVANCED processing...
+[2025-12-16 20:09:21.640] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - ✅ Audio track added with ADVANCED processing
+[2025-12-16 20:09:21.640] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - 🎤 Professional audio quality enabled!
+[2025-12-16 20:09:21.641] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - Adding SHARED video track to peer connection...
+[2025-12-16 20:09:21.642] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - ✅ Shared video track added successfully
+[2025-12-16 20:09:21.642] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - Adjusting capture profile to 640x360@24fps
+[2025-12-16 20:09:22.041] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - Distributing bandwidth: 2500kbps total / 2 peers = 1250kbps each
+[2025-12-16 20:09:22.044] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - Peer left: abkarada
+[2025-12-16 20:09:22.044] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Closing peer connection...
+[2025-12-16 20:09:22.045] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: audio0
+[2025-12-16 20:09:22.045] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: group_local_video
+[2025-12-16 20:09:22.046] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - New peer joined: abkarada
+[2025-12-16 20:09:22.046] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=921d5af3-3a76-46ac-966a-104fcbb20372, Peer=abkarada} - Creating peer connection to: abkarada (initiate=false)
+[2025-12-16 20:09:22.046] [INFO ] [Thread-8] [WebRTCClient] - ICE Connection state: CLOSED
+[2025-12-16 20:09:22.046] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - WebRTCClient created for peer: abkarada
+[2025-12-16 20:09:22.046] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Creating peer connection (audio=true, video=true)
+[2025-12-16 20:09:22.046] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Audio track disposed
+[2025-12-16 20:09:22.046] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Video track is shared - not disposing (GroupCallManager owns it)
+[2025-12-16 20:09:22.048] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Connection closed
+[2025-12-16 20:09:22.048] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Connection to abkarada closed
+[2025-12-16 20:09:22.048] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Distributing bandwidth: 2500kbps total / 2 peers = 1250kbps each
+[2025-12-16 20:09:22.048] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Adding audio track with ADVANCED processing...
+[2025-12-16 20:09:22.048] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - ✅ Audio track added with ADVANCED processing
+[2025-12-16 20:09:22.049] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - 🎤 Professional audio quality enabled!
+[2025-12-16 20:09:22.049] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Adding SHARED video track to peer connection...
+[2025-12-16 20:09:22.050] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - ✅ Shared video track added successfully
+[2025-12-16 20:09:22.051] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Distributing bandwidth: 2500kbps total / 2 peers = 1250kbps each
+[2025-12-16 20:09:22.195] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Received MESH_OFFER from abkarada
+[2025-12-16 20:09:22.196] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Setting remote offer
+[2025-12-16 20:09:22.196] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - ═══════════════════════════════════════════
+[2025-12-16 20:09:22.196] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - SDP REMOTE OFFER - Video Codec Analysis
+[2025-12-16 20:09:22.197] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 96 97 103 104 107 108 109 114 115 116 117 118 39 40 
+[2025-12-16 20:09:22.197] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 96 VP8/90000
+[2025-12-16 20:09:22.197] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 97 rtx/90000
+[2025-12-16 20:09:22.197] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 103 H264/90000
+[2025-12-16 20:09:22.197] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Profile: 103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+[2025-12-16 20:09:22.198] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 104 rtx/90000
+[2025-12-16 20:09:22.198] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 107 H264/90000
+[2025-12-16 20:09:22.198] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Profile: 107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
+[2025-12-16 20:09:22.198] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 108 rtx/90000
+[2025-12-16 20:09:22.199] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 109 H264/90000
+[2025-12-16 20:09:22.199] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Profile: 109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2025-12-16 20:09:22.199] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 114 rtx/90000
+[2025-12-16 20:09:22.199] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 115 H264/90000
+[2025-12-16 20:09:22.199] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Profile: 115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
+[2025-12-16 20:09:22.199] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 116 rtx/90000
+[2025-12-16 20:09:22.199] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 117 H264/90000
+[2025-12-16 20:09:22.199] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Profile: 117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
+[2025-12-16 20:09:22.199] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 118 rtx/90000
+[2025-12-16 20:09:22.200] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 39 H264/90000
+[2025-12-16 20:09:22.200] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Profile: 39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
+[2025-12-16 20:09:22.200] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 40 rtx/90000
+[2025-12-16 20:09:22.201] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 98 VP9/90000
+[2025-12-16 20:09:22.201] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 99 rtx/90000
+[2025-12-16 20:09:22.201] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 100 VP9/90000
+[2025-12-16 20:09:22.201] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 101 rtx/90000
+[2025-12-16 20:09:22.201] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 45 AV1/90000
+[2025-12-16 20:09:22.201] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 46 rtx/90000
+[2025-12-16 20:09:22.202] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 119 red/90000
+[2025-12-16 20:09:22.202] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 120 rtx/90000
+[2025-12-16 20:09:22.202] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} -   Codec: 121 ulpfec/90000
+[2025-12-16 20:09:22.202] [INFO ] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - ═══════════════════════════════════════════
+[2025-12-16 20:09:22.206] [INFO ] [Thread-8] [WebRTCClient] - 🔊 Setting up remote audio playback...
+[2025-12-16 20:09:22.206] [DEBUG] [Thread-8] [WebRTCClient] -   Track ID: 4cbbe0af-9310-4866-91b7-154e90286cc4
+[2025-12-16 20:09:22.206] [DEBUG] [Thread-8] [WebRTCClient] -   Enabled: true
+[2025-12-16 20:09:22.206] [INFO ] [Thread-8] [WebRTCClient] - ✅ Remote audio track ready (playback via AudioDeviceModule)
+[2025-12-16 20:09:22.206] [INFO ] [Thread-8] [GroupCallManager] - Remote track from abkarada: 4cbbe0af-9310-4866-91b7-154e90286cc4 (audio)
+[2025-12-16 20:09:22.207] [INFO ] [Thread-8] [WebRTCClient] - 🎥 HANDLING REMOTE VIDEO TRACK
+[2025-12-16 20:09:22.207] [DEBUG] [Thread-8] [WebRTCClient] -   Track ID: 433f73f8-b978-481f-98c9-71c0c9abdceb
+[2025-12-16 20:09:22.207] [DEBUG] [Thread-8] [WebRTCClient] -   Enabled: true
+[2025-12-16 20:09:22.208] [DEBUG] [Thread-8] [WebRTCClient] -   State: LIVE
+[2025-12-16 20:09:22.208] [INFO ] [Thread-8] [WebRTCClient] -   ✅ Debug sink attached to remote video track
+[2025-12-16 20:09:22.208] [INFO ] [Thread-8] [WebRTCClient] -   Waiting for VideoPanel attachment via callback...
+[2025-12-16 20:09:22.208] [INFO ] [Thread-8] [GroupCallManager] - Remote track from abkarada: 433f73f8-b978-481f-98c9-71c0c9abdceb (video)
+[2025-12-16 20:09:22.208] [INFO ] [Thread-8] [WebRTCClient] - Remote description set
+[2025-12-16 20:09:22.211] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Received MESH_ICE_CANDIDATE from abkarada
+[2025-12-16 20:09:22.211] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Adding ICE candidate: candidate:2915871995 1 udp 2122260223 192.168.1.172 47674 typ host generation 0 ufrag 8P0x network-id 3 network-cost 50
+[2025-12-16 20:09:22.215] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - ICE candidate added
+[2025-12-16 20:09:22.215] [INFO ] [Thread-8] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-16 20:09:22.215] [INFO ] [Thread-8] [WebRTCClient] - SDP ANSWER - Video Codec Analysis
+[2025-12-16 20:09:22.216] [INFO ] [Thread-8] [WebRTCClient] -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 96 97 103 104 107 108 109 114 115 116 117 118 39 40 
+[2025-12-16 20:09:22.217] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 96 VP8/90000
+[2025-12-16 20:09:22.217] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 97 rtx/90000
+[2025-12-16 20:09:22.217] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 103 H264/90000
+[2025-12-16 20:09:22.217] [INFO ] [Thread-8] [WebRTCClient] -   Profile: 103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+[2025-12-16 20:09:22.217] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 104 rtx/90000
+[2025-12-16 20:09:22.218] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 107 H264/90000
+[2025-12-16 20:09:22.218] [INFO ] [Thread-8] [WebRTCClient] -   Profile: 107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
+[2025-12-16 20:09:22.218] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 108 rtx/90000
+[2025-12-16 20:09:22.218] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 109 H264/90000
+[2025-12-16 20:09:22.218] [INFO ] [Thread-8] [WebRTCClient] -   Profile: 109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2025-12-16 20:09:22.218] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 114 rtx/90000
+[2025-12-16 20:09:22.218] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 115 H264/90000
+[2025-12-16 20:09:22.219] [INFO ] [Thread-8] [WebRTCClient] -   Profile: 115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
+[2025-12-16 20:09:22.219] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 116 rtx/90000
+[2025-12-16 20:09:22.219] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 117 H264/90000
+[2025-12-16 20:09:22.219] [INFO ] [Thread-8] [WebRTCClient] -   Profile: 117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
+[2025-12-16 20:09:22.219] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 118 rtx/90000
+[2025-12-16 20:09:22.219] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 39 H264/90000
+[2025-12-16 20:09:22.220] [INFO ] [Thread-8] [WebRTCClient] -   Profile: 39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
+[2025-12-16 20:09:22.220] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 40 rtx/90000
+[2025-12-16 20:09:22.220] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 98 VP9/90000
+[2025-12-16 20:09:22.220] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 99 rtx/90000
+[2025-12-16 20:09:22.220] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 100 VP9/90000
+[2025-12-16 20:09:22.220] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 101 rtx/90000
+[2025-12-16 20:09:22.221] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 45 AV1/90000
+[2025-12-16 20:09:22.221] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 46 rtx/90000
+[2025-12-16 20:09:22.221] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 119 red/90000
+[2025-12-16 20:09:22.221] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 120 rtx/90000
+[2025-12-16 20:09:22.221] [INFO ] [Thread-8] [WebRTCClient] -   Codec: 121 ulpfec/90000
+[2025-12-16 20:09:22.221] [INFO ] [Thread-8] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-16 20:09:22.221] [INFO ] [Thread-8] [GroupCallManager] - Sending MESH_ANSWER to abkarada
+[2025-12-16 20:09:22.222] [INFO ] [Thread-8] [WebRTCClient] - ICE Connection state: CHECKING
+[2025-12-16 20:09:22.222] [INFO ] [Thread-8] [WebRTCClient] - ℹ️ ICE is checking connectivity between candidates...
+[2025-12-16 20:09:22.223] [INFO ] [Thread-8] [WebRTCClient] - ℹ️ This can take up to 15s depending on network conditions
+[2025-12-16 20:09:22.223] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:4194954547 1 udp 2122260223 10.144.180.90 61004 typ host generation 0 ufrag VjUM network-id 1
+[2025-12-16 20:09:22.223] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:09:22.223] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:2352240200 1 udp 2122194687 192.168.137.1 61005 typ host generation 0 ufrag VjUM network-id 2 network-cost 10
+[2025-12-16 20:09:22.223] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:09:22.246] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Received MESH_ICE_CANDIDATE from abkarada
+[2025-12-16 20:09:22.247] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Adding ICE candidate: candidate:1812134833 1 udp 1686052607 78.163.130.55 11470 typ srflx raddr 192.168.1.172 rport 47674 generation 0 ufrag 8P0x network-id 3 network-cost 50
+[2025-12-16 20:09:22.248] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - ICE candidate added
+[2025-12-16 20:09:22.269] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:1002945145 1 udp 1686052607 212.175.193.53 61004 typ srflx raddr 10.144.180.90 rport 61004 generation 0 ufrag VjUM network-id 1
+[2025-12-16 20:09:22.270] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:09:22.271] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:1308229890 1 udp 1685987071 212.175.193.53 63150 typ srflx raddr 192.168.137.1 rport 61005 generation 0 ufrag VjUM network-id 2 network-cost 10
+[2025-12-16 20:09:22.271] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:09:22.287] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Received MESH_ICE_CANDIDATE from abkarada
+[2025-12-16 20:09:22.287] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Adding ICE candidate: candidate:1399224431 1 tcp 1518280447 192.168.1.172 49853 typ host tcptype passive generation 0 ufrag 8P0x network-id 3 network-cost 50
+[2025-12-16 20:09:22.287] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - ICE candidate added
+[2025-12-16 20:09:22.302] [INFO ] [grpc-default-executor-2] [GroupCallManager] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Received MESH_ICE_CANDIDATE from abkarada
+[2025-12-16 20:09:22.303] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - Adding ICE candidate: candidate:1399224431 1 tcp 1518280447 192.168.1.172 60959 typ host tcptype passive generation 0 ufrag 8P0x network-id 3 network-cost 50
+[2025-12-16 20:09:22.303] [DEBUG] [grpc-default-executor-2] [WebRTCClient] {CallID=44a1b793-572d-4cde-97c5-ff9ed079769e, Peer=abkarada} - ICE candidate added
+[2025-12-16 20:09:22.316] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:77805991 1 tcp 1518280447 10.144.180.90 55843 typ host tcptype passive generation 0 ufrag VjUM network-id 1
+[2025-12-16 20:09:22.316] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:09:22.316] [DEBUG] [Thread-8] [WebRTCClient] - ICE Candidate generated: candidate:1922990812 1 tcp 1518214911 192.168.137.1 55846 typ host tcptype passive generation 0 ufrag VjUM network-id 2 network-cost 10
+[2025-12-16 20:09:22.317] [DEBUG] [Thread-8] [GroupCallManager] - Sending MESH_ICE_CANDIDATE to abkarada
+[2025-12-16 20:09:22.512] [INFO ] [Thread-8] [WebRTCClient] - ICE Connection state: CONNECTED
+[2025-12-16 20:09:22.513] [INFO ] [Thread-8] [WebRTCClient] - ✅ ICE connection established! Media should now flow between peers
+[2025-12-16 20:09:22.513] [INFO ] [Thread-8] [GroupCallManager] - Connection established with abkarada
+[2025-12-16 20:09:22.539] [INFO ] [Thread-11] [WebRTCClient] - 🎬 FIRST REMOTE VIDEO FRAME RECEIVED! (size: 640x360)
+[2025-12-16 20:09:26.174] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [2b3f1a9f]: 1000 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:27.214] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 501 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:27.251] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 71 frames received (latest: 640x360)
+[2025-12-16 20:09:31.174] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [2b3f1a9f]: 1500 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:31.191] [ERROR] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] - ❌ ICE Connection TIMED OUT after 15s!
+[2025-12-16 20:09:31.191] [ERROR] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] -   This likely means a Symmetric NAT issue or firewall block.
+[2025-12-16 20:09:31.191] [INFO ] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] - Closing peer connection...
+[2025-12-16 20:09:31.191] [INFO ] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] - 🔊 Cleaning up 1 audio sink(s)
+[2025-12-16 20:09:31.192] [DEBUG] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] -   Removed sink from track: 2b3f1a9f-ee7d-4cd7-81de-fc79a457b35f
+[2025-12-16 20:09:31.192] [DEBUG] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] - Removing track: audio0
+[2025-12-16 20:09:31.193] [DEBUG] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] - Removing track: group_local_video
+[2025-12-16 20:09:31.194] [INFO ] [Thread-8] [WebRTCClient] - ICE Connection state: CLOSED
+[2025-12-16 20:09:31.199] [INFO ] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] - Audio track disposed
+[2025-12-16 20:09:31.199] [DEBUG] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] - Video track is shared - not disposing (GroupCallManager owns it)
+[2025-12-16 20:09:31.199] [INFO ] [ForkJoinPool.commonPool-worker-2] [WebRTCClient] - Connection closed
+[2025-12-16 20:09:31.200] [INFO ] [ForkJoinPool.commonPool-worker-2] [GroupCallManager] - Connection closed with Talha
+[2025-12-16 20:09:32.214] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 1001 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:32.271] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 146 frames received (latest: 640x360)
+[2025-12-16 20:09:37.214] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 1501 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:37.280] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 221 frames received (latest: 640x360)
+[2025-12-16 20:09:42.214] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 2001 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:42.293] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 284 frames received (latest: 640x360)
+[2025-12-16 20:09:47.214] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 2501 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:47.319] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 359 frames received (latest: 640x360)
+[2025-12-16 20:09:52.214] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 3001 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:52.328] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 434 frames received (latest: 640x360)
+[2025-12-16 20:09:57.214] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 3501 frames @ 48000Hz, 1ch
+[2025-12-16 20:09:57.340] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 509 frames received (latest: 640x360)
+[2025-12-16 20:10:02.214] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 4001 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:02.352] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 584 frames received (latest: 640x360)
+[2025-12-16 20:10:07.214] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 4501 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:07.369] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 659 frames received (latest: 640x360)
+[2025-12-16 20:10:12.224] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 5002 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:12.380] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 734 frames received (latest: 640x360)
+[2025-12-16 20:10:17.224] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 5502 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:17.391] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 809 frames received (latest: 640x360)
+[2025-12-16 20:10:22.224] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 6001 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:22.404] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 884 frames received (latest: 640x360)
+[2025-12-16 20:10:27.224] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 6501 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:27.554] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 949 frames received (latest: 640x360)
+[2025-12-16 20:10:32.224] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 7001 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:32.637] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1000 frames received (latest: 640x360)
+[2025-12-16 20:10:37.234] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 7502 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:37.685] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1050 frames received (latest: 640x360)
+[2025-12-16 20:10:42.234] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 8002 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:42.694] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1099 frames received (latest: 640x360)
+[2025-12-16 20:10:47.244] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 8503 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:47.724] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1149 frames received (latest: 640x360)
+[2025-12-16 20:10:52.244] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 9003 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:53.094] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1192 frames received (latest: 640x360)
+[2025-12-16 20:10:57.244] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 9503 frames @ 48000Hz, 1ch
+[2025-12-16 20:10:58.126] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1258 frames received (latest: 640x360)
+[2025-12-16 20:11:02.244] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 10003 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:03.136] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1333 frames received (latest: 640x360)
+[2025-12-16 20:11:07.246] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 10503 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:08.157] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1408 frames received (latest: 640x360)
+[2025-12-16 20:11:12.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 11004 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:13.187] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1483 frames received (latest: 640x360)
+[2025-12-16 20:11:17.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 11504 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:18.210] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1558 frames received (latest: 640x360)
+[2025-12-16 20:11:22.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 12004 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:23.256] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1634 frames received (latest: 640x360)
+[2025-12-16 20:11:27.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 12504 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:28.494] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1698 frames received (latest: 640x360)
+[2025-12-16 20:11:32.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 13004 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:33.689] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1771 frames received (latest: 640x360)
+[2025-12-16 20:11:37.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 13504 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:38.741] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1849 frames received (latest: 640x360)
+[2025-12-16 20:11:42.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 14004 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:43.795] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 1925 frames received (latest: 640x360)
+[2025-12-16 20:11:47.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 14504 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:48.856] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2001 frames received (latest: 640x360)
+[2025-12-16 20:11:52.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 15004 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:53.922] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2077 frames received (latest: 640x360)
+[2025-12-16 20:11:57.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 15504 frames @ 48000Hz, 1ch
+[2025-12-16 20:11:58.974] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2153 frames received (latest: 640x360)
+[2025-12-16 20:12:02.254] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 16004 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:04.023] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2228 frames received (latest: 640x360)
+[2025-12-16 20:12:07.264] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 16505 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:09.054] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2303 frames received (latest: 640x360)
+[2025-12-16 20:12:12.264] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 17005 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:14.062] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2378 frames received (latest: 640x360)
+[2025-12-16 20:12:17.274] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 17506 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:19.069] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2453 frames received (latest: 640x360)
+[2025-12-16 20:12:22.274] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 18006 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:24.079] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2528 frames received (latest: 640x360)
+[2025-12-16 20:12:27.274] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 18506 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:29.087] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2603 frames received (latest: 640x360)
+[2025-12-16 20:12:32.274] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 19006 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:34.148] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2679 frames received (latest: 640x360)
+[2025-12-16 20:12:37.274] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 19506 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:39.209] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2755 frames received (latest: 640x360)
+[2025-12-16 20:12:42.274] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 20006 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:44.254] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2831 frames received (latest: 640x360)
+[2025-12-16 20:12:47.284] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 20507 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:49.316] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2907 frames received (latest: 640x360)
+[2025-12-16 20:12:52.294] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 21008 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:54.325] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 2982 frames received (latest: 640x360)
+[2025-12-16 20:12:57.304] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 21509 frames @ 48000Hz, 1ch
+[2025-12-16 20:12:59.325] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3057 frames received (latest: 640x360)
+[2025-12-16 20:13:02.304] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 22009 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:04.335] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3132 frames received (latest: 640x360)
+[2025-12-16 20:13:07.304] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 22509 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:09.347] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3207 frames received (latest: 640x360)
+[2025-12-16 20:13:12.304] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 23009 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:14.408] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3283 frames received (latest: 640x360)
+[2025-12-16 20:13:17.304] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 23509 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:19.419] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3358 frames received (latest: 640x360)
+[2025-12-16 20:13:22.304] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 24009 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:24.429] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3433 frames received (latest: 640x360)
+[2025-12-16 20:13:27.304] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 24509 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:29.445] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3508 frames received (latest: 640x360)
+[2025-12-16 20:13:32.314] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 25010 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:34.457] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3583 frames received (latest: 640x360)
+[2025-12-16 20:13:37.314] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 25510 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:39.468] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3658 frames received (latest: 640x360)
+[2025-12-16 20:13:42.314] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 26010 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:44.479] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3733 frames received (latest: 640x360)
+[2025-12-16 20:13:47.314] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 26510 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:49.490] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3808 frames received (latest: 640x360)
+[2025-12-16 20:13:52.324] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 27011 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:54.504] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3883 frames received (latest: 640x360)
+[2025-12-16 20:13:57.334] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 27512 frames @ 48000Hz, 1ch
+[2025-12-16 20:13:59.517] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 3958 frames received (latest: 640x360)
+[2025-12-16 20:14:02.334] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 28012 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:04.528] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4033 frames received (latest: 640x360)
+[2025-12-16 20:14:07.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 28513 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:09.590] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4109 frames received (latest: 640x360)
+[2025-12-16 20:14:12.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 29013 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:14.603] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4184 frames received (latest: 640x360)
+[2025-12-16 20:14:17.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 29513 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:19.614] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4259 frames received (latest: 640x360)
+[2025-12-16 20:14:22.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 30013 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:24.630] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4334 frames received (latest: 640x360)
+[2025-12-16 20:14:27.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 30513 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:29.641] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4409 frames received (latest: 640x360)
+[2025-12-16 20:14:32.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 31013 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:34.653] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4484 frames received (latest: 640x360)
+[2025-12-16 20:14:37.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 31513 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:39.665] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4559 frames received (latest: 640x360)
+[2025-12-16 20:14:42.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 32013 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:44.681] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4634 frames received (latest: 640x360)
+[2025-12-16 20:14:47.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 32513 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:49.693] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4709 frames received (latest: 640x360)
+[2025-12-16 20:14:52.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 33013 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:54.704] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4784 frames received (latest: 640x360)
+[2025-12-16 20:14:57.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 33513 frames @ 48000Hz, 1ch
+[2025-12-16 20:14:59.716] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4859 frames received (latest: 640x360)
+[2025-12-16 20:15:02.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 34013 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:04.728] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 4934 frames received (latest: 640x360)
+[2025-12-16 20:15:07.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 34513 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:09.743] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5009 frames received (latest: 640x360)
+[2025-12-16 20:15:12.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 35013 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:14.755] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5084 frames received (latest: 640x360)
+[2025-12-16 20:15:17.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 35513 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:19.768] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5159 frames received (latest: 640x360)
+[2025-12-16 20:15:22.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 36013 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:24.779] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5234 frames received (latest: 640x360)
+[2025-12-16 20:15:27.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 36513 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:29.794] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5309 frames received (latest: 640x360)
+[2025-12-16 20:15:32.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 37013 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:34.807] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5384 frames received (latest: 640x360)
+[2025-12-16 20:15:37.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 37513 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:39.819] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5459 frames received (latest: 640x360)
+[2025-12-16 20:15:42.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 38013 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:44.832] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5534 frames received (latest: 640x360)
+[2025-12-16 20:15:47.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 38513 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:49.843] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5609 frames received (latest: 640x360)
+[2025-12-16 20:15:52.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 39013 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:54.859] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5684 frames received (latest: 640x360)
+[2025-12-16 20:15:57.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 39513 frames @ 48000Hz, 1ch
+[2025-12-16 20:15:59.870] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5759 frames received (latest: 640x360)
+[2025-12-16 20:16:02.344] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 40013 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:04.882] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5834 frames received (latest: 640x360)
+[2025-12-16 20:16:07.354] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 40514 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:09.895] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5909 frames received (latest: 640x360)
+[2025-12-16 20:16:12.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 41015 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:14.906] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 5984 frames received (latest: 640x360)
+[2025-12-16 20:16:17.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 41515 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:19.922] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6059 frames received (latest: 640x360)
+[2025-12-16 20:16:22.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 42015 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:24.934] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6134 frames received (latest: 640x360)
+[2025-12-16 20:16:27.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 42515 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:29.945] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6209 frames received (latest: 640x360)
+[2025-12-16 20:16:32.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 43015 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:34.957] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6284 frames received (latest: 640x360)
+[2025-12-16 20:16:37.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 43515 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:40.047] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6356 frames received (latest: 640x360)
+[2025-12-16 20:16:42.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 44015 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:45.145] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6407 frames received (latest: 640x360)
+[2025-12-16 20:16:47.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 44515 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:50.157] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6467 frames received (latest: 640x360)
+[2025-12-16 20:16:52.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 45015 frames @ 48000Hz, 1ch
+[2025-12-16 20:16:55.169] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6542 frames received (latest: 640x360)
+[2025-12-16 20:16:57.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 45515 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:00.180] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6617 frames received (latest: 640x360)
+[2025-12-16 20:17:02.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 46015 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:05.197] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6692 frames received (latest: 640x360)
+[2025-12-16 20:17:07.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 46515 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:10.208] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6767 frames received (latest: 640x360)
+[2025-12-16 20:17:12.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 47015 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:15.220] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6842 frames received (latest: 640x360)
+[2025-12-16 20:17:17.364] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 47515 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:20.231] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6917 frames received (latest: 640x360)
+[2025-12-16 20:17:22.374] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 48016 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:25.309] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 6971 frames received (latest: 640x360)
+[2025-12-16 20:17:27.374] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 48516 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:30.316] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7021 frames received (latest: 640x360)
+[2025-12-16 20:17:32.374] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 49016 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:35.327] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7071 frames received (latest: 640x360)
+[2025-12-16 20:17:37.374] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 49516 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:40.335] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7121 frames received (latest: 640x360)
+[2025-12-16 20:17:42.374] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 50016 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:45.381] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7195 frames received (latest: 640x360)
+[2025-12-16 20:17:47.374] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 50516 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:50.397] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7270 frames received (latest: 640x360)
+[2025-12-16 20:17:52.383] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 51017 frames @ 48000Hz, 1ch
+[2025-12-16 20:17:55.404] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7338 frames received (latest: 640x360)
+[2025-12-16 20:17:57.384] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 51517 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:00.415] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7388 frames received (latest: 640x360)
+[2025-12-16 20:18:02.384] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 52017 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:05.424] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7438 frames received (latest: 640x360)
+[2025-12-16 20:18:07.384] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 52517 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:10.436] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7488 frames received (latest: 640x360)
+[2025-12-16 20:18:12.384] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 53017 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:15.440] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7538 frames received (latest: 640x360)
+[2025-12-16 20:18:17.394] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 53518 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:20.448] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7588 frames received (latest: 640x360)
+[2025-12-16 20:18:22.394] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 54018 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:25.461] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7638 frames received (latest: 640x360)
+[2025-12-16 20:18:27.394] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 54518 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:30.469] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7688 frames received (latest: 640x360)
+[2025-12-16 20:18:32.394] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 55018 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:35.478] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7738 frames received (latest: 640x360)
+[2025-12-16 20:18:37.394] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 55518 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:40.492] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7788 frames received (latest: 640x360)
+[2025-12-16 20:18:42.394] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 56018 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:45.493] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7838 frames received (latest: 640x360)
+[2025-12-16 20:18:47.394] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 56518 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:50.505] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7888 frames received (latest: 640x360)
+[2025-12-16 20:18:52.394] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 57018 frames @ 48000Hz, 1ch
+[2025-12-16 20:18:55.510] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 7938 frames received (latest: 640x360)
+[2025-12-16 20:18:57.394] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 57518 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:00.600] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8012 frames received (latest: 640x360)
+[2025-12-16 20:19:02.403] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 58019 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:05.608] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8072 frames received (latest: 640x360)
+[2025-12-16 20:19:07.404] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 58519 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:10.615] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8127 frames received (latest: 640x360)
+[2025-12-16 20:19:12.404] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 59019 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:15.619] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8177 frames received (latest: 640x360)
+[2025-12-16 20:19:17.404] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 59519 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:20.622] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8227 frames received (latest: 640x360)
+[2025-12-16 20:19:22.404] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 60019 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:25.672] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8295 frames received (latest: 640x360)
+[2025-12-16 20:19:27.404] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 60519 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:30.759] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8352 frames received (latest: 640x360)
+[2025-12-16 20:19:32.404] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 61019 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:35.763] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8407 frames received (latest: 640x360)
+[2025-12-16 20:19:37.404] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 61519 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:40.785] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8474 frames received (latest: 640x360)
+[2025-12-16 20:19:42.404] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 62019 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:45.824] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8540 frames received (latest: 640x360)
+[2025-12-16 20:19:47.404] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 62519 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:50.829] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8590 frames received (latest: 640x360)
+[2025-12-16 20:19:52.413] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 63020 frames @ 48000Hz, 1ch
+[2025-12-16 20:19:55.833] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8652 frames received (latest: 640x360)
+[2025-12-16 20:19:57.414] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 63520 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:00.855] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8727 frames received (latest: 640x360)
+[2025-12-16 20:20:02.414] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 64020 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:05.871] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8802 frames received (latest: 640x360)
+[2025-12-16 20:20:07.414] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 64520 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:10.938] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8878 frames received (latest: 640x360)
+[2025-12-16 20:20:12.414] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 65020 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:16.003] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 8954 frames received (latest: 640x360)
+[2025-12-16 20:20:17.424] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 65521 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:21.027] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 9029 frames received (latest: 640x360)
+[2025-12-16 20:20:22.433] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 66022 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:26.094] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 9105 frames received (latest: 640x360)
+[2025-12-16 20:20:27.433] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 66522 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:31.105] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 9180 frames received (latest: 640x360)
+[2025-12-16 20:20:32.434] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 67022 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:36.117] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 9243 frames received (latest: 640x360)
+[2025-12-16 20:20:37.434] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 67522 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:41.126] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 9293 frames received (latest: 640x360)
+[2025-12-16 20:20:42.434] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 68022 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:46.133] [DEBUG] [Thread-11] [WebRTCClient] - 📹 Remote video: 9343 frames received (latest: 640x360)
+[2025-12-16 20:20:47.444] [DEBUG] [Thread-10] [WebRTCClient] - 🔊 Audio [4cbbe0af]: 68523 frames @ 48000Hz, 1ch
+[2025-12-16 20:20:49.840] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Leaving room: sr-f91b-a4c8
+[2025-12-16 20:20:49.841] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Left room successfully
+[2025-12-16 20:20:49.842] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Cleaning up all connections...
+[2025-12-16 20:20:49.842] [DEBUG] [JavaFX Application Thread] [GroupCallManager] - Closing connection to abkarada
+[2025-12-16 20:20:49.842] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Closing peer connection...
+[2025-12-16 20:20:49.842] [INFO ] [JavaFX Application Thread] [WebRTCClient] - 🔊 Cleaning up 1 audio sink(s)
+[2025-12-16 20:20:49.842] [DEBUG] [JavaFX Application Thread] [WebRTCClient] -   Removed sink from track: 4cbbe0af-9310-4866-91b7-154e90286cc4
+[2025-12-16 20:20:49.843] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: audio0
+[2025-12-16 20:20:49.843] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Removing track: group_local_video
+[2025-12-16 20:20:49.844] [INFO ] [Thread-8] [WebRTCClient] - ICE Connection state: CLOSED
+[2025-12-16 20:20:49.876] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Audio track disposed
+[2025-12-16 20:20:49.877] [DEBUG] [JavaFX Application Thread] [WebRTCClient] - Video track is shared - not disposing (GroupCallManager owns it)
+[2025-12-16 20:20:49.877] [INFO ] [JavaFX Application Thread] [WebRTCClient] - Connection closed
+[2025-12-16 20:20:50.130] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Local video source stopped and disposed
+[2025-12-16 20:20:50.131] [INFO ] [JavaFX Application Thread] [GroupCallManager] - Local video track disposed
+[2025-12-16 20:20:51.991] [INFO ] [JavaFX Application Thread] [CallManager] - Cleaning up call resources...
+[2025-12-16 20:20:51.992] [DEBUG] [JavaFX Application Thread] [CallManager] - Already cleaned up, skipping
+[2025-12-16 20:20:51.992] [INFO ] [JavaFX Application Thread] [CallManager] - Shutting down...
+[2025-12-16 20:20:52.240] [INFO ] [webrtc-device-monitor] [WebRTCClient] - Device monitor stopped
+[2025-12-16 20:20:52.266] [INFO ] [JavaFX Application Thread] [CallManager] - Shutdown complete

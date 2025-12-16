@@ -645,7 +645,7 @@ public class WebRTCClient {
     public CompletableFuture<String> createOffer() {
         // Retry for up to 5 seconds, every 500ms
         long deadline = System.currentTimeMillis() + 5000;
-        return retryUntilDeadline(this::createOfferInternal, deadline, 500, "Create Offer");
+        return retryUntilDeadline(this::createOfferInternal, deadline, 50, "Create Offer");
     }
 
     private CompletableFuture<String> createOfferInternal() {
@@ -720,7 +720,7 @@ public class WebRTCClient {
     public CompletableFuture<String> createAnswer() {
         // Retry for up to 5 seconds, every 500ms
         long deadline = System.currentTimeMillis() + 5000;
-        return retryUntilDeadline(this::createAnswerInternal, deadline, 500, "Create Answer");
+        return retryUntilDeadline(this::createAnswerInternal, deadline, 50, "Create Answer");
     }
 
     private CompletableFuture<String> createAnswerInternal() {
