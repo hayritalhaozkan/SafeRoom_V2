@@ -42,6 +42,8 @@ public class GroupCallManager {
 
     // Mesh connections: peerId → WebRTCClient
     private final Map<String, WebRTCClient> peerConnections = new ConcurrentHashMap<>();
+    // Synchronization: peerId → Future that completes when tracks are added
+    private final Map<String, CompletableFuture<Void>> peerReadyFutures = new ConcurrentHashMap<>();
 
     // Local video track for preview (created immediately, shared by all peer
     // connections)
@@ -361,28 +363,38 @@ public class GroupCallManager {
         // Set remote SDP offer
         client.setRemoteDescription("offer", sdp);
 
-        // Create and send answer
-        // FIX: Added timeout to prevent hangs
-        client.createAnswer()
-                .orTimeout(5, TimeUnit.SECONDS)
-                .thenAccept(answerSDP -> {
-                    logger.info("Sending MESH_ANSWER to " + peerUsername);
+        // FIX: Wait for local tracks to be ready before creating answer
+        CompletableFuture<Void> readyFuture = peerReadyFutures.get(peerUsername);
+        if (readyFuture == null) {
+            readyFuture = CompletableFuture.completedFuture(null);
+        }
 
-                    WebRTCSignal answerSignal = WebRTCSignal.newBuilder()
-                            .setType(WebRTCSignal.SignalType.MESH_ANSWER)
-                            .setFrom(localUsername)
-                            .setTo(peerUsername)
-                            .setRoomId(currentRoomId)
-                            .setSdp(answerSDP)
-                            .setTimestamp(System.currentTimeMillis())
-                            .build();
+        readyFuture.thenRun(() -> {
+            logger.info("✅ Peer ready (tracks added), proceeding to create ANSWER for " + peerUsername);
 
-                    signalingClient.sendSignal(answerSignal);
-                })
-                .exceptionally(e -> {
-                    logger.error("❌ Failed to create/send answer: " + e.getMessage(), e);
-                    return null;
-                });
+            // Create and send answer
+            // FIX: Added timeout to prevent hangs
+            client.createAnswer()
+                    .orTimeout(5, TimeUnit.SECONDS)
+                    .thenAccept(answerSDP -> {
+                        logger.info("Sending MESH_ANSWER to " + peerUsername);
+
+                        WebRTCSignal answerSignal = WebRTCSignal.newBuilder()
+                                .setType(WebRTCSignal.SignalType.MESH_ANSWER)
+                                .setFrom(localUsername)
+                                .setTo(peerUsername)
+                                .setRoomId(currentRoomId)
+                                .setSdp(answerSDP)
+                                .setTimestamp(System.currentTimeMillis())
+                                .build();
+
+                        signalingClient.sendSignal(answerSignal);
+                    })
+                    .exceptionally(e -> {
+                        logger.error("❌ Failed to create/send answer: " + e.getMessage(), e);
+                        return null;
+                    });
+        });
     }
 
     /**
@@ -432,10 +444,10 @@ public class GroupCallManager {
      * @param initiateOffer true if we should send offer, false if we wait for
      *                      peer's offer
      */
-    private void createPeerConnection(String peerUsername, boolean initiateOffer) {
+    private CompletableFuture<Void> createPeerConnection(String peerUsername, boolean initiateOffer) {
         if (peerConnections.containsKey(peerUsername)) {
             logger.debug(String.format("Connection to %s already exists", peerUsername));
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
         logger.info(String.format("Creating peer connection to: %s (initiate=%b)",
@@ -472,35 +484,41 @@ public class GroupCallManager {
         }
 
         // Wait for tracks to be added before creating offer
-        CompletableFuture.allOf(trackFutures.toArray(new CompletableFuture[0]))
-                .thenRun(() -> {
-                    // If we initiate, create and send offer
-                    if (initiateOffer) {
-                        // FIX: Added timeout
-                        client.createOffer()
-                                .orTimeout(5, TimeUnit.SECONDS)
-                                .thenAccept(offerSDP -> {
-                                    logger.info("Sending MESH_OFFER to " + peerUsername);
+        CompletableFuture<Void> readyFuture = CompletableFuture.allOf(trackFutures.toArray(new CompletableFuture[0]));
 
-                                    WebRTCSignal offerSignal = WebRTCSignal.newBuilder()
-                                            .setType(WebRTCSignal.SignalType.MESH_OFFER)
-                                            .setFrom(localUsername)
-                                            .setTo(peerUsername)
-                                            .setRoomId(currentRoomId)
-                                            .setSdp(offerSDP)
-                                            .setAudioEnabled(audioEnabled)
-                                            .setVideoEnabled(videoEnabled)
-                                            .setTimestamp(System.currentTimeMillis())
-                                            .build();
+        // Register readiness
+        peerReadyFutures.put(peerUsername, readyFuture);
 
-                                    signalingClient.sendSignal(offerSignal);
-                                })
-                                .exceptionally(e -> {
-                                    logger.error("❌ Failed to create offer: " + e.getMessage(), e);
-                                    return null;
-                                });
-                    }
-                });
+        readyFuture.thenRun(() -> {
+            // If we initiate, create and send offer
+            if (initiateOffer) {
+                // FIX: Added timeout
+                client.createOffer()
+                        .orTimeout(5, TimeUnit.SECONDS)
+                        .thenAccept(offerSDP -> {
+                            logger.info("Sending MESH_OFFER to " + peerUsername);
+
+                            WebRTCSignal offerSignal = WebRTCSignal.newBuilder()
+                                    .setType(WebRTCSignal.SignalType.MESH_OFFER)
+                                    .setFrom(localUsername)
+                                    .setTo(peerUsername)
+                                    .setRoomId(currentRoomId)
+                                    .setSdp(offerSDP)
+                                    .setAudioEnabled(audioEnabled)
+                                    .setVideoEnabled(videoEnabled)
+                                    .setTimestamp(System.currentTimeMillis())
+                                    .build();
+
+                            signalingClient.sendSignal(offerSignal);
+                        })
+                        .exceptionally(e -> {
+                            logger.error("❌ Failed to create offer: " + e.getMessage(), e);
+                            return null;
+                        });
+            }
+        });
+
+        return readyFuture;
     }
 
     /**
@@ -561,6 +579,7 @@ public class GroupCallManager {
         }
 
         peerConnections.clear();
+        peerReadyFutures.clear();
 
         // Stop and dispose local video track
         if (localVideoSource != null) {
