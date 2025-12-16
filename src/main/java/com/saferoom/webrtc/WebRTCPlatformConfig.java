@@ -10,11 +10,9 @@ import dev.onvoid.webrtc.media.MediaStreamTrack;
 import dev.onvoid.webrtc.media.MediaType;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 /**
  * Platform-specific WebRTC tuning.
@@ -25,8 +23,7 @@ import java.util.function.Predicate;
  */
 final class WebRTCPlatformConfig {
 
-    private static final WebRTCPlatformConfig EMPTY =
-        new WebRTCPlatformConfig(false, false, List.of(), "Unknown");
+    private static final WebRTCPlatformConfig EMPTY = new WebRTCPlatformConfig(false, false, List.of(), "Unknown");
 
     private final boolean preferH264;
     private final boolean isWindows;
@@ -34,8 +31,8 @@ final class WebRTCPlatformConfig {
     private final String platformName;
 
     private WebRTCPlatformConfig(boolean preferH264, boolean isWindows,
-                                 List<RTCRtpCodecCapability> videoCodecPreferences,
-                                 String platformName) {
+            List<RTCRtpCodecCapability> videoCodecPreferences,
+            String platformName) {
         this.preferH264 = preferH264;
         this.isWindows = isWindows;
         this.videoCodecPreferences = videoCodecPreferences;
@@ -47,25 +44,25 @@ final class WebRTCPlatformConfig {
         boolean mac = os.contains("mac");
         boolean windows = os.contains("win");
         boolean linux = os.contains("linux");
-        
+
         String platformName = mac ? "macOS" : windows ? "Windows" : linux ? "Linux" : "Unknown";
         System.out.printf("[WebRTC] Platform detected: %s%n", platformName);
-        
+
         if (factory == null) {
             System.out.println("[WebRTC] Factory null - using default codec order");
             return new WebRTCPlatformConfig(false, windows, List.of(), platformName);
         }
 
         RTCRtpCapabilities senderCaps = factory.getRtpSenderCapabilities(MediaType.VIDEO);
-        
+
         // ═══════════════════════════════════════════════════════════════
         // CROSS-PLATFORM: Let WebRTC auto-negotiate codecs
         // Don't force VP8-only as Windows may have issues with software VP8
         // Just reorder to prefer VP8 but keep all codecs available
         // ═══════════════════════════════════════════════════════════════
-        
+
         List<RTCRtpCodecCapability> sorted = reorderCodecsKeepAll(senderCaps);
-        
+
         if (!sorted.isEmpty()) {
             System.out.printf("[WebRTC] %s → All codecs available (VP8 preferred)%n", platformName);
             System.out.println("[WebRTC] Codec priority:");
@@ -78,16 +75,17 @@ final class WebRTCPlatformConfig {
         } else {
             System.out.printf("[WebRTC] %s detected but codec capabilities unavailable%n", platformName);
         }
-        
+
         return new WebRTCPlatformConfig(false, windows, sorted, platformName);
     }
 
     static WebRTCPlatformConfig empty() {
         return EMPTY;
     }
-    
+
     private static void printAvailableCodecs(List<RTCRtpCodecCapability> codecs) {
-        if (codecs.isEmpty()) return;
+        if (codecs.isEmpty())
+            return;
         System.out.println("[WebRTC] Available video codecs (priority order):");
         for (int i = 0; i < Math.min(5, codecs.size()); i++) {
             RTCRtpCodecCapability codec = codecs.get(i);
@@ -100,88 +98,68 @@ final class WebRTCPlatformConfig {
             System.out.println("[WebRTC] Skipping codec preferences (empty or no connection)");
             return;
         }
-        
+
         RTCRtpTransceiver[] transceivers = peerConnection.getTransceivers();
         if (transceivers == null || transceivers.length == 0) {
             System.out.println("[WebRTC] No transceivers found for codec configuration");
             return;
         }
-        
+
         int applied = 0;
         for (RTCRtpTransceiver transceiver : transceivers) {
-            if (transceiver == null) continue;
-            
+            if (transceiver == null)
+                continue;
+
             RTCRtpSender sender = transceiver.getSender();
-            if (sender == null) continue;
-            
+            if (sender == null)
+                continue;
+
             MediaStreamTrack track = sender.getTrack();
-            if (track == null || !"video".equalsIgnoreCase(track.getKind())) continue;
-            
+            if (track == null || !"video".equalsIgnoreCase(track.getKind()))
+                continue;
+
             try {
                 transceiver.setCodecPreferences(videoCodecPreferences);
                 applied++;
-                System.out.printf("[WebRTC] Codec preferences applied to transceiver (track: %s)%n", 
-                    track.getId());
+                System.out.printf("[WebRTC] Codec preferences applied to transceiver (track: %s)%n",
+                        track.getId());
             } catch (Exception ex) {
                 System.err.printf("[WebRTC] Failed to set codec preferences: %s%n", ex.getMessage());
             }
         }
-        
+
         if (applied > 0) {
-            System.out.printf("[WebRTC] Codec preferences applied to %d transceiver(s) on %s%n", 
-                applied, platformName);
+            System.out.printf("[WebRTC] Codec preferences applied to %d transceiver(s) on %s%n",
+                    applied, platformName);
         }
     }
 
     /**
-     * Reorder codecs - VP8 first but KEEP ALL codecs available.
-     * This allows fallback to H264 if VP8 fails on either platform.
+     * Reorder codecs - FORCE VP8 ONLY for maximum cross-platform compatibility.
+     * Prevents H.264 profile mismatches between Win/Mac.
      */
     private static List<RTCRtpCodecCapability> reorderCodecsKeepAll(RTCRtpCapabilities capabilities) {
         if (capabilities == null || capabilities.getCodecs() == null) {
             return List.of();
         }
-        
-        List<RTCRtpCodecCapability> codecs = new ArrayList<>(
-            capabilities.getCodecs().stream()
+
+        // Filter for VP8 only
+        List<RTCRtpCodecCapability> codecs = capabilities.getCodecs().stream()
                 .filter(Objects::nonNull)
-                .toList()
-        );
-        
-        if (codecs.isEmpty()) {
-            return List.of();
-        }
+                .filter(codec -> {
+                    String name = codec.getName();
+                    return name != null && name.toUpperCase(Locale.ROOT).contains("VP8");
+                })
+                .toList();
 
-        Predicate<RTCRtpCodecCapability> isH264 = codec -> {
-            String name = codec.getName();
-            return name != null && name.toUpperCase(Locale.ROOT).contains("H264");
-        };
-        
-        Predicate<RTCRtpCodecCapability> isVP8 = codec -> {
-            String name = codec.getName();
-            return name != null && name.toUpperCase(Locale.ROOT).contains("VP8");
-        };
-        
-        Predicate<RTCRtpCodecCapability> isVP9 = codec -> {
-            String name = codec.getName();
-            return name != null && name.toUpperCase(Locale.ROOT).contains("VP9");
-        };
+        System.out.println("[WebRTC] ⚠️ FORCING VP8 ONLY (Filtering out H264/VP9) for compatibility");
 
-        // VP8 first, then H264 (for hardware fallback), then VP9, then others
-        // Keep ALL codecs - don't filter any out
-        codecs.sort((a, b) -> {
-            int scoreA = isVP8.test(a) ? 4 : isH264.test(a) ? 3 : isVP9.test(a) ? 2 : 1;
-            int scoreB = isVP8.test(b) ? 4 : isH264.test(b) ? 3 : isVP9.test(b) ? 2 : 1;
-            return Integer.compare(scoreB, scoreA);
-        });
-        
-        return Collections.unmodifiableList(codecs);
+        return codecs;
     }
-    
+
     @Override
     public String toString() {
         return String.format("WebRTCPlatformConfig[platform=%s, preferH264=%b, codecs=%d]",
-            platformName, preferH264, videoCodecPreferences.size());
+                platformName, preferH264, videoCodecPreferences.size());
     }
 }
-

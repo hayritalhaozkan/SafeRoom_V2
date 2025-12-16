@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.List;
 import java.util.ArrayList;
@@ -28,43 +29,68 @@ import java.util.concurrent.ConcurrentHashMap;
  * Uses Virtual Threads for high-concurrency WebRTC operations.
  */
 public class WebRTCClient {
-    
+
     // Platform detection
     private static final String OS_NAME = System.getProperty("os.name").toLowerCase();
     private static final boolean IS_WINDOWS = OS_NAME.contains("win");
     private static final boolean IS_LINUX = OS_NAME.contains("linux");
     private static final boolean IS_MAC = OS_NAME.contains("mac");
-    
+
+    // Unified Logger
+    private static final com.saferoom.log.Logger logger = com.saferoom.log.Logger.getLogger(WebRTCClient.class);
+
     private static boolean initialized = false;
     private static PeerConnectionFactory factory;
+
+    // ... (fields)
+
+    public WebRTCClient(String callId, String remoteUsername) {
+        if (!initialized) {
+            throw new IllegalStateException("WebRTC not initialized. Call WebRTCClient.initialize() first.");
+        }
+        this.currentCallId = callId;
+        this.remoteUsername = remoteUsername;
+
+        // Set context for logging
+        com.saferoom.log.Logger.setContext("CallID", callId);
+        com.saferoom.log.Logger.setContext("Peer", remoteUsername);
+        logger.info("WebRTCClient created for peer: " + remoteUsername);
+    }
+
     private static AudioDeviceModule audioDeviceModule;
     private static WebRTCPlatformConfig platformConfig = WebRTCPlatformConfig.empty();
     private static volatile boolean playoutStarted = false;
     private static volatile boolean recordingStarted = false;
-    
-    // Virtual Thread executor for async WebRTC operations (ICE, signaling, DataChannel)
+
+    // Device Hot-Swap State
+    private static String currentMicName = "";
+    private static String currentSpeakerName = "";
+    private static volatile boolean isMonitoring = false;
+
+    // Virtual Thread executor for async WebRTC operations (ICE, signaling,
+    // DataChannel)
     private static ExecutorService webrtcExecutor;
-   // Call ID for the current call
+    // Call ID for the current call
     private String currentCallId;
     private String remoteUsername;
     private boolean audioEnabled;
     private boolean videoEnabled;
-    
+
     private RTCPeerConnection peerConnection;
     private MediaStreamTrack localAudioTrack;
     private MediaStreamTrack localVideoTrack;
     private dev.onvoid.webrtc.media.video.VideoDeviceSource videoSource; // Keep reference to stop camera
-    
+
     // Track RTP senders for replaceTrack operations
     private RTCRtpSender videoSender = null;
-    
+
     // Callbacks
     private Consumer<RTCIceCandidate> onIceCandidateCallback;
     private Consumer<String> onLocalSDPCallback;
     private Runnable onConnectionEstablishedCallback;
     private Runnable onConnectionClosedCallback;
     private Consumer<MediaStreamTrack> onRemoteTrackCallback;
-    
+
     /**
      * Initialize WebRTC (call once at app startup)
      * 
@@ -77,16 +103,16 @@ public class WebRTCClient {
             System.out.println("[WebRTC] Already initialized");
             return;
         }
-        
+
         System.out.println("[WebRTC] ═══════════════════════════════════════════════════════════");
         System.out.println("[WebRTC] Initializing WebRTC with native library...");
         System.out.printf("[WebRTC] Platform: %s%n", detectPlatformName());
         System.out.println("[WebRTC] ═══════════════════════════════════════════════════════════");
-        
+
         // Initialize Virtual Thread executor for async WebRTC operations
         webrtcExecutor = Executors.newVirtualThreadPerTaskExecutor();
         System.out.println("[WebRTC] Virtual Thread executor initialized");
-        
+
         try {
             // Platform-specific audio initialization
             if (IS_WINDOWS) {
@@ -98,37 +124,50 @@ public class WebRTCClient {
             } else {
                 initDefaultAudio();
             }
-            
+
             // Initialize PeerConnectionFactory with audio module
             initPeerConnectionFactory();
-            
+
+            // detect initial devices for monitoring
+            AudioDevice defaultMic = MediaDevices.getDefaultAudioCaptureDevice();
+            if (defaultMic != null)
+                currentMicName = defaultMic.getName();
+
+            AudioDevice defaultSpeaker = MediaDevices.getDefaultAudioRenderDevice();
+            if (defaultSpeaker != null)
+                currentSpeakerName = defaultSpeaker.getName();
+
             initialized = true;
+            startDeviceMonitor();
             System.out.println("[WebRTC] ═══════════════════════════════════════════════════════════");
             System.out.println("[WebRTC] WebRTC initialized successfully!");
             System.out.println("[WebRTC] ═══════════════════════════════════════════════════════════");
-            
+
         } catch (Throwable e) {
             // Fallback to mock mode (native library not available)
             System.err.printf("[WebRTC] Native library failed to load: %s%n", e.getMessage());
             e.printStackTrace();
             System.out.println("[WebRTC] Running in MOCK mode (signaling will work, but no real media)");
-            
+
             factory = null;
             audioDeviceModule = null;
             initialized = true;
         }
     }
-    
+
     /**
      * Detect platform name for logging
      */
     private static String detectPlatformName() {
-        if (IS_WINDOWS) return "Windows (COM STA thread required)";
-        if (IS_LINUX) return "Linux (PulseAudio/ALSA)";
-        if (IS_MAC) return "macOS (CoreAudio)";
+        if (IS_WINDOWS)
+            return "Windows (COM STA thread required)";
+        if (IS_LINUX)
+            return "Linux (PulseAudio/ALSA)";
+        if (IS_MAC)
+            return "macOS (CoreAudio)";
         return "Unknown (" + OS_NAME + ")";
     }
-    
+
     /**
      * WINDOWS: Initialize AudioDeviceModule on a dedicated background thread
      * 
@@ -141,150 +180,150 @@ public class WebRTCClient {
     private static void initWindowsAudio() throws Exception {
         System.out.println("[WebRTC] [Windows] Initializing AudioDeviceModule on dedicated thread...");
         System.out.println("[WebRTC] [Windows] Note: COM will be handled by native webrtc library");
-        
+
         AtomicReference<AudioDeviceModule> admRef = new AtomicReference<>();
         AtomicReference<Throwable> errorRef = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        
+
         // Create a CLEAN background thread for WebRTC initialization
         // The native library will handle COM initialization on this thread
         Thread webrtcInitThread = Thread.ofPlatform()
-            .name("webrtc-audio-init")
-            .unstarted(() -> {
-                try {
-                    System.out.println("[WebRTC] [Windows] Background thread started (tid=" + 
-                        Thread.currentThread().threadId() + ")");
-                    
-                    // Get default audio devices - native code will init COM here
-                    AudioDevice defaultMic = MediaDevices.getDefaultAudioCaptureDevice();
-                    AudioDevice defaultSpeaker = MediaDevices.getDefaultAudioRenderDevice();
-                    
-                    // Create AudioDeviceModule - this triggers native COM usage
-                    AudioDeviceModule adm = new AudioDeviceModule();
-                    
-                    if (defaultMic != null) {
-                        System.out.println("[WebRTC] [Windows] Default microphone: " + defaultMic.getName());
-                        adm.setRecordingDevice(defaultMic);
-                        adm.initRecording();
-                    } else {
-                        System.out.println("[WebRTC] [Windows] No microphone detected");
+                .name("webrtc-audio-init")
+                .unstarted(() -> {
+                    try {
+                        System.out.println("[WebRTC] [Windows] Background thread started (tid=" +
+                                Thread.currentThread().threadId() + ")");
+
+                        // Get default audio devices - native code will init COM here
+                        AudioDevice defaultMic = MediaDevices.getDefaultAudioCaptureDevice();
+                        AudioDevice defaultSpeaker = MediaDevices.getDefaultAudioRenderDevice();
+
+                        // Create AudioDeviceModule - this triggers native COM usage
+                        AudioDeviceModule adm = new AudioDeviceModule();
+
+                        if (defaultMic != null) {
+                            System.out.println("[WebRTC] [Windows] Default microphone: " + defaultMic.getName());
+                            adm.setRecordingDevice(defaultMic);
+                            adm.initRecording();
+                        } else {
+                            System.out.println("[WebRTC] [Windows] No microphone detected");
+                        }
+
+                        if (defaultSpeaker != null) {
+                            System.out.println("[WebRTC] [Windows] Default speaker: " + defaultSpeaker.getName());
+                            adm.setPlayoutDevice(defaultSpeaker);
+                            adm.initPlayout();
+                        } else {
+                            System.out.println("[WebRTC] [Windows] No speaker detected");
+                        }
+
+                        admRef.set(adm);
+                        System.out.println("[WebRTC] [Windows] AudioDeviceModule initialized successfully");
+
+                    } catch (Throwable t) {
+                        errorRef.set(t);
+                        System.err.println("[WebRTC] [Windows] Init thread error: " + t.getMessage());
+                        t.printStackTrace();
+                    } finally {
+                        latch.countDown();
                     }
-                    
-                    if (defaultSpeaker != null) {
-                        System.out.println("[WebRTC] [Windows] Default speaker: " + defaultSpeaker.getName());
-                        adm.setPlayoutDevice(defaultSpeaker);
-                        adm.initPlayout();
-                    } else {
-                        System.out.println("[WebRTC] [Windows] No speaker detected");
-                    }
-                    
-                    admRef.set(adm);
-                    System.out.println("[WebRTC] [Windows] AudioDeviceModule initialized successfully");
-                    
-                } catch (Throwable t) {
-                    errorRef.set(t);
-                    System.err.println("[WebRTC] [Windows] Init thread error: " + t.getMessage());
-                    t.printStackTrace();
-                } finally {
-                    latch.countDown();
-                }
-            });
-        
+                });
+
         // Start init thread and wait for completion
         webrtcInitThread.start();
-        
+
         if (!latch.await(15, TimeUnit.SECONDS)) {
             throw new RuntimeException("[WebRTC] [Windows] Initialization timeout (15s)");
         }
-        
+
         // Check for errors
         if (errorRef.get() != null) {
             throw new RuntimeException("[WebRTC] [Windows] Initialization failed", errorRef.get());
         }
-        
+
         // Store the ADM reference
         audioDeviceModule = admRef.get();
         System.out.println("[WebRTC] [Windows] Audio initialization completed");
     }
-    
+
     /**
      * LINUX: Standard AudioDeviceModule initialization
      * Uses PulseAudio/ALSA - no COM threading issues
      */
     private static void initLinuxAudio() throws Exception {
         System.out.println("[WebRTC] [Linux] Initializing AudioDeviceModule (PulseAudio/ALSA)...");
-        
+
         AudioDevice defaultMic = MediaDevices.getDefaultAudioCaptureDevice();
         AudioDevice defaultSpeaker = MediaDevices.getDefaultAudioRenderDevice();
-        
+
         audioDeviceModule = new AudioDeviceModule();
-        
+
         if (defaultMic != null) {
             System.out.println("[WebRTC] [Linux] Default microphone: " + defaultMic.getName());
             audioDeviceModule.setRecordingDevice(defaultMic);
             audioDeviceModule.initRecording();
         }
-        
+
         if (defaultSpeaker != null) {
             System.out.println("[WebRTC] [Linux] Default speaker: " + defaultSpeaker.getName());
             audioDeviceModule.setPlayoutDevice(defaultSpeaker);
             audioDeviceModule.initPlayout();
         }
-        
+
         System.out.println("[WebRTC] [Linux] AudioDeviceModule initialized successfully");
     }
-    
+
     /**
      * macOS: Standard AudioDeviceModule initialization
      * Uses CoreAudio - no COM threading issues
      */
     private static void initMacAudio() throws Exception {
         System.out.println("[WebRTC] [macOS] Initializing AudioDeviceModule (CoreAudio)...");
-        
+
         AudioDevice defaultMic = MediaDevices.getDefaultAudioCaptureDevice();
         AudioDevice defaultSpeaker = MediaDevices.getDefaultAudioRenderDevice();
-        
+
         audioDeviceModule = new AudioDeviceModule();
-        
+
         if (defaultMic != null) {
             System.out.println("[WebRTC] [macOS] Default microphone: " + defaultMic.getName());
             audioDeviceModule.setRecordingDevice(defaultMic);
             audioDeviceModule.initRecording();
         }
-        
+
         if (defaultSpeaker != null) {
             System.out.println("[WebRTC] [macOS] Default speaker: " + defaultSpeaker.getName());
             audioDeviceModule.setPlayoutDevice(defaultSpeaker);
             audioDeviceModule.initPlayout();
         }
-        
+
         System.out.println("[WebRTC] [macOS] AudioDeviceModule initialized successfully");
     }
-    
+
     /**
      * Default/Unknown platform: Standard initialization
      */
     private static void initDefaultAudio() throws Exception {
         System.out.println("[WebRTC] [Unknown] Initializing AudioDeviceModule (default path)...");
-        
+
         AudioDevice defaultMic = MediaDevices.getDefaultAudioCaptureDevice();
         AudioDevice defaultSpeaker = MediaDevices.getDefaultAudioRenderDevice();
-        
+
         audioDeviceModule = new AudioDeviceModule();
-        
+
         if (defaultMic != null) {
             audioDeviceModule.setRecordingDevice(defaultMic);
             audioDeviceModule.initRecording();
         }
-        
+
         if (defaultSpeaker != null) {
             audioDeviceModule.setPlayoutDevice(defaultSpeaker);
             audioDeviceModule.initPlayout();
         }
-        
+
         System.out.println("[WebRTC] [Unknown] AudioDeviceModule initialized");
     }
-    
+
     /**
      * Initialize PeerConnectionFactory with configured AudioDeviceModule
      */
@@ -296,18 +335,18 @@ public class WebRTCClient {
             factory = new PeerConnectionFactory();
             System.out.println("[WebRTC] PeerConnectionFactory created (no AudioDeviceModule)");
         }
-        
+
         platformConfig = WebRTCPlatformConfig.detect(factory);
         System.out.println("[WebRTC] Platform config detected: " + platformConfig);
     }
-    
+
     /**
      * Get the Virtual Thread executor for async WebRTC operations
      */
     public static ExecutorService getExecutor() {
         return webrtcExecutor;
     }
-    
+
     /**
      * Execute a task asynchronously using Virtual Threads
      */
@@ -328,23 +367,27 @@ public class WebRTCClient {
         }
         peerConnection.getStats(videoSender, report -> {
             report.getStats().values().stream()
-                .filter(stat -> stat.getType() == RTCStatsType.OUTBOUND_RTP)
-                .findFirst()
-                .ifPresentOrElse(stat -> {
-                    System.out.printf("[WebRTC][%s] OUTBOUND_RTP stats: %s%n",
-                        currentCallId, stat);
-                }, () -> System.out.printf("[WebRTC][%s] No OUTBOUND_RTP stats%n", currentCallId));
+                    .filter(stat -> stat.getType() == RTCStatsType.OUTBOUND_RTP)
+                    .findFirst()
+                    .ifPresentOrElse(stat -> {
+                        System.out.printf("[WebRTC][%s] OUTBOUND_RTP stats: %s%n",
+                                currentCallId, stat);
+                    }, () -> System.out.printf("[WebRTC][%s] No OUTBOUND_RTP stats%n", currentCallId));
         });
     }
-    
+
     /**
      * Shutdown WebRTC (call at app exit)
      */
     public static synchronized void shutdown() {
-        if (!initialized) return;
-        
+        if (!initialized)
+            return;
+
         System.out.println("[WebRTC] Shutting down WebRTC...");
-        
+
+        // Stop device monitoring
+        isMonitoring = false;
+
         // Shutdown Virtual Thread executor
         if (webrtcExecutor != null) {
             webrtcExecutor.shutdown();
@@ -358,17 +401,36 @@ public class WebRTCClient {
             webrtcExecutor = null;
             System.out.println("[WebRTC] Virtual Thread executor shutdown");
         }
-        
+
         // Dispose PeerConnectionFactory
         if (factory != null) {
             factory.dispose();
             factory = null;
             System.out.println("[WebRTC] PeerConnectionFactory disposed");
         }
-        
-        // Dispose AudioDeviceModule
+
+        // 🛑 STOP AUDIO BEFORE DISPOSING MODULE
+        // This is critical to prevent "ghost audio" threads
         if (audioDeviceModule != null) {
+            System.out.println("[WebRTC] Stopping AudioDeviceModule...");
             try {
+                if (playoutStarted) {
+                    audioDeviceModule.stopPlayout();
+                    playoutStarted = false;
+                    System.out.println("[WebRTC] Playout stopped");
+                }
+                if (recordingStarted) {
+                    audioDeviceModule.stopRecording();
+                    recordingStarted = false;
+                    System.out.println("[WebRTC] Recording stopped");
+                }
+
+                // Give native audio threads a moment to spin down
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ignored) {
+                }
+
                 audioDeviceModule.dispose();
             } catch (Exception e) {
                 System.err.println("[WebRTC] Error disposing AudioDeviceModule: " + e.getMessage());
@@ -376,18 +438,18 @@ public class WebRTCClient {
             audioDeviceModule = null;
             System.out.println("[WebRTC] AudioDeviceModule disposed");
         }
-        
+
         initialized = false;
         System.out.println("[WebRTC] WebRTC shutdown complete");
     }
-    
+
     /**
      * Check if WebRTC is initialized
      */
     public static boolean isInitialized() {
         return initialized;
     }
-    
+
     /**
      * Get the PeerConnectionFactory (for P2PConnectionManager)
      */
@@ -398,33 +460,27 @@ public class WebRTCClient {
     static WebRTCPlatformConfig getPlatformConfig() {
         return platformConfig;
     }
-    
+
     /**
      * Constructor
      */
-    public WebRTCClient(String callId, String remoteUsername) {
-        if (!initialized) {
-            throw new IllegalStateException("WebRTC not initialized. Call WebRTCClient.initialize() first.");
-        }
-        this.currentCallId = callId;
-        this.remoteUsername = remoteUsername;
-    }
-    
+    // Constructor moved to top of class (lines 48-56)
+    // Removing duplicate from here
+
     /**
      * Create peer connection
      */
     public void createPeerConnection(boolean audioEnabled, boolean videoEnabled) {
-        System.out.printf("[WebRTC] Creating peer connection (audio=%b, video=%b)%n", 
-            audioEnabled, videoEnabled);
-        
+        logger.info(String.format("Creating peer connection (audio=%b, video=%b)", audioEnabled, videoEnabled));
+
         this.audioEnabled = audioEnabled;
         this.videoEnabled = videoEnabled;
-        
+
         if (factory == null) {
-            System.out.println("[WebRTC] Factory null - running in MOCK mode");
+            logger.warn("Factory null - running in MOCK mode");
             return;
         }
-        
+
         try {
             // ═══════════════════════════════════════════════════════════════
             // ICE Server Configuration
@@ -432,81 +488,99 @@ public class WebRTCClient {
             // TURN: Relay media (required for symmetric NAT)
             // ═══════════════════════════════════════════════════════════════
             List<RTCIceServer> iceServers = new ArrayList<>();
-            
+
             // STUN servers (free, for simple NAT traversal)
             RTCIceServer stunServer = new RTCIceServer();
             stunServer.urls.add("stun:stun.l.google.com:19302");
             stunServer.urls.add("stun:stun1.l.google.com:19302");
             stunServer.urls.add("stun:stun2.l.google.com:19302");
+            stunServer.urls.add("stun:stun3.l.google.com:19302");
+            stunServer.urls.add("stun:stun4.l.google.com:19302");
             iceServers.add(stunServer);
-            
-            // TURN server (for symmetric NAT - REQUIRED for cross-network calls)
-            // Using free OpenRelay TURN servers
-            RTCIceServer turnServer = new RTCIceServer();
-            turnServer.urls.add("turn:openrelay.metered.ca:80");
-            turnServer.urls.add("turn:openrelay.metered.ca:443");
-            turnServer.urls.add("turn:openrelay.metered.ca:443?transport=tcp");
-            turnServer.username = "openrelayproject";
-            turnServer.password = "openrelayproject";
-            iceServers.add(turnServer);
-            
-            // Alternative TURN (backup)
-            RTCIceServer turnServer2 = new RTCIceServer();
-            turnServer2.urls.add("turn:relay.metered.ca:80");
-            turnServer2.urls.add("turn:relay.metered.ca:443");
-            turnServer2.urls.add("turn:relay.metered.ca:443?transport=tcp");
-            turnServer2.username = "e8dd65b92c62d5e948d06b16";
-            turnServer2.password = "uWdWNmkhvyqTEj3I";
-            iceServers.add(turnServer2);
-            
+
+            // ⚠️ TURN SERVERS REMOVED by request (Pure P2P Mode)
+            // Note: Communication between symmetric NATs will likely fail.
+
             System.out.printf("[WebRTC] Configured %d ICE servers (STUN + TURN)%n", iceServers.size());
-            
+
             RTCConfiguration config = new RTCConfiguration();
             config.iceServers = iceServers;
-            
+
+            // ⚡ FAST P2P OPTIMIZATIONS ⚡
+            config.bundlePolicy = RTCBundlePolicy.BALANCED; // More compatible than MAX_BUNDLE
+            config.rtcpMuxPolicy = RTCRtcpMuxPolicy.REQUIRE; // Require RTCP Mux (standard, faster)
+                                                             // paths
+
             // Create peer connection
             peerConnection = factory.createPeerConnection(config, new PeerConnectionObserver() {
                 @Override
                 public void onIceCandidate(RTCIceCandidate candidate) {
-                    System.out.printf("[WebRTC] ICE Candidate generated: %s%n", candidate.sdp);
+                    logger.debug("ICE Candidate generated: " + candidate.sdp);
                     if (onIceCandidateCallback != null) {
                         onIceCandidateCallback.accept(candidate);
                     }
                 }
-                
+
                 @Override
                 public void onIceConnectionChange(RTCIceConnectionState state) {
-                    System.out.printf("[WebRTC] ICE Connection state: %s%n", state);
-                    
+                    logger.info("ICE Connection state: " + state);
+
                     // Extra diagnostic info for CHECKING state
                     if (state == RTCIceConnectionState.CHECKING) {
-                        System.out.println("[WebRTC]   ℹ️ ICE is checking connectivity between candidates...");
-                        System.out.println("[WebRTC]   ℹ️ This can take up to 30s depending on network conditions");
+                        logger.info("ℹ️ ICE is checking connectivity between candidates...");
+                        logger.info("ℹ️ This can take up to 15s depending on network conditions");
+
+                        // FIX: Watchdog timer for ICE timeout (15 seconds)
+                        // If we are still in CHECKING/NEW after 15s, we assume failure (Symmetric NAT
+                        // block)
+                        CompletableFuture.runAsync(() -> {
+                            try {
+                                Thread.sleep(15000); // 15 seconds wait
+                            } catch (InterruptedException e) {
+                                return;
+                            }
+
+                            // Check state after wait
+                            if (peerConnection != null) {
+                                RTCIceConnectionState currentState = peerConnection.getIceConnectionState();
+                                if (currentState == RTCIceConnectionState.CHECKING ||
+                                        currentState == RTCIceConnectionState.NEW) {
+
+                                    logger.error("❌ ICE Connection TIMED OUT after 15s!", null);
+                                    logger.error("  This likely means a Symmetric NAT issue or firewall block.", null);
+
+                                    // Force close
+                                    close();
+
+                                    // Trigger failure callback
+                                    if (onConnectionClosedCallback != null) {
+                                        onConnectionClosedCallback.run();
+                                    }
+                                }
+                            }
+                        });
                     }
-                    
+
                     if (state == RTCIceConnectionState.CONNECTED || state == RTCIceConnectionState.COMPLETED) {
-                        System.out.println("[WebRTC] ✅ ICE connection established!");
-                        System.out.println("[WebRTC]   Media should now flow between peers");
+                        logger.info("✅ ICE connection established! Media should now flow between peers");
                         if (onConnectionEstablishedCallback != null) {
                             onConnectionEstablishedCallback.run();
                         }
                     } else if (state == RTCIceConnectionState.FAILED) {
-                        System.err.println("[WebRTC] ❌ ICE connection FAILED!");
-                        System.err.println("[WebRTC]   Possible causes:");
-                        System.err.println("[WebRTC]   1. Both peers behind symmetric NAT (need TURN server)");
-                        System.err.println("[WebRTC]   2. Firewall blocking UDP/TCP traffic");
-                        System.err.println("[WebRTC]   3. Network timeout");
+                        logger.error("❌ ICE connection FAILED! Possible causes: Symmetric NAT, Firewall, Timeout",
+                                null);
+
                         if (onConnectionClosedCallback != null) {
                             onConnectionClosedCallback.run();
                         }
                     } else if (state == RTCIceConnectionState.DISCONNECTED) {
-                        System.out.println("[WebRTC] ⚠️ ICE connection disconnected (may recover)");
+                        logger.warn("⚠️ ICE connection disconnected (may recover)");
                         if (onConnectionClosedCallback != null) {
                             onConnectionClosedCallback.run();
                         }
                     }
                 }
-                
+
                 @Override
                 public void onIceGatheringChange(RTCIceGatheringState state) {
                     System.out.printf("[WebRTC] ICE Gathering state: %s%n", state);
@@ -514,12 +588,12 @@ public class WebRTCClient {
                         System.out.println("[WebRTC]   ✅ All ICE candidates gathered");
                     }
                 }
-                
+
                 @Override
                 public void onConnectionChange(RTCPeerConnectionState state) {
                     System.out.printf("[WebRTC] Peer Connection state: %s%n", state);
                 }
-                
+
                 @Override
                 public void onTrack(RTCRtpTransceiver transceiver) {
                     MediaStreamTrack track = transceiver.getReceiver().getTrack();
@@ -529,7 +603,7 @@ public class WebRTCClient {
                     System.out.printf("[WebRTC]   Kind: %s%n", track.getKind());
                     System.out.printf("[WebRTC]   Enabled: %b%n", track.isEnabled());
                     System.out.printf("[WebRTC]   State: %s%n", track.getState());
-                    
+
                     // Log transceiver details
                     try {
                         System.out.printf("[WebRTC]   Direction: %s%n", transceiver.getDirection());
@@ -538,50 +612,55 @@ public class WebRTCClient {
                         System.out.println("[WebRTC]   (Could not get transceiver details)");
                     }
                     System.out.println("[WebRTC] ═══════════════════════════════════════════");
-                    
+
                     // Handle audio track automatically
                     if (track.getKind().equals("audio") && track instanceof AudioTrack) {
                         handleRemoteAudioTrack((AudioTrack) track);
                     }
-                    
+
                     // Handle video track
                     if (track.getKind().equals("video") && track instanceof VideoTrack) {
                         handleRemoteVideoTrack((VideoTrack) track);
                     }
-                    
+
                     if (onRemoteTrackCallback != null) {
                         onRemoteTrackCallback.accept(track);
                     }
                 }
             });
-            
+
             // Add local tracks (will be implemented)
             // For now, just create connection without media
-            
+
             System.out.println("[WebRTC] Peer connection created");
-            
+
         } catch (Exception e) {
-            System.err.printf("[WebRTC] Failed to create peer connection: %s%n", e.getMessage());
-            e.printStackTrace();
+            logger.error("Failed to create peer connection: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * Create SDP offer
      */
     public CompletableFuture<String> createOffer() {
-        System.out.println("[WebRTC] Creating SDP offer...");
-        
+        // Retry for up to 5 seconds, every 500ms
+        long deadline = System.currentTimeMillis() + 5000;
+        return retryUntilDeadline(this::createOfferInternal, deadline, 50, "Create Offer");
+    }
+
+    private CompletableFuture<String> createOfferInternal() {
+        logger.info("Creating SDP offer...");
+
         CompletableFuture<String> future = new CompletableFuture<>();
-        
+
         if (peerConnection == null) {
             // Fallback to mock SDP
             String mockSDP = generateMockSDP("offer");
-            System.out.println("[WebRTC] Using mock SDP (peer connection not available)");
+            logger.warn("Using mock SDP (peer connection not available)");
             future.complete(mockSDP);
             return future;
         }
-        
+
         try {
             RTCOfferOptions options = new RTCOfferOptions();
             peerConnection.createOffer(options, new CreateSessionDescriptionObserver() {
@@ -590,48 +669,65 @@ public class WebRTCClient {
                     peerConnection.setLocalDescription(description, new SetSessionDescriptionObserver() {
                         @Override
                         public void onSuccess() {
-                            System.out.println("[WebRTC] Offer created and set as local description");
+                            logger.info("Offer created and set as local description");
                             String sdp = description.sdp;
-                            
+
+                            // ⚡ MINIMIZE SDP
+                            // Strip unused codecs/extensions for faster transmission
+                            String optimizedSdp = SDPUtils.mungeSDP(description.sdp);
+
+                            // ⚡ FIX ONE-WAY VIDEO RACE
+                            // Force 'sendrecv' even if track isn't fully attached yet (Early Offer)
+                            optimizedSdp = SDPUtils.enforceSendRecv(optimizedSdp, "video");
+
+                            logger.debug(String.format("Optimized SDP from %d bytes to %d bytes",
+                                    description.sdp.length(), optimizedSdp.length()));
+
                             // Log video codec info from SDP
-                            logSdpVideoCodecs(sdp, "OFFER");
-                            
+                            logSdpVideoCodecs(optimizedSdp, "OFFER");
+
                             if (onLocalSDPCallback != null) {
-                                onLocalSDPCallback.accept(sdp);
+                                onLocalSDPCallback.accept(optimizedSdp);
                             }
-                            future.complete(sdp);
+                            future.complete(optimizedSdp);
                         }
-                        
+
                         @Override
                         public void onFailure(String error) {
-                            System.err.printf("[WebRTC] Failed to set local description: %s%n", error);
+                            logger.error("Failed to set local description: " + error, null);
                             future.completeExceptionally(new Exception(error));
                         }
                     });
                 }
-                
+
                 @Override
                 public void onFailure(String error) {
-                    System.err.printf("[WebRTC] Failed to create offer: %s%n", error);
+                    logger.error("Failed to create offer: " + error, null);
                     future.completeExceptionally(new Exception(error));
                 }
             });
         } catch (Exception e) {
-            System.err.printf("[WebRTC] Exception creating offer: %s%n", e.getMessage());
+            logger.error("Exception creating offer: " + e.getMessage(), e);
             future.completeExceptionally(e);
         }
-        
+
         return future;
     }
-    
+
     /**
      * Create SDP answer
      */
     public CompletableFuture<String> createAnswer() {
+        // Retry for up to 5 seconds, every 500ms
+        long deadline = System.currentTimeMillis() + 5000;
+        return retryUntilDeadline(this::createAnswerInternal, deadline, 50, "Create Answer");
+    }
+
+    private CompletableFuture<String> createAnswerInternal() {
         System.out.println("[WebRTC] Creating SDP answer...");
-        
+
         CompletableFuture<String> future = new CompletableFuture<>();
-        
+
         if (peerConnection == null) {
             // Fallback to mock SDP
             String mockSDP = generateMockSDP("answer");
@@ -639,7 +735,7 @@ public class WebRTCClient {
             future.complete(mockSDP);
             return future;
         }
-        
+
         try {
             RTCAnswerOptions options = new RTCAnswerOptions();
             peerConnection.createAnswer(options, new CreateSessionDescriptionObserver() {
@@ -650,16 +746,28 @@ public class WebRTCClient {
                         public void onSuccess() {
                             System.out.println("[WebRTC] Answer created and set as local description");
                             String sdp = description.sdp;
-                            
+
+                            // ⚡ MINIMIZE SDP
+                            // Strip unused codecs/extensions for faster transmission
+                            String optimizedSdp = SDPUtils.mungeSDP(description.sdp);
+
+                            // ⚡ FIX ONE-WAY VIDEO RACE
+                            // Force 'sendrecv' in Answer too
+                            optimizedSdp = SDPUtils.enforceSendRecv(optimizedSdp, "video");
+
+                            System.out.printf("[WebRTC] Optimized SDP from %d bytes to %d bytes%n",
+                                    description.sdp.length(), optimizedSdp.length());
+
                             // Log video codec info from SDP
-                            logSdpVideoCodecs(sdp, "ANSWER");
-                            
+                            logSdpVideoCodecs(optimizedSdp, "ANSWER");
+
                             if (onLocalSDPCallback != null) {
-                                onLocalSDPCallback.accept(sdp);
+                                onLocalSDPCallback.accept(optimizedSdp);
                             }
-                            future.complete(sdp);
+
+                            future.complete(optimizedSdp);
                         }
-                        
+
                         @Override
                         public void onFailure(String error) {
                             System.err.printf("[WebRTC] Failed to set local description: %s%n", error);
@@ -667,7 +775,7 @@ public class WebRTCClient {
                         }
                     });
                 }
-                
+
                 @Override
                 public void onFailure(String error) {
                     System.err.printf("[WebRTC] Failed to create answer: %s%n", error);
@@ -678,75 +786,131 @@ public class WebRTCClient {
             System.err.printf("[WebRTC] Exception creating answer: %s%n", e.getMessage());
             future.completeExceptionally(e);
         }
-        
+
         return future;
     }
-    
+
+    // ===============================
+    // Persistence / Retry Helper
+    // ===============================
+
+    /**
+     * Helper to retry a CompletableFuture action until a deadline
+     */
+    private <T> CompletableFuture<T> retryUntilDeadline(java.util.function.Supplier<CompletableFuture<T>> action,
+            long deadlineMillis, long delayMs, String operationName) {
+
+        return action.get().handle((result, ex) -> {
+            if (ex == null) {
+                return CompletableFuture.completedFuture(result);
+            }
+
+            // If we failed, check if we have time to retry
+            long now = System.currentTimeMillis();
+            if (now + delayMs > deadlineMillis) {
+                logger.error(String.format("%s failed and deadline exceeded: %s", operationName, ex.getMessage()),
+                        null);
+                return CompletableFuture.<T>failedFuture(ex);
+            }
+
+            logger.info(String.format("%s failed (%s), retrying in %dms...",
+                    operationName, ex.getMessage(), delayMs));
+
+            // Schedule retry
+            CompletableFuture<T> retryFuture = new CompletableFuture<>();
+
+            // Use existing executor or common pool for delay
+            ExecutorService executor = webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool();
+
+            // Note: Java 8/11 doesn't have good built-in delayed executor without
+            // ScheduledExecutorService.
+            // Using a simple sleep in a virtual thread (if available) or blocked thread is
+            // acceptable for this context
+            // since we are using virtual threads mainly or background threads.
+            executor.submit(() -> {
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+
+                // Recursive call
+                retryUntilDeadline(action, deadlineMillis, delayMs, operationName)
+                        .whenComplete((r, e) -> {
+                            if (e != null)
+                                retryFuture.completeExceptionally(e);
+                            else
+                                retryFuture.complete(r);
+                        });
+            });
+
+            return retryFuture;
+        }).thenCompose(f -> f);
+    }
+
     /**
      * Set remote SDP (offer or answer)
      */
     public void setRemoteDescription(String sdpType, String sdp) {
-        System.out.printf("[WebRTC] Setting remote %s%n", sdpType);
-        
+        logger.info(String.format("Setting remote %s", sdpType));
+
         if (peerConnection == null) {
-            System.out.println("[WebRTC] Peer connection null - skipping");
+            logger.warn("Peer connection null - skipping");
             return;
         }
-        
+
         try {
             RTCSdpType type = sdpType.equalsIgnoreCase("offer") ? RTCSdpType.OFFER : RTCSdpType.ANSWER;
             RTCSessionDescription description = new RTCSessionDescription(type, sdp);
-            
+
             // Log remote SDP video codecs
             logSdpVideoCodecs(sdp, "REMOTE " + sdpType.toUpperCase());
-            
+
             peerConnection.setRemoteDescription(description, new SetSessionDescriptionObserver() {
                 @Override
                 public void onSuccess() {
-                    System.out.println("[WebRTC] Remote description set");
+                    logger.info("Remote description set");
                 }
-                
+
                 @Override
                 public void onFailure(String error) {
-                    System.err.printf("[WebRTC] Failed to set remote description: %s%n", error);
+                    logger.error("Failed to set remote description: " + error, null);
                 }
             });
         } catch (Exception e) {
-            System.err.printf("[WebRTC] Exception setting remote description: %s%n", e.getMessage());
-            e.printStackTrace();
+            logger.error("Exception setting remote description: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * Add ICE candidate
      */
     public void addIceCandidate(String candidate, String sdpMid, int sdpMLineIndex) {
-        System.out.printf("[WebRTC] Adding ICE candidate: %s%n", candidate);
-        
+        logger.debug("Adding ICE candidate: " + candidate);
+
         if (peerConnection == null) {
-            System.out.println("[WebRTC] Peer connection null - skipping");
+            logger.warn("Peer connection null - skipping");
             return;
         }
-        
+
         try {
             RTCIceCandidate iceCandidate = new RTCIceCandidate(sdpMid, sdpMLineIndex, candidate);
             peerConnection.addIceCandidate(iceCandidate);
-            System.out.println("[WebRTC] ICE candidate added");
+            logger.debug("ICE candidate added");
         } catch (Exception e) {
-            System.err.printf("[WebRTC] Failed to add ICE candidate: %s%n", e.getMessage());
-            e.printStackTrace();
+            logger.error("Failed to add ICE candidate: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * Close connection
      */
     public void close() {
-        System.out.println("[WebRTC] Closing peer connection...");
-        
+        logger.info("Closing peer connection...");
+
         // Clean up all audio sinks first (properly remove from tracks)
         cleanupAllAudioSinks();
-        
+
         // First, remove tracks from peer connection before disposing
         if (peerConnection != null) {
             try {
@@ -755,243 +919,249 @@ public class WebRTCClient {
                 for (var sender : senders) {
                     var track = sender.getTrack();
                     if (track != null) {
-                        System.out.printf("[WebRTC] Removing track: %s%n", track.getId());
+                        logger.debug("Removing track: " + track.getId());
                         peerConnection.removeTrack(sender);
                     }
                 }
             } catch (Exception e) {
-                System.err.printf("[WebRTC] Error removing tracks: %s%n", e.getMessage());
+                logger.error("Error removing tracks: " + e.getMessage(), null);
             }
-            
+
             // Close peer connection
             peerConnection.close();
             peerConnection = null;
         }
-        
+
         // Now dispose tracks (after removing from peer connection)
         if (localAudioTrack != null) {
             try {
                 localAudioTrack.setEnabled(false); // Disable first
                 localAudioTrack.dispose();
-                System.out.println("[WebRTC] Audio track disposed");
+                logger.info("Audio track disposed");
             } catch (Exception e) {
-                System.err.printf("[WebRTC] Error disposing audio track: %s%n", e.getMessage());
+                logger.error("Error disposing audio track: " + e.getMessage(), null);
             }
             localAudioTrack = null;
         }
-        
+
         // IMPORTANT: Don't dispose localVideoTrack if it's shared from GroupCallManager
         // Only dispose if we own the video source (videoSource != null)
         if (localVideoTrack != null && videoSource != null) {
             try {
                 localVideoTrack.setEnabled(false); // Disable first
                 localVideoTrack.dispose();
-                System.out.println("[WebRTC] Video track disposed");
+                logger.info("Video track disposed");
             } catch (Exception e) {
-                System.err.printf("[WebRTC] Error disposing video track: %s%n", e.getMessage());
+                logger.error("Error disposing video track: " + e.getMessage(), null);
             }
             localVideoTrack = null;
         } else if (localVideoTrack != null) {
-            System.out.println("[WebRTC] Video track is shared - not disposing (GroupCallManager owns it)");
+            logger.debug("Video track is shared - not disposing (GroupCallManager owns it)");
             localVideoTrack = null;
         }
-        
+
         // Stop video source (release camera) - only if we own it
         if (videoSource != null) {
             try {
                 videoSource.stop();
                 videoSource.dispose();
-                System.out.println("[WebRTC] Camera source stopped and released");
+                logger.info("Camera source stopped and released");
             } catch (Exception e) {
-                System.err.printf("[WebRTC] Error stopping video source: %s%n", e.getMessage());
+                logger.error("Error stopping video source: " + e.getMessage(), null);
             }
             videoSource = null;
         }
-        
+
         // DON'T call onConnectionClosedCallback here - causes infinite recursion
         // CallManager.cleanup() already calls this method, no need for callback loop
-        
-        System.out.println("[WebRTC] Connection closed");
+
+        logger.info("Connection closed");
     }
-    
+
     // ===============================
     // Callback Setters
     // ===============================
-    
+
     public void setOnIceCandidateCallback(Consumer<RTCIceCandidate> callback) {
         this.onIceCandidateCallback = callback;
     }
-    
+
     public void setOnLocalSDPCallback(Consumer<String> callback) {
         this.onLocalSDPCallback = callback;
     }
-    
+
     public void setOnConnectionEstablishedCallback(Runnable callback) {
         this.onConnectionEstablishedCallback = callback;
     }
-    
+
     public void setOnConnectionClosedCallback(Runnable callback) {
         this.onConnectionClosedCallback = callback;
     }
-    
+
     public void setOnRemoteTrackCallback(Consumer<MediaStreamTrack> callback) {
         this.onRemoteTrackCallback = callback;
     }
-    
+
     // ===============================
     // Media Control
     // ===============================
-    
+
     /**
      * Add audio track to peer connection for microphone capture.
      * This triggers ICE candidate generation.
      */
-    public void addAudioTrack() {
+    /**
+     * Add audio track to peer connection for microphone capture.
+     * This triggers ICE candidate generation.
+     * 
+     * FIX: Returns CompletableFuture to ensure recording is started BEFORE adding
+     * track
+     * to PeerConnection. This prevents race conditions where SDP is generated
+     * before
+     * track is present.
+     */
+    public CompletableFuture<Void> addAudioTrack() {
         if (factory == null) {
-            System.err.println("[WebRTC] Cannot add audio track - factory not initialized");
-            return;
+            logger.error("Cannot add audio track - factory not initialized", null);
+            return CompletableFuture.failedFuture(new IllegalStateException("WebRTC factory not initialized"));
         }
-        
+
         if (peerConnection == null) {
-            System.err.println("[WebRTC] Cannot add audio track - peer connection not created");
-            return;
+            logger.error("Cannot add audio track - peer connection not created", null);
+            return CompletableFuture.failedFuture(new IllegalStateException("Peer connection not created"));
         }
-        
-        try {
-            System.out.println("[WebRTC] Adding audio track with ADVANCED processing...");
-            
-            // ===== ADVANCED AUDIO OPTIONS =====
-            AudioOptions audioOptions = new AudioOptions();
-            
-            // Temel özellikler (always enabled)
-            audioOptions.echoCancellation = true;
-            audioOptions.autoGainControl = true;
-            audioOptions.noiseSuppression = true;
-            
-            // İLERİ SEVİYE ÖZELLİKLER (Advanced features)
-            // Note: webrtc-java 0.14.0 supports these fields
-            audioOptions.highpassFilter = true;              // Düşük frekans filtresi (rumble noise)
-            
-            // Create audio source with enhanced options
-            AudioTrackSource audioSource = factory.createAudioSource(audioOptions);
-            
-            // Create audio track with a unique ID
-            AudioTrack audioTrack = factory.createAudioTrack("audio0", audioSource);
-            
-            // Add track to peer connection with stream ID
-            peerConnection.addTrack(audioTrack, List.of("stream1"));
-           
-        // Ensure capture is started
-        ensureRecordingStarted();
-        
-            System.out.println("[WebRTC] ✅ Audio track added with ADVANCED processing:");
-            System.out.println("  ├─ Echo cancellation: ENABLED (removes speaker feedback)");
-            System.out.println("  ├─ Noise suppression: ENABLED (removes background noise)");
-            System.out.println("  ├─ Auto gain control: ENABLED (normalizes volume)");
-            System.out.println("  └─ Highpass filter: ENABLED (removes low-freq rumble)");
-            System.out.println("[WebRTC] 🎤 Professional audio quality enabled!");
-            
-            // Store reference for cleanup
-            this.localAudioTrack = audioTrack;
-            
-        } catch (Exception e) {
-            System.err.println("[WebRTC] Failed to add audio track: " + e.getMessage());
-            e.printStackTrace();
-        }
+
+        logger.info("Adding audio track with ADVANCED processing...");
+
+        // Ensure capture is started FIRST
+        return ensureRecordingStarted().thenRun(() -> {
+            try {
+                // ===== ADVANCED AUDIO OPTIONS =====
+                AudioOptions audioOptions = new AudioOptions();
+
+                // Temel özellikler (always enabled)
+                audioOptions.echoCancellation = true;
+                audioOptions.autoGainControl = true;
+                audioOptions.noiseSuppression = true;
+
+                // İLERİ SEVİYE ÖZELLİKLER (Advanced features)
+                // Note: webrtc-java 0.14.0 supports these fields
+                audioOptions.highpassFilter = true; // Düşük frekans filtresi (rumble noise)
+
+                // Create audio source with enhanced options
+                AudioTrackSource audioSource = factory.createAudioSource(audioOptions);
+
+                // Create audio track with a unique ID
+                AudioTrack audioTrack = factory.createAudioTrack("audio0", audioSource);
+
+                // Add track to peer connection with stream ID
+                peerConnection.addTrack(audioTrack, List.of("stream1"));
+
+                logger.info("✅ Audio track added with ADVANCED processing");
+                logger.info("🎤 Professional audio quality enabled!");
+
+                // Store reference for cleanup
+                this.localAudioTrack = audioTrack;
+            } catch (Exception e) {
+                logger.error("Failed to add audio track: " + e.getMessage(), e);
+                throw new RuntimeException(e);
+            }
+        });
     }
-    
+
     /**
      * Add video track to peer connection for camera capture.
      * Similar to addAudioTrack but for video.
      */
-    public void addVideoTrack() {
+    public CompletableFuture<Void> addVideoTrack() {
         if (factory == null) {
-            System.err.println("[WebRTC] Cannot add video track - factory not initialized");
-            return;
+            logger.error("Cannot add video track - factory not initialized", null);
+            return CompletableFuture.completedFuture(null);
         }
-        
+
         if (peerConnection == null) {
-            System.err.println("[WebRTC] Cannot add video track - peer connection not created");
-            return;
+            logger.error("Cannot add video track - peer connection not created", null);
+            return CompletableFuture.completedFuture(null);
         }
-        
-        try {
-            System.out.println("[WebRTC] Adding video track with optimized settings...");
-            
-            // ===== FIX: Cleanup existing video source first (MacOS freeze fix) =====
-            if (this.videoSource != null) {
-                System.out.println("[WebRTC] Cleaning up existing video source...");
-                try {
-                    videoSource.stop();
-                    videoSource.dispose();
-                } catch (Exception e) {
-                    System.err.println("[WebRTC] Error cleaning up old video source: " + e.getMessage());
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                logger.info("Adding video track with optimized settings...");
+
+                // ===== FIX: Cleanup existing video source first (MacOS freeze fix) =====
+                if (this.videoSource != null) {
+                    logger.info("Cleaning up existing video source...");
+                    try {
+                        videoSource.stop();
+                        videoSource.dispose();
+                    } catch (Exception e) {
+                        logger.warn("Error cleaning up old video source: " + e.getMessage());
+                    }
+                    this.videoSource = null;
                 }
-                this.videoSource = null;
+
+                // ===== VIDEO SOURCE WITH OPTIMIZED SETTINGS =====
+                CameraCaptureService.CameraCaptureResource resource = CameraCaptureService.createCameraTrack("video0");
+
+                this.videoSource = resource.getSource();
+                VideoTrack videoTrack = resource.getTrack();
+
+                // Add track to peer connection with stream ID ve sender referansı
+                synchronized (this) { // Synchroized to ensure thread safety when modifying peerConnection
+                    videoSender = peerConnection.addTrack(videoTrack, List.of("stream1"));
+                    applyVideoCodecPreferences();
+                }
+
+                // FIX: Explicitly start capture AFTER adding track
+                resource.startCapture();
+
+                logger.info("✅ Video track added with optimized settings (Res: 640x480, FPS: 30)");
+                logger.info("🎥 GPU acceleration enabled (VideoToolbox on Mac)!");
+
+                // Store reference for cleanup
+                this.localVideoTrack = videoTrack;
+
+            } catch (Exception e) {
+                logger.error("Failed to add video track: " + e.getMessage(), e);
+                throw new RuntimeException(e);
             }
-            
-            // ===== VIDEO SOURCE WITH OPTIMIZED SETTINGS =====
-            CameraCaptureService.CameraCaptureResource resource =
-                CameraCaptureService.createCameraTrack("video0");
-            
-            this.videoSource = resource.getSource();
-            VideoTrack videoTrack = resource.getTrack();
-            
-            // Add track to peer connection with stream ID ve sender referansı
-            videoSender = peerConnection.addTrack(videoTrack, List.of("stream1"));
-            applyVideoCodecPreferences();
-            
-            System.out.println("[WebRTC] ✅ Video track added with optimized settings:");
-            System.out.println("  ├─ Resolution: 640x480 (CameraCaptureService)");
-            System.out.println("  ├─ Frame rate: 30 FPS (smooth playback)");
-            System.out.println("  ├─ Codec: H.264/VP8/VP9 (negotiated via SDP)");
-            System.out.println("  └─ Hardware encoding: AUTO-DETECTED by WebRTC");
-            System.out.println("[WebRTC] 🎥 GPU acceleration enabled (VideoToolbox on Mac)!");
-            
-            // Store reference for cleanup
-            this.localVideoTrack = videoTrack;
-            
-        } catch (Exception e) {
-            System.err.println("[WebRTC] Failed to add video track: " + e.getMessage());
-            e.printStackTrace();
-        }
+        }, webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool());
     }
-    
+
     /**
      * Add shared video track (from GroupCallManager) to peer connection
      * This allows multiple peer connections to share the same camera source
      */
     public void addSharedVideoTrack(VideoTrack sharedTrack) {
         if (factory == null) {
-            System.err.println("[WebRTC] Cannot add video track - factory not initialized");
+            logger.error("Cannot add video track - factory not initialized", null);
             return;
         }
-        
+
         if (peerConnection == null) {
-            System.err.println("[WebRTC] Cannot add video track - peer connection not created");
+            logger.error("Cannot add video track - peer connection not created", null);
             return;
         }
-        
+
         if (sharedTrack == null) {
-            System.err.println("[WebRTC] Shared video track is null");
+            logger.error("Shared video track is null", null);
             return;
         }
-        
+
         try {
-            System.out.println("[WebRTC] Adding SHARED video track to peer connection...");
-            
+            logger.info("Adding SHARED video track to peer connection...");
+
             // Add track to peer connection with stream ID
             videoSender = peerConnection.addTrack(sharedTrack, List.of("stream1"));
             applyVideoCodecPreferences();
-            
+
             // Store reference (but DON'T dispose it in close() - GroupCallManager owns it)
             this.localVideoTrack = sharedTrack;
-            
-            System.out.println("[WebRTC] ✅ Shared video track added successfully");
-            
+
+            logger.info("✅ Shared video track added successfully");
+
         } catch (Exception e) {
-            System.err.println("[WebRTC] Failed to add shared video track: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Failed to add shared video track: " + e.getMessage(), e);
         }
     }
 
@@ -1000,7 +1170,7 @@ public class WebRTCClient {
             platformConfig.applyVideoCodecPreferences(peerConnection);
         }
     }
-    
+
     /**
      * Handle remote audio track (automatically plays received audio)
      */
@@ -1008,30 +1178,29 @@ public class WebRTCClient {
     private final Map<String, AudioTrackSink> audioSinks = new ConcurrentHashMap<>();
     private final Map<String, AudioTrack> audioTracks = new ConcurrentHashMap<>(); // Track references for cleanup
     private final Map<String, long[]> audioStats = new ConcurrentHashMap<>(); // [frameCount, lastLogTime]
-    
+
     private void handleRemoteAudioTrack(AudioTrack audioTrack) {
         String trackId = audioTrack.getId();
-        
-        System.out.println("[WebRTC] ═══════════════════════════════════════════");
-        System.out.println("[WebRTC] 🔊 Setting up remote audio playback...");
-        System.out.printf("[WebRTC]   Track ID: %s%n", trackId);
-        System.out.printf("[WebRTC]   Enabled: %b%n", audioTrack.isEnabled());
-        
+
+        logger.info("🔊 Setting up remote audio playback...");
+        logger.debug("  Track ID: " + trackId);
+        logger.debug("  Enabled: " + audioTrack.isEnabled());
+
         // Remove existing sink for this track if any (prevents duplicate sinks)
         AudioTrackSink existingSink = audioSinks.remove(trackId);
         if (existingSink != null) {
             try {
                 audioTrack.removeSink(existingSink);
-                System.out.printf("[WebRTC]   Removed existing sink for track: %s%n", trackId);
+                logger.debug("  Removed existing sink for track: " + trackId);
             } catch (Exception e) {
                 // Sink may already be removed
             }
         }
-        
+
         // Per-track counters: [frameCount, lastLogTime]
         long[] stats = new long[] { 0, System.currentTimeMillis() };
         audioStats.put(trackId, stats);
-        
+
         // Create sink with per-track counter
         AudioTrackSink sink = (data, bitsPerSample, sampleRate, channels, frames) -> {
             long[] trackStats = audioStats.get(trackId);
@@ -1040,89 +1209,104 @@ public class WebRTCClient {
                 long now = System.currentTimeMillis();
                 // Log every 5 seconds to confirm audio is flowing
                 if (now - trackStats[1] >= 5000) {
-                    System.out.printf("[WebRTC] 🔊 Audio [%s]: %d frames @ %dHz, %dch%n", 
-                        trackId.substring(0, Math.min(8, trackId.length())), 
-                        trackStats[0], sampleRate, channels);
+                    logger.debug(String.format("🔊 Audio [%s]: %d frames @ %dHz, %dch",
+                            trackId.substring(0, Math.min(8, trackId.length())),
+                            trackStats[0], sampleRate, channels));
                     trackStats[1] = now;
                 }
             }
         };
-        
+
+        // Ensure speakers are started for playout BEFORE adding sink
+        // FIX: Reordered to prevent buffer starvation (Bug #4)
+        ensurePlayoutStarted();
+
         // Store track reference for proper cleanup
         audioTracks.put(trackId, audioTrack);
         audioSinks.put(trackId, sink);
         audioTrack.addSink(sink);
-        
-        // Ensure speakers are started for playout
-        ensurePlayoutStarted();
-        System.out.println("[WebRTC] ✅ Remote audio track ready (playback via AudioDeviceModule)");
-        System.out.println("[WebRTC] ═══════════════════════════════════════════");
+
+        logger.info("✅ Remote audio track ready (playback via AudioDeviceModule)");
     }
-    
+
     /**
      * Remove all audio sinks from their tracks (called during cleanup)
      */
     private void cleanupAllAudioSinks() {
-        if (audioSinks.isEmpty()) return;
-        
-        System.out.printf("[WebRTC] 🔊 Cleaning up %d audio sink(s)%n", audioSinks.size());
-        
+        if (audioSinks.isEmpty())
+            return;
+
+        logger.info("🔊 Cleaning up " + audioSinks.size() + " audio sink(s)");
+
         for (Map.Entry<String, AudioTrackSink> entry : audioSinks.entrySet()) {
             String trackId = entry.getKey();
             AudioTrackSink sink = entry.getValue();
             AudioTrack track = audioTracks.get(trackId);
-            
+
             if (track != null && sink != null) {
                 try {
                     track.removeSink(sink);
-                    System.out.printf("[WebRTC]   Removed sink from track: %s%n", trackId);
+                    logger.debug("  Removed sink from track: " + trackId);
                 } catch (Exception e) {
                     // Track may already be disposed
                 }
             }
         }
-        
+
         audioSinks.clear();
         audioTracks.clear();
         audioStats.clear();
     }
-    
+
     /**
      * Ensure audio playout (speaker) is started once
      */
     private static void ensurePlayoutStarted() {
-        if (audioDeviceModule == null) return;
-        if (playoutStarted) return;
+        if (audioDeviceModule == null)
+            return;
+        if (playoutStarted)
+            return;
         synchronized (WebRTCClient.class) {
-            if (playoutStarted) return;
+            if (playoutStarted)
+                return;
             try {
                 audioDeviceModule.startPlayout();
                 playoutStarted = true;
-                System.out.println("[WebRTC] 🔊 Playout started");
+                logger.info("🔊 Playout started");
             } catch (Exception e) {
-                System.err.printf("[WebRTC] Failed to start playout: %s%n", e.getMessage());
+                logger.error("Failed to start playout: " + e.getMessage(), null);
             }
         }
     }
-    
+
     /**
      * Ensure audio recording (mic) is started once
+     * Async version to handle Windows latch delays
      */
-    private static void ensureRecordingStarted() {
-        if (audioDeviceModule == null) return;
-        if (recordingStarted) return;
-        synchronized (WebRTCClient.class) {
-            if (recordingStarted) return;
-            try {
-                audioDeviceModule.startRecording();
-                recordingStarted = true;
-                System.out.println("[WebRTC] 🎙️ Recording started");
-            } catch (Exception e) {
-                System.err.printf("[WebRTC] Failed to start recording: %s%n", e.getMessage());
+    private static CompletableFuture<Void> ensureRecordingStarted() {
+        if (audioDeviceModule == null)
+            return CompletableFuture.completedFuture(null);
+
+        if (recordingStarted)
+            return CompletableFuture.completedFuture(null);
+
+        return CompletableFuture.runAsync(() -> {
+            synchronized (WebRTCClient.class) {
+                if (recordingStarted)
+                    return;
+                try {
+                    logger.info("🎙️ Initializing recording device (Async)...");
+                    audioDeviceModule.startRecording();
+                    recordingStarted = true;
+                    logger.info("🎙️ Recording started successfully");
+                } catch (Exception e) {
+                    logger.error("Failed to start recording: " + e.getMessage(), null);
+                    throw new RuntimeException("Failed to start recording", e);
+                }
             }
-        }
+        }, webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool());
     }
-    
+
     /**
      * Handle remote video track
      */
@@ -1130,31 +1314,30 @@ public class WebRTCClient {
     private volatile VideoTrack remoteVideoTrack;
     private volatile long remoteVideoFrameCount = 0;
     private volatile long lastRemoteVideoLogTime = 0;
-    
+
     private void handleRemoteVideoTrack(VideoTrack videoTrack) {
-        System.out.println("[WebRTC] ═══════════════════════════════════════════");
-        System.out.printf("[WebRTC] 🎥 HANDLING REMOTE VIDEO TRACK%n");
-        System.out.printf("[WebRTC]   Track ID: %s%n", videoTrack.getId());
-        System.out.printf("[WebRTC]   Enabled: %b%n", videoTrack.isEnabled());
-        System.out.printf("[WebRTC]   State: %s%n", videoTrack.getState());
-        
+        logger.info("🎥 HANDLING REMOTE VIDEO TRACK");
+        logger.debug("  Track ID: " + videoTrack.getId());
+        logger.debug("  Enabled: " + videoTrack.isEnabled());
+        logger.debug("  State: " + videoTrack.getState());
+
         // Enable the track if it's not already enabled
         if (!videoTrack.isEnabled()) {
-            System.out.println("[WebRTC]   Enabling disabled video track...");
+            logger.info("  Enabling disabled video track...");
             videoTrack.setEnabled(true);
-            System.out.printf("[WebRTC]   After enable - Enabled: %b%n", videoTrack.isEnabled());
+            logger.debug("  After enable - Enabled: " + videoTrack.isEnabled());
         }
-        
+
         // Store reference
         this.remoteVideoTrack = videoTrack;
         this.remoteVideoFrameCount = 0;
         this.lastRemoteVideoLogTime = System.currentTimeMillis();
-        
+
         // ═══════════════════════════════════════════════════════════════
         // DIAGNOSTIC: Add a debug sink directly to detect if frames arrive
         // This helps distinguish between:
-        //   1. WebRTC not receiving frames (network/ICE issue)
-        //   2. VideoPanel not receiving frames (sink attachment issue)
+        // 1. WebRTC not receiving frames (network/ICE issue)
+        // 2. VideoPanel not receiving frames (sink attachment issue)
         // ═══════════════════════════════════════════════════════════════
         VideoTrackSink debugSink = frame -> {
             remoteVideoFrameCount++;
@@ -1163,66 +1346,65 @@ public class WebRTCClient {
             if (remoteVideoFrameCount == 1) {
                 int width = frame.buffer != null ? frame.buffer.getWidth() : 0;
                 int height = frame.buffer != null ? frame.buffer.getHeight() : 0;
-                System.out.printf("[WebRTC] 🎬 FIRST REMOTE VIDEO FRAME RECEIVED! (size: %dx%d)%n", width, height);
+                logger.info(String.format("🎬 FIRST REMOTE VIDEO FRAME RECEIVED! (size: %dx%d)", width, height));
             } else if (now - lastRemoteVideoLogTime >= 5000) {
                 int width = frame.buffer != null ? frame.buffer.getWidth() : 0;
                 int height = frame.buffer != null ? frame.buffer.getHeight() : 0;
-                System.out.printf("[WebRTC] 📹 Remote video: %d frames received (latest: %dx%d)%n",
-                    remoteVideoFrameCount, width, height);
+                logger.debug(String.format("📹 Remote video: %d frames received (latest: %dx%d)",
+                        remoteVideoFrameCount, width, height));
                 lastRemoteVideoLogTime = now;
             }
             frame.release();
         };
         videoTrack.addSink(debugSink);
-        System.out.println("[WebRTC]   ✅ Debug sink attached to remote video track");
-        
+        logger.info("  ✅ Debug sink attached to remote video track");
+
         // Video rendering will be handled by VideoPanel through callback
-        System.out.println("[WebRTC]   Waiting for VideoPanel attachment via callback...");
-        System.out.println("[WebRTC] ═══════════════════════════════════════════");
+        logger.info("  Waiting for VideoPanel attachment via callback...");
     }
-    
+
     public void toggleAudio(boolean enabled) {
         this.audioEnabled = enabled;
         if (localAudioTrack != null) {
             localAudioTrack.setEnabled(enabled);
         }
-        System.out.printf("[WebRTC] Audio %s%n", enabled ? "enabled" : "muted");
+        logger.info(String.format("Audio %s", enabled ? "enabled" : "muted"));
     }
-    
+
     public void toggleVideo(boolean enabled) {
         this.videoEnabled = enabled;
-        
+
         // IMPORTANT: Don't toggle localVideoTrack if it's shared (videoSource == null)
         // Shared tracks are managed by GroupCallManager
         if (localVideoTrack != null && videoSource != null) {
             localVideoTrack.setEnabled(enabled);
-            System.out.printf("[WebRTC] Local video track %s (own source)%n", 
-                enabled ? "enabled" : "disabled");
+            logger.info(String.format("Local video track %s (own source)",
+                    enabled ? "enabled" : "disabled"));
         } else if (localVideoTrack != null && videoSource == null) {
-            System.out.printf("[WebRTC] Skipping toggle - video track is shared (managed by GroupCallManager)%n");
+            logger.debug("Skipping toggle - video track is shared (managed by GroupCallManager)");
         }
     }
-    
+
     // ===============================
     // Screen Sharing API
     // ===============================
-    
+
     /**
      * Get available screens for sharing
      */
     public List<DesktopSource> getAvailableScreens() {
         throw new UnsupportedOperationException(
-            "Legacy screen enumeration has been removed. Use ScreenSourcePickerDialog instead.");
+                "Legacy screen enumeration has been removed. Use ScreenSourcePickerDialog instead.");
     }
-    
+
     /**
      * Get available windows for sharing
      */
     public List<DesktopSource> getAvailableWindows() {
         throw new UnsupportedOperationException(
-            "Legacy screen enumeration has been removed. Use ScreenSourcePickerDialog instead.");
+                "Legacy screen enumeration has been removed. Use ScreenSourcePickerDialog instead.");
     }
-    
+
     /**
      * Test if a desktop source is safe to capture (won't crash)
      * Returns true if source can be safely used
@@ -1230,57 +1412,58 @@ public class WebRTCClient {
     public boolean testSourceSafety(DesktopSource source, boolean isWindow) {
         throw new UnsupportedOperationException("Legacy screen share safety path removed.");
     }
-    
+
     /**
      * Start screen sharing with selected source
+     * 
      * @param sourceId Desktop source ID (from DesktopSource.id)
      * @param isWindow true if sharing window, false if sharing screen
      */
     public void startScreenShare(long sourceId, boolean isWindow) {
         throw new UnsupportedOperationException(
-            "Legacy screen share path removed. Use ScreenShareController.startScreenShare(ScreenSourceOption).");
+                "Legacy screen share path removed. Use ScreenShareController.startScreenShare(ScreenSourceOption).");
     }
-    
+
     /**
      * Stop screen sharing
      */
     public void stopScreenShare() {
         throw new UnsupportedOperationException(
-            "Legacy screen share path removed. Use ScreenShareController.stopScreenShare().");
+                "Legacy screen share path removed. Use ScreenShareController.stopScreenShare().");
     }
-    
+
     /**
      * Check if screen sharing is currently active
      */
     public boolean isScreenSharingEnabled() {
         return false;
     }
-    
+
     /**
      * Get screen share video track (for local preview)
      */
     // ===============================
     // Helper Methods
     // ===============================
-    
+
     // (Helper methods removed - using default device selection now)
-    
+
     // ===============================
     // Getters
     // ===============================
-    
+
     public String getCallId() {
         return currentCallId;
     }
-    
+
     public String getRemoteUsername() {
         return remoteUsername;
     }
-    
+
     public boolean isAudioEnabled() {
         return audioEnabled;
     }
-    
+
     public boolean isVideoEnabled() {
         return videoEnabled;
     }
@@ -1292,18 +1475,19 @@ public class WebRTCClient {
     public RTCRtpSender getVideoSender() {
         return videoSender;
     }
-    
+
     public VideoTrack getLocalVideoTrack() {
         VideoTrack track = (VideoTrack) localVideoTrack;
-        System.out.printf("[WebRTC] getLocalVideoTrack called: localVideoTrack=%s%n",
-            localVideoTrack != null ? "EXISTS (class=" + localVideoTrack.getClass().getSimpleName() + ")" : "NULL");
+        logger.debug("getLocalVideoTrack called: localVideoTrack=" +
+                (localVideoTrack != null ? "EXISTS (class=" + localVideoTrack.getClass().getSimpleName() + ")"
+                        : "NULL"));
         return track;
     }
-    
+
     public AudioTrack getLocalAudioTrack() {
         return (AudioTrack) localAudioTrack;
     }
-    
+
     /**
      * Capture a thumbnail preview for a screen/window source
      * Returns a VideoFrame with the captured image
@@ -1315,35 +1499,34 @@ public class WebRTCClient {
     public VideoFrame captureThumbnail(DesktopSource source, boolean isWindow) {
         throw new UnsupportedOperationException("Thumbnail capture is handled by ScreenSourcePickerDialog.");
     }
-    
+
     // ===============================
     // Mock SDP Generator (fallback)
     // ===============================
-    
+
     private String generateMockSDP(String type) {
         return String.format(
-            "v=0\r\n" +
-            "o=- %d 2 IN IP4 127.0.0.1\r\n" +
-            "s=-\r\n" +
-            "t=0 0\r\n" +
-            "a=group:BUNDLE 0\r\n" +
-            "a=msid-semantic: WMS\r\n" +
-            "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n" +
-            "c=IN IP4 0.0.0.0\r\n" +
-            "a=rtcp:9 IN IP4 0.0.0.0\r\n" +
-            "a=ice-ufrag:%s\r\n" +
-            "a=ice-pwd:%s\r\n" +
-            "a=fingerprint:sha-256 MOCK:FINGERPRINT\r\n" +
-            "a=setup:actpass\r\n" +
-            "a=mid:0\r\n" +
-            "a=sendrecv\r\n" +
-            "a=rtpmap:111 opus/48000/2\r\n",
-            System.currentTimeMillis(),
-            randomString(8),
-            randomString(24)
-        );
+                "v=0\r\n" +
+                        "o=- %d 2 IN IP4 127.0.0.1\r\n" +
+                        "s=-\r\n" +
+                        "t=0 0\r\n" +
+                        "a=group:BUNDLE 0\r\n" +
+                        "a=msid-semantic: WMS\r\n" +
+                        "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n" +
+                        "c=IN IP4 0.0.0.0\r\n" +
+                        "a=rtcp:9 IN IP4 0.0.0.0\r\n" +
+                        "a=ice-ufrag:%s\r\n" +
+                        "a=ice-pwd:%s\r\n" +
+                        "a=fingerprint:sha-256 MOCK:FINGERPRINT\r\n" +
+                        "a=setup:actpass\r\n" +
+                        "a=mid:0\r\n" +
+                        "a=sendrecv\r\n" +
+                        "a=rtpmap:111 opus/48000/2\r\n",
+                System.currentTimeMillis(),
+                randomString(8),
+                randomString(24));
     }
-    
+
     private String randomString(int length) {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder sb = new StringBuilder();
@@ -1352,42 +1535,158 @@ public class WebRTCClient {
         }
         return sb.toString();
     }
-    
+
     /**
      * Log video codec information from SDP for debugging cross-platform issues
      */
     private void logSdpVideoCodecs(String sdp, String label) {
-        if (sdp == null || sdp.isEmpty()) return;
-        
-        System.out.printf("[WebRTC] ═══════════════════════════════════════════%n");
-        System.out.printf("[WebRTC] SDP %s - Video Codec Analysis%n", label);
-        
+        if (sdp == null || sdp.isEmpty())
+            return;
+
+        logger.info("═══════════════════════════════════════════");
+        logger.info(String.format("SDP %s - Video Codec Analysis", label));
+
         // Find video m-line
         String[] lines = sdp.split("\r\n|\n");
         boolean inVideoSection = false;
         StringBuilder videoCodecs = new StringBuilder();
-        
+
         for (String line : lines) {
             if (line.startsWith("m=video")) {
                 inVideoSection = true;
                 // Extract payload types from m=video line
                 String[] parts = line.split(" ");
-                System.out.printf("[WebRTC]   m=video line: %s%n", line.substring(0, Math.min(80, line.length())));
+                logger.info("  m=video line: " + line.substring(0, Math.min(80, line.length())));
             } else if (line.startsWith("m=")) {
                 inVideoSection = false;
             } else if (inVideoSection) {
                 // Log rtpmap lines (codec definitions)
                 if (line.startsWith("a=rtpmap:")) {
                     String codec = line.substring(9);
-                    System.out.printf("[WebRTC]   Codec: %s%n", codec);
+                    logger.info("  Codec: " + codec);
                 }
                 // Log fmtp lines (codec parameters)
                 if (line.startsWith("a=fmtp:") && line.contains("profile-level-id")) {
-                    System.out.printf("[WebRTC]   Profile: %s%n", line.substring(7));
+                    logger.info("  Profile: " + line.substring(7));
                 }
             }
         }
-        
-        System.out.printf("[WebRTC] ═══════════════════════════════════════════%n");
+
+        logger.info("═══════════════════════════════════════════");
+    }
+
+    /**
+     * Start the device monitor loop (Hot-Swap)
+     */
+    private static void startDeviceMonitor() {
+        if (isMonitoring)
+            return;
+        isMonitoring = true;
+
+        Thread monitorThread = Thread.ofVirtual().name("webrtc-device-monitor").start(() -> {
+            logger.info("🎧 Device monitor started (Hot-Swap enabled)");
+
+            while (initialized && isMonitoring) {
+                try {
+                    // Poll every 250ms (Quarter second - feels instant)
+                    Thread.sleep(250);
+
+                    // Check Microphone
+                    AudioDevice defaultMic = MediaDevices.getDefaultAudioCaptureDevice();
+                    if (defaultMic != null && !defaultMic.getName().equals(currentMicName)) {
+                        logger.info("⚠️ Default microphone changed!");
+                        logger.info("   Old: " + currentMicName);
+                        logger.info("   New: " + defaultMic.getName());
+
+                        switchMicrophone(defaultMic);
+                    }
+
+                    // Check Speaker
+                    AudioDevice defaultSpeaker = MediaDevices.getDefaultAudioRenderDevice();
+                    if (defaultSpeaker != null && !defaultSpeaker.getName().equals(currentSpeakerName)) {
+                        logger.info("⚠️ Default speaker changed!");
+                        logger.info("   Old: " + currentSpeakerName);
+                        logger.info("   New: " + defaultSpeaker.getName());
+
+                        switchSpeaker(defaultSpeaker);
+                    }
+
+                } catch (InterruptedException e) {
+                    break;
+                } catch (Exception e) {
+                    logger.error("Device monitor error: " + e.getMessage(), null);
+                }
+            }
+            logger.info("Device monitor stopped");
+        });
+    }
+
+    /**
+     * Safely switches the microphone without restarting the entire peer connection.
+     */
+    private static synchronized void switchMicrophone(AudioDevice newDevice) {
+        if (audioDeviceModule == null)
+            return;
+
+        logger.info("🔄 Switching microphone to: " + newDevice.getName());
+
+        try {
+            // 1. Stop recording if active (releases old device lock)
+            boolean wasRecording = recordingStarted;
+            if (wasRecording) {
+                audioDeviceModule.stopRecording();
+            }
+
+            // 2. Set new device
+            audioDeviceModule.setRecordingDevice(newDevice);
+            currentMicName = newDevice.getName();
+
+            // 3. Restart recording if it was active
+            if (wasRecording) {
+                audioDeviceModule.initRecording();
+                audioDeviceModule.startRecording();
+                logger.info("✅ Microphone switched and restarted successfully");
+            } else {
+                logger.info("✅ Microphone swapped (idle)");
+            }
+
+        } catch (Exception e) {
+            logger.error("❌ Error switching microphone: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Safely switches the speaker/headphones without restarting the entire peer
+     * connection.
+     */
+    private static synchronized void switchSpeaker(AudioDevice newDevice) {
+        if (audioDeviceModule == null)
+            return;
+
+        logger.info("🔄 Switching speaker to: " + newDevice.getName());
+
+        try {
+            // 1. Stop playout if active (releases old device lock)
+            boolean wasPlayout = playoutStarted;
+            if (wasPlayout) {
+                audioDeviceModule.stopPlayout();
+            }
+
+            // 2. Set new device
+            audioDeviceModule.setPlayoutDevice(newDevice);
+            currentSpeakerName = newDevice.getName();
+
+            // 3. Restart playout if it was active
+            if (wasPlayout) {
+                audioDeviceModule.initPlayout();
+                audioDeviceModule.startPlayout();
+                logger.info("✅ Speaker switched and restarted successfully");
+            } else {
+                logger.info("✅ Speaker swapped (idle)");
+            }
+
+        } catch (Exception e) {
+            logger.error("❌ Error switching speaker: " + e.getMessage(), e);
+        }
     }
 }
