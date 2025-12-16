@@ -202,11 +202,12 @@ public class CallManager {
                         trackFutures.add(webrtcClient.addAudioTrack());
                     }
 
-                    // 📹 Add video track if video enabled (Sync)
+                    // 📹 Add video track if video enabled (Async)
                     if (videoEnabled) {
                         logger.info("📹 Adding video track for outgoing call...");
-                        webrtcClient.addVideoTrack();
-                        registerCameraWithScreenShareController();
+                        trackFutures.add(webrtcClient.addVideoTrack().thenRun(() -> {
+                            registerCameraWithScreenShareController();
+                        }));
                     }
 
                     // 🎥 Notify GUI that local tracks are ready (for CALLER)
@@ -626,8 +627,9 @@ public class CallManager {
 
                 if (pendingVideoEnabled) {
                     logger.info("Adding video track...");
-                    webrtcClient.addVideoTrack();
-                    registerCameraWithScreenShareController();
+                    trackFutures.add(webrtcClient.addVideoTrack().thenRun(() -> {
+                        registerCameraWithScreenShareController();
+                    }));
                 }
 
                 tracksAddedForIncomingCall = true;

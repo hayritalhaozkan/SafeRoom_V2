@@ -507,7 +507,7 @@ public class WebRTCClient {
             config.iceServers = iceServers;
 
             // ⚡ FAST P2P OPTIMIZATIONS ⚡
-            config.bundlePolicy = RTCBundlePolicy.MAX_BUNDLE; // Multiplex audio/video on one port quickly
+            config.bundlePolicy = RTCBundlePolicy.BALANCED; // More compatible than MAX_BUNDLE
             config.rtcpMuxPolicy = RTCRtcpMuxPolicy.REQUIRE; // Require RTCP Mux (standard, faster)
                                                              // paths
 
