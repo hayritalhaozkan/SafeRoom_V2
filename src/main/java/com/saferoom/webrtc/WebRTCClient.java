@@ -1073,54 +1073,59 @@ public class WebRTCClient {
      * Add video track to peer connection for camera capture.
      * Similar to addAudioTrack but for video.
      */
-    public void addVideoTrack() {
+    public CompletableFuture<Void> addVideoTrack() {
         if (factory == null) {
             logger.error("Cannot add video track - factory not initialized", null);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
         if (peerConnection == null) {
             logger.error("Cannot add video track - peer connection not created", null);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
-        try {
-            logger.info("Adding video track with optimized settings...");
+        return CompletableFuture.runAsync(() -> {
+            try {
+                logger.info("Adding video track with optimized settings...");
 
-            // ===== FIX: Cleanup existing video source first (MacOS freeze fix) =====
-            if (this.videoSource != null) {
-                logger.info("Cleaning up existing video source...");
-                try {
-                    videoSource.stop();
-                    videoSource.dispose();
-                } catch (Exception e) {
-                    logger.warn("Error cleaning up old video source: " + e.getMessage());
+                // ===== FIX: Cleanup existing video source first (MacOS freeze fix) =====
+                if (this.videoSource != null) {
+                    logger.info("Cleaning up existing video source...");
+                    try {
+                        videoSource.stop();
+                        videoSource.dispose();
+                    } catch (Exception e) {
+                        logger.warn("Error cleaning up old video source: " + e.getMessage());
+                    }
+                    this.videoSource = null;
                 }
-                this.videoSource = null;
+
+                // ===== VIDEO SOURCE WITH OPTIMIZED SETTINGS =====
+                CameraCaptureService.CameraCaptureResource resource = CameraCaptureService.createCameraTrack("video0");
+
+                this.videoSource = resource.getSource();
+                VideoTrack videoTrack = resource.getTrack();
+
+                // Add track to peer connection with stream ID ve sender referansı
+                synchronized (this) { // Synchroized to ensure thread safety when modifying peerConnection
+                    videoSender = peerConnection.addTrack(videoTrack, List.of("stream1"));
+                    applyVideoCodecPreferences();
+                }
+
+                // FIX: Explicitly start capture AFTER adding track
+                resource.startCapture();
+
+                logger.info("✅ Video track added with optimized settings (Res: 640x480, FPS: 30)");
+                logger.info("🎥 GPU acceleration enabled (VideoToolbox on Mac)!");
+
+                // Store reference for cleanup
+                this.localVideoTrack = videoTrack;
+
+            } catch (Exception e) {
+                logger.error("Failed to add video track: " + e.getMessage(), e);
+                throw new RuntimeException(e);
             }
-
-            // ===== VIDEO SOURCE WITH OPTIMIZED SETTINGS =====
-            CameraCaptureService.CameraCaptureResource resource = CameraCaptureService.createCameraTrack("video0");
-
-            this.videoSource = resource.getSource();
-            VideoTrack videoTrack = resource.getTrack();
-
-            // Add track to peer connection with stream ID ve sender referansı
-            videoSender = peerConnection.addTrack(videoTrack, List.of("stream1"));
-            applyVideoCodecPreferences();
-
-            // FIX: Explicitly start capture AFTER adding track
-            resource.startCapture();
-
-            logger.info("✅ Video track added with optimized settings (Res: 640x480, FPS: 30)");
-            logger.info("🎥 GPU acceleration enabled (VideoToolbox on Mac)!");
-
-            // Store reference for cleanup
-            this.localVideoTrack = videoTrack;
-
-        } catch (Exception e) {
-            logger.error("Failed to add video track: " + e.getMessage(), e);
-        }
+        }, webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool());
     }
 
     /**
