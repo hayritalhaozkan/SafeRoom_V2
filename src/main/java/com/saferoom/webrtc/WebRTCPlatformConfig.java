@@ -115,7 +115,16 @@ final class WebRTCPlatformConfig {
             if (sender == null)
                 continue;
 
+            // Start with Sender track
             MediaStreamTrack track = sender.getTrack();
+
+            // Fallback: Check Receiver track if Sender track is null (RecvOnly mode)
+            if (track == null) {
+                if (transceiver.getReceiver() != null) {
+                    track = transceiver.getReceiver().getTrack();
+                }
+            }
+
             if (track == null || !"video".equalsIgnoreCase(track.getKind()))
                 continue;
 
