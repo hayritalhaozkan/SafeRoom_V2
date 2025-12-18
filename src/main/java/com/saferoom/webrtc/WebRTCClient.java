@@ -676,17 +676,12 @@ public class WebRTCClient {
                             // Strip unused codecs/extensions for faster transmission
                             String optimizedSdp = SDPUtils.mungeSDP(description.sdp);
 
-<<<<<<< Updated upstream
                             // ⚡ FIX ONE-WAY VIDEO RACE
                             // Force 'sendrecv' even if track isn't fully attached yet (Early Offer)
                             optimizedSdp = SDPUtils.enforceSendRecv(optimizedSdp, "video");
 
                             logger.debug(String.format("Optimized SDP from %d bytes to %d bytes",
                                     description.sdp.length(), optimizedSdp.length()));
-=======
-                            System.out.printf("[WebRTC] Optimized SDP from %d bytes to %d bytes%n",
-                                    description.sdp.length(), optimizedSdp.length());
->>>>>>> Stashed changes
 
                             // Log video codec info from SDP
                             logSdpVideoCodecs(optimizedSdp, "OFFER");

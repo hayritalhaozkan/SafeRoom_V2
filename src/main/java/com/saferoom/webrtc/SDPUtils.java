@@ -65,4 +65,38 @@ public class SDPUtils {
         return false;
     }
 
+    /**
+     * Force 'sendrecv' direction on a specific media section.
+     * Often needed when creating an Offer before the local track is fully live.
+     */
+    public static String enforceSendRecv(String sdp, String mediaType) {
+        if (sdp == null || !sdp.contains("m=" + mediaType)) {
+            return sdp;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        String[] lines = sdp.split("\r\n");
+        boolean inMediaSection = false;
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+
+            if (trimmed.startsWith("m=")) {
+                inMediaSection = trimmed.startsWith("m=" + mediaType);
+            }
+
+            if (inMediaSection) {
+                // If we see an existing direction, replace it
+                if (trimmed.equals("a=sendonly") || trimmed.equals("a=recvonly") || trimmed.equals("a=inactive")) {
+                    sb.append("a=sendrecv").append("\r\n");
+                    continue;
+                }
+            }
+
+            sb.append(line).append("\r\n");
+        }
+
+        return sb.toString();
+    }
+
 }
