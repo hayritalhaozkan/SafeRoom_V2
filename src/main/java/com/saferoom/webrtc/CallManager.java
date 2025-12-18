@@ -5,7 +5,7 @@ import com.saferoom.grpc.SafeRoomProto.WebRTCSignal.SignalType;
 import com.saferoom.webrtc.screenshare.ScreenShareController;
 import com.saferoom.webrtc.screenshare.ScreenShareManager;
 import dev.onvoid.webrtc.PeerConnectionFactory;
-import dev.onvoid.webrtc.RTCIceCandidate;
+
 import dev.onvoid.webrtc.RTCPeerConnection;
 import dev.onvoid.webrtc.media.video.VideoTrack;
 import dev.onvoid.webrtc.media.MediaStreamTrack;
@@ -481,6 +481,10 @@ public class CallManager {
         }
     }
 
+    public void setOnLocalTracksReadyCallback(Runnable callback) {
+        this.onLocalTracksReadyCallback = callback;
+    }
+
     // Store incoming call media settings for later use when accepted
     private boolean pendingAudioEnabled = false;
     private boolean pendingVideoEnabled = false;
@@ -653,6 +657,10 @@ public class CallManager {
                 // Wait for tracks, then create answer
                 CompletableFuture.allOf(trackFutures.toArray(new CompletableFuture[0]))
                         .thenRun(() -> {
+                            logger.info(String.format("Media setup complete. Audio track: %s, Video track: %s",
+                                    webrtcClient.getLocalAudioTrack() != null ? "READY" : "NONE",
+                                    webrtcClient.getLocalVideoTrack() != null ? "READY" : "NONE"));
+
                             logger.info("Creating SDP answer (after tracks added)...");
                             webrtcClient.createAnswer()
                                     .orTimeout(5, TimeUnit.SECONDS) // Fix: Timeout
@@ -987,10 +995,6 @@ public class CallManager {
 
     public void setOnRemoteScreenShareStoppedCallback(Runnable callback) {
         this.onRemoteScreenShareStoppedCallback = callback;
-    }
-
-    public void setOnLocalTracksReadyCallback(Runnable callback) {
-        this.onLocalTracksReadyCallback = callback;
     }
 
     // ===============================
