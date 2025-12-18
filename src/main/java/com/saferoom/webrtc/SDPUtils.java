@@ -66,37 +66,30 @@ public class SDPUtils {
     }
 
     /**
-     * Force the specified media type to have 'sendrecv' direction.
-     * Use this to correct Early Offer race conditions where the track
-     * might not be fully registered yet, but we INTEND to send.
+     * Force 'sendrecv' direction on a specific media section.
+     * Often needed when creating an Offer before the local track is fully live.
      */
     public static String enforceSendRecv(String sdp, String mediaType) {
-        if (sdp == null || !sdp.contains("m=" + mediaType))
+        if (sdp == null || !sdp.contains("m=" + mediaType)) {
             return sdp;
+        }
 
         StringBuilder sb = new StringBuilder();
         String[] lines = sdp.split("\r\n");
         boolean inMediaSection = false;
-        boolean directionSet = false;
 
         for (String line : lines) {
-            if (line.startsWith("m=")) {
-                inMediaSection = line.startsWith("m=" + mediaType);
-                if (inMediaSection) {
-                    // Reset flag for this new section
-                    directionSet = false;
-                }
+            String trimmed = line.trim();
+
+            if (trimmed.startsWith("m=")) {
+                inMediaSection = trimmed.startsWith("m=" + mediaType);
             }
 
             if (inMediaSection) {
-                // If we see an existing direction, force it to sendrecv
-                if (line.equals("a=recvonly") || line.equals("a=sendonly") || line.equals("a=inactive")) {
+                // If we see an existing direction, replace it
+                if (trimmed.equals("a=sendonly") || trimmed.equals("a=recvonly") || trimmed.equals("a=inactive")) {
                     sb.append("a=sendrecv").append("\r\n");
-                    directionSet = true;
                     continue;
-                }
-                if (line.equals("a=sendrecv")) {
-                    directionSet = true;
                 }
             }
 
@@ -105,4 +98,5 @@ public class SDPUtils {
 
         return sb.toString();
     }
+
 }
