@@ -158,16 +158,25 @@ final class WebRTCPlatformConfig {
             return name != null && name.toUpperCase(Locale.ROOT).contains("H264");
         };
 
+<<<<<<< Updated upstream
         java.util.function.Predicate<RTCRtpCodecCapability> isVP8 = codec -> {
+=======
+        Predicate<RTCRtpCodecCapability> isVP8 = codec -> {
+>>>>>>> Stashed changes
             String name = codec.getName();
             return name != null && name.toUpperCase(Locale.ROOT).contains("VP8");
         };
 
+<<<<<<< Updated upstream
         java.util.function.Predicate<RTCRtpCodecCapability> isVP9 = codec -> {
+=======
+        Predicate<RTCRtpCodecCapability> isVP9 = codec -> {
+>>>>>>> Stashed changes
             String name = codec.getName();
             return name != null && name.toUpperCase(Locale.ROOT).contains("VP9");
         };
 
+<<<<<<< Updated upstream
         codecs.sort((a, b) -> {
             // Prioritize H264 (3 points), then VP8 (2 points), then VP9 (1 point)
             int scoreA = isH264.test(a) ? 3 : isVP8.test(a) ? 2 : isVP9.test(a) ? 1 : 0;
@@ -178,6 +187,30 @@ final class WebRTCPlatformConfig {
         System.out.println("[WebRTC] Codec order: H264 > VP8 > VP9 (Keeping all)");
 
         return codecs; // Return mutable list copy wrapped or as is (since we created new ArrayList)
+=======
+        // VP8 first, then H264 (for hardware fallback), then VP9, then others
+        // Keep ALL codecs - don't filter any out
+        // STRICT VP8 REQUIREMENT:
+        // Linux (PulseAudio/ALSA) <-> Windows (COM/STA) interoperability relies on VP8.
+        // Windows clients sometimes fail to negotiate if H264 is preferred but software
+        // FB is needed.
+        codecs.sort((a, b) -> {
+            boolean aIsVP8 = isVP8.test(a);
+            boolean bIsVP8 = isVP8.test(b);
+
+            if (aIsVP8 && !bIsVP8)
+                return -1; // A comes first
+            if (!aIsVP8 && bIsVP8)
+                return 1; // B comes first
+
+            // Secondary sort: H264 > VP9 > Others
+            int scoreA = isH264.test(a) ? 3 : isVP9.test(a) ? 2 : 1;
+            int scoreB = isH264.test(b) ? 3 : isVP9.test(b) ? 2 : 1;
+            return Integer.compare(scoreB, scoreA);
+        });
+
+        return Collections.unmodifiableList(codecs);
+>>>>>>> Stashed changes
     }
 
     @Override
