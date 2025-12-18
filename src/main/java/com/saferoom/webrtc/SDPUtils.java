@@ -13,8 +13,8 @@ import java.util.regex.Pattern;
 public class SDPUtils {
 
     // Keep only widely compatible and fast codecs
-    private static final List<String> PREFERRED_VIDEO_CODECS = Arrays.asList("VP8", "H264");
-    private static final List<String> PREFERRED_AUDIO_CODECS = Arrays.asList("opus", "PCMU", "PCMA");
+    private static final List<String> PREFERRED_VIDEO_CODECS = Arrays.asList("H264");
+    private static final List<String> PREFERRED_AUDIO_CODECS = Arrays.asList("opus");
 
     /**
      * Minimize SDP by removing unused codecs and extensions
@@ -54,8 +54,13 @@ public class SDPUtils {
     }
 
     private static boolean shouldRemoveAttribute(String line) {
-        // ⚠️ DISABLE ALL AGGRESSIVE FILTERING TO RESTORE STABILITY
-        // Sending a few extra bytes is better than crashing the call.
+        // STRICT FILTERING: Only allow H.264, OPUS, and essential signaling
+
+        // Remove known heavy/unwanted codecs
+        if (line.contains("VP8") || line.contains("VP9") || line.contains("AV1") ||
+                line.contains("PCMU") || line.contains("PCMA") || line.contains("ISAC") || line.contains("G722")) {
+            return true;
+        }
 
         // Remove generic framework info (Safe to remove)
         if (line.startsWith("a=msid-semantic: WMS")) {

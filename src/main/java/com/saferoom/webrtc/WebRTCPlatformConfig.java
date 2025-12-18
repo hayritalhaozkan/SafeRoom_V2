@@ -9,8 +9,6 @@ import dev.onvoid.webrtc.RTCRtpTransceiver;
 import dev.onvoid.webrtc.media.MediaStreamTrack;
 import dev.onvoid.webrtc.media.MediaType;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -57,27 +55,24 @@ final class WebRTCPlatformConfig {
         RTCRtpCapabilities senderCaps = factory.getRtpSenderCapabilities(MediaType.VIDEO);
 
         // ═══════════════════════════════════════════════════════════════
-        // CROSS-PLATFORM: Let WebRTC auto-negotiate codecs
-        // Don't force VP8-only as Windows may have issues with software VP8
-        // Just reorder to prefer VP8 but keep all codecs available
+        // STRICT CODEC ENFORCEMENT: H.264 ONLY
+        // We filter out everything else to ensure deterministic behavior.
         // ═══════════════════════════════════════════════════════════════
 
-        List<RTCRtpCodecCapability> sorted = reorderCodecsKeepAll(senderCaps);
+        List<RTCRtpCodecCapability> filtered = filterCodecsStrict(senderCaps);
 
-        if (!sorted.isEmpty()) {
-            System.out.printf("[WebRTC] %s → All codecs available (VP8 preferred)%n", platformName);
-            System.out.println("[WebRTC] Codec priority:");
-            for (int i = 0; i < Math.min(5, sorted.size()); i++) {
-                RTCRtpCodecCapability codec = sorted.get(i);
-                if (codec != null && codec.getName() != null) {
-                    System.out.printf("  [%d] %s%n", i + 1, codec.getName());
-                }
+        if (!filtered.isEmpty()) {
+            System.out.printf("[WebRTC] %s → Enforcing strict codec list (H.264)%n", platformName);
+            System.out.println("[WebRTC] Allowed codecs:");
+            for (RTCRtpCodecCapability codec : filtered) {
+                System.out.printf("  - %s%n", codec.getName());
             }
         } else {
-            System.out.printf("[WebRTC] %s detected but codec capabilities unavailable%n", platformName);
+            System.out.printf("[WebRTC] %s detected but NO H.264 capability found!%n", platformName);
         }
 
-        return new WebRTCPlatformConfig(false, windows, sorted, platformName);
+        // Unified behavior for ALL platforms
+        return new WebRTCPlatformConfig(true, windows, filtered, platformName);
     }
 
     static WebRTCPlatformConfig empty() {
@@ -141,65 +136,32 @@ final class WebRTCPlatformConfig {
         if (applied > 0) {
             System.out.printf("[WebRTC] Codec preferences applied to %d transceiver(s) on %s%n",
                     applied, platformName);
+        } else {
+            System.out.println(
+                    "[WebRTC] Warning: Codec preferences NOT applied (no matching transceivers could be configured)");
         }
+
     }
 
     /**
-     * Reorder codecs - Prioritize H264 for Mac/Windows hardware support.
-     * Keep all codecs available for fallback.
+     * Filter codecs - Strict H.264 enforcement.
+     * Remove everything that isn't H.264.
      */
-    private static List<RTCRtpCodecCapability> reorderCodecsKeepAll(RTCRtpCapabilities capabilities) {
+    private static List<RTCRtpCodecCapability> filterCodecsStrict(RTCRtpCapabilities capabilities) {
         if (capabilities == null || capabilities.getCodecs() == null) {
             return List.of();
         }
 
-        List<RTCRtpCodecCapability> codecs = new ArrayList<>(
-                capabilities.getCodecs().stream()
-                        .filter(Objects::nonNull)
-                        .toList());
-
-        if (codecs.isEmpty()) {
-            return List.of();
-        }
-
-        // H264 > VP8 > VP9
-        java.util.function.Predicate<RTCRtpCodecCapability> isH264 = codec -> {
-            String name = codec.getName();
-            return name != null && name.toUpperCase(Locale.ROOT).contains("H264");
-        };
-
-        java.util.function.Predicate<RTCRtpCodecCapability> isVP8 = codec -> {
-            String name = codec.getName();
-            return name != null && name.toUpperCase(Locale.ROOT).contains("VP8");
-        };
-
-        java.util.function.Predicate<RTCRtpCodecCapability> isVP9 = codec -> {
-            String name = codec.getName();
-            return name != null && name.toUpperCase(Locale.ROOT).contains("VP9");
-        };
-
-        // VP8 first, then H264 (for hardware fallback), then VP9, then others
-        // Keep ALL codecs - don't filter any out
-        // STRICT VP8 REQUIREMENT:
-        // Linux (PulseAudio/ALSA) <-> Windows (COM/STA) interoperability relies on VP8.
-        // Windows clients sometimes fail to negotiate if H264 is preferred but software
-        // FB is needed.
-        codecs.sort((a, b) -> {
-            boolean aIsVP8 = isVP8.test(a);
-            boolean bIsVP8 = isVP8.test(b);
-
-            if (aIsVP8 && !bIsVP8)
-                return -1; // A comes first
-            if (!aIsVP8 && bIsVP8)
-                return 1; // B comes first
-
-            // Secondary sort: H264 > VP9 > Others
-            int scoreA = isH264.test(a) ? 3 : isVP9.test(a) ? 2 : 1;
-            int scoreB = isH264.test(b) ? 3 : isVP9.test(b) ? 2 : 1;
-            return Integer.compare(scoreB, scoreA);
-        });
-
-        return Collections.unmodifiableList(codecs);
+        return capabilities.getCodecs().stream()
+                .filter(Objects::nonNull)
+                .filter(codec -> {
+                    String name = codec.getName();
+                    // STRICT FILTER: Only allow H264
+                    return name != null && name.toUpperCase(Locale.ROOT).contains("H264");
+                })
+                .toList(); // No sorting needed if it's just H264, but we could sort by profile-level-id if
+                           // needed
+                           // relying on default H264 ordering usually works fine.
     }
 
     @Override

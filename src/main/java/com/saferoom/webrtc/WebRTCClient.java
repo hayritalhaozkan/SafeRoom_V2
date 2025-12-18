@@ -144,14 +144,10 @@ public class WebRTCClient {
             System.out.println("[WebRTC] ═══════════════════════════════════════════════════════════");
 
         } catch (Throwable e) {
-            // Fallback to mock mode (native library not available)
+            // CRITICAL: Fail if native library is missing. No mock mode.
             System.err.printf("[WebRTC] Native library failed to load: %s%n", e.getMessage());
             e.printStackTrace();
-            System.out.println("[WebRTC] Running in MOCK mode (signaling will work, but no real media)");
-
-            factory = null;
-            audioDeviceModule = null;
-            initialized = true;
+            throw new RuntimeException("WebRTC initialization failed", e);
         }
     }
 
@@ -643,9 +639,8 @@ public class WebRTCClient {
      * Create SDP offer
      */
     public CompletableFuture<String> createOffer() {
-        // Retry for up to 5 seconds, every 500ms
-        long deadline = System.currentTimeMillis() + 5000;
-        return retryUntilDeadline(this::createOfferInternal, deadline, 50, "Create Offer");
+        // Async retry: 50ms interval, 5000ms timeout
+        return retryAsync(this::createOfferInternal, 100, 50, "Create Offer");
     }
 
     private CompletableFuture<String> createOfferInternal() {
@@ -654,11 +649,7 @@ public class WebRTCClient {
         CompletableFuture<String> future = new CompletableFuture<>();
 
         if (peerConnection == null) {
-            // Fallback to mock SDP
-            String mockSDP = generateMockSDP("offer");
-            logger.warn("Using mock SDP (peer connection not available)");
-            future.complete(mockSDP);
-            return future;
+            return CompletableFuture.failedFuture(new IllegalStateException("Peer connection not initialized"));
         }
 
         try {
@@ -670,7 +661,7 @@ public class WebRTCClient {
                         @Override
                         public void onSuccess() {
                             logger.info("Offer created and set as local description");
-                            String sdp = description.sdp;
+                            // String sdp = description.sdp; // UNUSED - removed dead code
 
                             // ⚡ MINIMIZE SDP
                             // Strip unused codecs/extensions for faster transmission
@@ -718,9 +709,8 @@ public class WebRTCClient {
      * Create SDP answer
      */
     public CompletableFuture<String> createAnswer() {
-        // Retry for up to 5 seconds, every 500ms
-        long deadline = System.currentTimeMillis() + 5000;
-        return retryUntilDeadline(this::createAnswerInternal, deadline, 50, "Create Answer");
+        // Async retry: 50ms interval, 5000ms timeout
+        return retryAsync(this::createAnswerInternal, 100, 50, "Create Answer");
     }
 
     private CompletableFuture<String> createAnswerInternal() {
@@ -729,11 +719,7 @@ public class WebRTCClient {
         CompletableFuture<String> future = new CompletableFuture<>();
 
         if (peerConnection == null) {
-            // Fallback to mock SDP
-            String mockSDP = generateMockSDP("answer");
-            System.out.println("[WebRTC]  Using mock SDP (peer connection not available)");
-            future.complete(mockSDP);
-            return future;
+            return CompletableFuture.failedFuture(new IllegalStateException("Peer connection not initialized"));
         }
 
         try {
@@ -793,52 +779,38 @@ public class WebRTCClient {
     /**
      * Helper to retry a CompletableFuture action until a deadline
      */
-    private <T> CompletableFuture<T> retryUntilDeadline(java.util.function.Supplier<CompletableFuture<T>> action,
-            long deadlineMillis, long delayMs, String operationName) {
+    /**
+     * Async retry helper using Virtual Threads / Delayed Executor
+     * Non-blocking, fast interval (50ms).
+     */
+    private <T> CompletableFuture<T> retryAsync(java.util.function.Supplier<CompletableFuture<T>> action,
+            int maxRetries, int delayMs, String operationName) {
 
         return action.get().handle((result, ex) -> {
             if (ex == null) {
                 return CompletableFuture.completedFuture(result);
             }
 
-            // If we failed, check if we have time to retry
-            long now = System.currentTimeMillis();
-            if (now + delayMs > deadlineMillis) {
-                logger.error(String.format("%s failed and deadline exceeded: %s", operationName, ex.getMessage()),
-                        null);
+            if (maxRetries <= 0) {
+                logger.error(String.format("%s failed after retries: %s", operationName, ex.getMessage()), null);
                 return CompletableFuture.<T>failedFuture(ex);
             }
 
-            logger.info(String.format("%s failed (%s), retrying in %dms...",
-                    operationName, ex.getMessage(), delayMs));
-
-            // Schedule retry
+            // Async delay without blocking a platform thread
             CompletableFuture<T> retryFuture = new CompletableFuture<>();
 
-            // Use existing executor or common pool for delay
-            ExecutorService executor = webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool();
-
-            // Note: Java 8/11 doesn't have good built-in delayed executor without
-            // ScheduledExecutorService.
-            // Using a simple sleep in a virtual thread (if available) or blocked thread is
-            // acceptable for this context
-            // since we are using virtual threads mainly or background threads.
-            executor.submit(() -> {
-                try {
-                    Thread.sleep(delayMs);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-
-                // Recursive call
-                retryUntilDeadline(action, deadlineMillis, delayMs, operationName)
-                        .whenComplete((r, e) -> {
-                            if (e != null)
-                                retryFuture.completeExceptionally(e);
-                            else
-                                retryFuture.complete(r);
-                        });
-            });
+            // Use delayed executor (Java 9+)
+            CompletableFuture.delayedExecutor(delayMs, TimeUnit.MILLISECONDS,
+                    webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool())
+                    .execute(() -> {
+                        retryAsync(action, maxRetries - 1, delayMs, operationName)
+                                .whenComplete((r, e) -> {
+                                    if (e != null)
+                                        retryFuture.completeExceptionally(e);
+                                    else
+                                        retryFuture.complete(r);
+                                });
+                    });
 
             return retryFuture;
         }).thenCompose(f -> f);
@@ -1500,37 +1472,7 @@ public class WebRTCClient {
     // Mock SDP Generator (fallback)
     // ===============================
 
-    private String generateMockSDP(String type) {
-        return String.format(
-                "v=0\r\n" +
-                        "o=- %d 2 IN IP4 127.0.0.1\r\n" +
-                        "s=-\r\n" +
-                        "t=0 0\r\n" +
-                        "a=group:BUNDLE 0\r\n" +
-                        "a=msid-semantic: WMS\r\n" +
-                        "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n" +
-                        "c=IN IP4 0.0.0.0\r\n" +
-                        "a=rtcp:9 IN IP4 0.0.0.0\r\n" +
-                        "a=ice-ufrag:%s\r\n" +
-                        "a=ice-pwd:%s\r\n" +
-                        "a=fingerprint:sha-256 MOCK:FINGERPRINT\r\n" +
-                        "a=setup:actpass\r\n" +
-                        "a=mid:0\r\n" +
-                        "a=sendrecv\r\n" +
-                        "a=rtpmap:111 opus/48000/2\r\n",
-                System.currentTimeMillis(),
-                randomString(8),
-                randomString(24));
-    }
-
-    private String randomString(int length) {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(chars.charAt((int) (Math.random() * chars.length())));
-        }
-        return sb.toString();
-    }
+    // Mock SDP Generator REMOVED
 
     /**
      * Log video codec information from SDP for debugging cross-platform issues
