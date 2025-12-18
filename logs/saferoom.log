@@ -3018,3 +3018,133 @@ Caused by: java.lang.NullPointerException
 [2025-12-18 17:25:50.094] [DEBUG] [JavaFX Application Thread] [CallManager] {CallID=cd5aa9fa-b05f-4163-bce4-70b28d3a4bb0, Peer=I_am_CEO_bitch} - Already cleaned up, skipping
 [2025-12-18 17:25:50.094] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=cd5aa9fa-b05f-4163-bce4-70b28d3a4bb0, Peer=I_am_CEO_bitch} - Shutting down...
 [2025-12-18 17:25:50.415] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=cd5aa9fa-b05f-4163-bce4-70b28d3a4bb0, Peer=I_am_CEO_bitch} - Shutdown complete
+[2025-12-18 18:30:55.054] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2025-12-18 18:30:55.197] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2025-12-18 18:30:55.210] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2025-12-18 18:30:59.841] [INFO ] [JavaFX Application Thread] [CallManager] - 📞 Starting call to I_am_CEO_bitch (audio=true, video=true)
+[2025-12-18 18:30:59.844] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Call request sent, callId: 1ccf8c5f-6dae-43bc-a276-d949634e311f
+[2025-12-18 18:30:59.844] [INFO ] [JavaFX Application Thread] [WebRTCClient] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - WebRTCClient created for peer: I_am_CEO_bitch
+[2025-12-18 18:30:59.845] [INFO ] [JavaFX Application Thread] [WebRTCClient] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - Creating peer connection (audio=true, video=true)
+[2025-12-18 18:30:59.851] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - 🎤 Adding audio track for outgoing call...
+[2025-12-18 18:30:59.851] [INFO ] [JavaFX Application Thread] [WebRTCClient] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - Adding audio track with ADVANCED processing...
+[2025-12-18 18:30:59.852] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - 📹 Adding video track for outgoing call...
+[2025-12-18 18:30:59.852] [INFO ] [] [WebRTCClient] - 🎙️ Initializing recording device (Async)...
+[2025-12-18 18:30:59.853] [INFO ] [] [WebRTCClient] - Adding video track with optimized settings...
+[2025-12-18 18:30:59.856] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - 🎥 Local tracks ready (caller) - notifying GUI
+[2025-12-18 18:30:59.873] [INFO ] [] [WebRTCClient] - 🎙️ Recording started successfully
+[2025-12-18 18:30:59.875] [INFO ] [] [WebRTCClient] - ✅ Audio track added with ADVANCED processing
+[2025-12-18 18:30:59.876] [INFO ] [] [WebRTCClient] - 🎤 Professional audio quality enabled!
+[2025-12-18 18:30:59.961] [INFO ] [] [WebRTCClient] - ✅ Video track added with optimized settings (Res: 640x480, FPS: 30)
+[2025-12-18 18:30:59.962] [INFO ] [] [WebRTCClient] - 🎥 GPU acceleration enabled (VideoToolbox on Mac)!
+[2025-12-18 18:30:59.963] [DEBUG] [] [WebRTCClient] - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2025-12-18 18:30:59.963] [DEBUG] [] [WebRTCClient] - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2025-12-18 18:30:59.964] [DEBUG] [] [WebRTCClient] - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2025-12-18 18:30:59.964] [INFO ] [] [CallManager] - ⚡ Generating Early Offer during RINGING...
+[2025-12-18 18:30:59.965] [INFO ] [] [WebRTCClient] - Creating SDP offer...
+[2025-12-18 18:30:59.970] [INFO ] [Thread-5] [WebRTCClient] - Offer created and set as local description
+[2025-12-18 18:30:59.973] [DEBUG] [Thread-5] [WebRTCClient] - Optimized SDP from 3675 bytes to 3609 bytes
+[2025-12-18 18:30:59.974] [INFO ] [Thread-5] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-18 18:30:59.974] [INFO ] [Thread-5] [WebRTCClient] - SDP OFFER - Video Codec Analysis
+[2025-12-18 18:30:59.975] [INFO ] [Thread-5] [WebRTCClient] -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 103 107 109 115 117 39
+[2025-12-18 18:30:59.976] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 103 H264/90000
+[2025-12-18 18:30:59.976] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+[2025-12-18 18:30:59.977] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 107 H264/90000
+[2025-12-18 18:30:59.977] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
+[2025-12-18 18:30:59.977] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 109 H264/90000
+[2025-12-18 18:30:59.978] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2025-12-18 18:30:59.978] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 115 H264/90000
+[2025-12-18 18:30:59.978] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
+[2025-12-18 18:30:59.978] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 117 H264/90000
+[2025-12-18 18:30:59.979] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
+[2025-12-18 18:30:59.979] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 39 H264/90000
+[2025-12-18 18:30:59.979] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
+[2025-12-18 18:30:59.980] [INFO ] [Thread-5] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-18 18:30:59.980] [INFO ] [Thread-5] [CallManager] - Local SDP generated
+[2025-12-18 18:30:59.981] [INFO ] [Thread-5] [CallManager] - ⚡ Early Offer generated and ready!
+[2025-12-18 18:30:59.982] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:1390052820 1 udp 2122260223 10.5.48.41 46064 typ host generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:30:59.982] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:1390052820 1 udp 2122260223 10.5.48.41 46064 typ host generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:30:59.983] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:1390052820 1 udp 2122260223 10.5.48.41 40450 typ host generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:30:59.984] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:1390052820 1 udp 2122260223 10.5.48.41 40450 typ host generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:31:00.028] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:1153945446 1 udp 1686052607 149.86.157.82 40450 typ srflx raddr 10.5.48.41 rport 40450 generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:31:00.029] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:1153945446 1 udp 1686052607 149.86.157.82 40450 typ srflx raddr 10.5.48.41 rport 40450 generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:31:00.029] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:1153945446 1 udp 1686052607 149.86.157.82 46064 typ srflx raddr 10.5.48.41 rport 46064 generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:31:00.030] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:1153945446 1 udp 1686052607 149.86.157.82 46064 typ srflx raddr 10.5.48.41 rport 46064 generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:31:00.072] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:739600204 1 tcp 1518280447 10.5.48.41 33863 typ host tcptype passive generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:31:00.073] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:739600204 1 tcp 1518280447 10.5.48.41 33863 typ host tcptype passive generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:31:00.074] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:739600204 1 tcp 1518280447 10.5.48.41 36229 typ host tcptype passive generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:31:00.074] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:739600204 1 tcp 1518280447 10.5.48.41 36229 typ host tcptype passive generation 0 ufrag 58gc network-id 3 network-cost 50
+[2025-12-18 18:31:05.867] [INFO ] [grpc-default-executor-1] [CallManager] - Received CALL_ACCEPT from I_am_CEO_bitch (callId: 1ccf8c5f-6dae-43bc-a276-d949634e311f, currentState: RINGING)
+[2025-12-18 18:31:05.868] [INFO ] [grpc-default-executor-1] [CallManager] - Processing CALL_ACCEPT...
+[2025-12-18 18:31:05.868] [INFO ] [grpc-default-executor-1] [CallManager] - Call accepted by remote user
+[2025-12-18 18:31:05.869] [INFO ] [grpc-default-executor-1] [CallManager] - ⚡ Sending Early Offer immediately!
+[2025-12-18 18:31:05.892] [DEBUG] [JavaFX Application Thread] [WebRTCClient] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2025-12-18 18:31:05.893] [DEBUG] [JavaFX Application Thread] [CallManager] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - getLocalVideoTrack called: webrtcClient=EXISTS, track=EXISTS
+[2025-12-18 18:31:05.904] [DEBUG] [JavaFX Application Thread] [WebRTCClient] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2025-12-18 18:31:05.905] [DEBUG] [JavaFX Application Thread] [CallManager] {CallID=1ccf8c5f-6dae-43bc-a276-d949634e311f, Peer=I_am_CEO_bitch} - getLocalVideoTrack called: webrtcClient=EXISTS, track=EXISTS
+[2025-12-18 18:31:06.353] [INFO ] [grpc-default-executor-1] [CallManager] - Received ANSWER from I_am_CEO_bitch (callId: 1ccf8c5f-6dae-43bc-a276-d949634e311f, currentState: CONNECTING)
+[2025-12-18 18:31:06.353] [INFO ] [grpc-default-executor-1] [CallManager] - Processing ANSWER...
+[2025-12-18 18:31:06.354] [INFO ] [grpc-default-executor-1] [CallManager] - Received SDP answer
+[2025-12-18 18:31:06.354] [INFO ] [grpc-default-executor-1] [WebRTCClient] - Setting remote answer
+[2025-12-18 18:31:06.355] [INFO ] [grpc-default-executor-1] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-18 18:31:06.356] [INFO ] [grpc-default-executor-1] [WebRTCClient] - SDP REMOTE ANSWER - Video Codec Analysis
+[2025-12-18 18:31:06.357] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 103 107 109 115 117 39
+[2025-12-18 18:31:06.357] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Codec: 103 H264/90000
+[2025-12-18 18:31:06.357] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Profile: 103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+[2025-12-18 18:31:06.357] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Codec: 107 H264/90000
+[2025-12-18 18:31:06.358] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Profile: 107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
+[2025-12-18 18:31:06.358] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Codec: 109 H264/90000
+[2025-12-18 18:31:06.358] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Profile: 109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2025-12-18 18:31:06.358] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Codec: 115 H264/90000
+[2025-12-18 18:31:06.358] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Profile: 115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
+[2025-12-18 18:31:06.359] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Codec: 117 H264/90000
+[2025-12-18 18:31:06.359] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Profile: 117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
+[2025-12-18 18:31:06.359] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Codec: 39 H264/90000
+[2025-12-18 18:31:06.359] [INFO ] [grpc-default-executor-1] [WebRTCClient] -   Profile: 39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
+[2025-12-18 18:31:06.359] [INFO ] [grpc-default-executor-1] [WebRTCClient] - ═══════════════════════════════════════════
+[2025-12-18 18:31:06.372] [INFO ] [Thread-5] [WebRTCClient] - ICE Connection state: CHECKING
+[2025-12-18 18:31:06.373] [INFO ] [Thread-5] [WebRTCClient] - ℹ️ ICE is checking connectivity between candidates...
+[2025-12-18 18:31:06.373] [INFO ] [Thread-5] [WebRTCClient] - ℹ️ This can take up to 15s depending on network conditions
+[2025-12-18 18:31:06.376] [INFO ] [Thread-5] [WebRTCClient] - 🔊 Setting up remote audio playback...
+[2025-12-18 18:31:06.376] [DEBUG] [Thread-5] [WebRTCClient] -   Track ID: 6663e515-5d8f-4d10-b318-c91354d82520
+[2025-12-18 18:31:06.377] [DEBUG] [Thread-5] [WebRTCClient] -   Enabled: true
+[2025-12-18 18:31:06.378] [INFO ] [Thread-5] [WebRTCClient] - 🔊 Playout started
+[2025-12-18 18:31:06.378] [INFO ] [Thread-5] [WebRTCClient] - ✅ Remote audio track ready (playback via AudioDeviceModule)
+[2025-12-18 18:31:06.379] [INFO ] [Thread-5] [CallManager] - Remote track received: 6663e515-5d8f-4d10-b318-c91354d82520 (kind=audio)
+[2025-12-18 18:31:06.380] [INFO ] [Thread-5] [WebRTCClient] - 🎥 HANDLING REMOTE VIDEO TRACK
+[2025-12-18 18:31:06.380] [DEBUG] [Thread-5] [WebRTCClient] -   Track ID: 0aa388bf-0f66-48a3-b7ef-7ac60477f8a9
+[2025-12-18 18:31:06.380] [DEBUG] [Thread-5] [WebRTCClient] -   Enabled: true
+[2025-12-18 18:31:06.381] [DEBUG] [Thread-5] [WebRTCClient] -   State: LIVE
+[2025-12-18 18:31:06.381] [INFO ] [Thread-5] [WebRTCClient] -   ✅ Debug sink attached to remote video track
+[2025-12-18 18:31:06.381] [INFO ] [Thread-5] [WebRTCClient] -   Waiting for VideoPanel attachment via callback...
+[2025-12-18 18:31:06.382] [INFO ] [Thread-5] [CallManager] - Remote track received: 0aa388bf-0f66-48a3-b7ef-7ac60477f8a9 (kind=video)
+[2025-12-18 18:31:06.382] [INFO ] [Thread-5] [WebRTCClient] - Remote description set
+[2025-12-18 18:31:06.383] [INFO ] [grpc-default-executor-1] [CallManager] - Received ICE_CANDIDATE from I_am_CEO_bitch (callId: 1ccf8c5f-6dae-43bc-a276-d949634e311f, currentState: CONNECTED)
+[2025-12-18 18:31:06.383] [INFO ] [grpc-default-executor-1] [CallManager] - Processing ICE_CANDIDATE...
+[2025-12-18 18:31:06.383] [INFO ] [grpc-default-executor-1] [CallManager] - Received ICE candidate
+[2025-12-18 18:31:06.384] [DEBUG] [grpc-default-executor-1] [WebRTCClient] - Adding ICE candidate: candidate:3490140437 1 udp 2122260223 10.144.180.90 50912 typ host generation 0 ufrag 3l+k network-id 1
+[2025-12-18 18:31:06.384] [DEBUG] [grpc-default-executor-1] [WebRTCClient] - ICE candidate added
+[2025-12-18 18:31:06.385] [INFO ] [grpc-default-executor-1] [CallManager] - Received ICE_CANDIDATE from I_am_CEO_bitch (callId: 1ccf8c5f-6dae-43bc-a276-d949634e311f, currentState: CONNECTED)
+[2025-12-18 18:31:06.385] [INFO ] [grpc-default-executor-1] [CallManager] - Processing ICE_CANDIDATE...
+[2025-12-18 18:31:06.385] [INFO ] [grpc-default-executor-1] [CallManager] - Received ICE candidate
+[2025-12-18 18:31:06.385] [DEBUG] [grpc-default-executor-1] [WebRTCClient] - Adding ICE candidate: candidate:298387039 1 udp 1686052607 212.175.193.53 50912 typ srflx raddr 10.144.180.90 rport 50912 generation 0 ufrag 3l+k network-id 1
+[2025-12-18 18:31:06.386] [DEBUG] [grpc-default-executor-1] [WebRTCClient] - ICE candidate added
+[2025-12-18 18:31:06.434] [INFO ] [grpc-default-executor-1] [CallManager] - Received ICE_CANDIDATE from I_am_CEO_bitch (callId: 1ccf8c5f-6dae-43bc-a276-d949634e311f, currentState: CONNECTED)
+[2025-12-18 18:31:06.434] [INFO ] [grpc-default-executor-1] [CallManager] - Processing ICE_CANDIDATE...
+[2025-12-18 18:31:06.435] [INFO ] [grpc-default-executor-1] [CallManager] - Received ICE candidate
+[2025-12-18 18:31:06.435] [DEBUG] [grpc-default-executor-1] [WebRTCClient] - Adding ICE candidate: candidate:783123841 1 tcp 1518280447 10.144.180.90 63021 typ host tcptype passive generation 0 ufrag 3l+k network-id 1
+[2025-12-18 18:31:06.436] [DEBUG] [grpc-default-executor-1] [WebRTCClient] - ICE candidate added
+[2025-12-18 18:31:11.379] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [6663e515]: 501 frames @ 48000Hz, 1ch
+[2025-12-18 18:31:12.368] [INFO ] [grpc-default-executor-1] [CallManager] - Received CALL_END from I_am_CEO_bitch (callId: 1ccf8c5f-6dae-43bc-a276-d949634e311f, currentState: CONNECTED)
+[2025-12-18 18:31:12.369] [INFO ] [grpc-default-executor-1] [CallManager] - Processing CALL_END...
+[2025-12-18 18:31:12.369] [INFO ] [grpc-default-executor-1] [CallManager] - Call ended by remote user
+[2025-12-18 18:31:12.370] [INFO ] [grpc-default-executor-1] [CallManager] - Cleaning up call resources...
+[2025-12-18 18:31:12.370] [INFO ] [grpc-default-executor-1] [WebRTCClient] - Closing peer connection...
+[2025-12-18 18:31:12.371] [INFO ] [grpc-default-executor-1] [WebRTCClient] - 🔊 Cleaning up 1 audio sink(s)
+[2025-12-18 18:31:12.371] [DEBUG] [grpc-default-executor-1] [WebRTCClient] -   Removed sink from track: 6663e515-5d8f-4d10-b318-c91354d82520
+[2025-12-18 18:31:12.372] [DEBUG] [grpc-default-executor-1] [WebRTCClient] - Removing track: audio0
+[2025-12-18 18:31:12.373] [DEBUG] [grpc-default-executor-1] [WebRTCClient] - Removing track: video0
+[2025-12-18 18:31:12.375] [INFO ] [Thread-5] [WebRTCClient] - ICE Connection state: CLOSED
+[2025-12-18 18:31:12.379] [INFO ] [grpc-default-executor-1] [WebRTCClient] - Audio track disposed
+[2025-12-18 18:31:12.380] [INFO ] [grpc-default-executor-1] [WebRTCClient] - Video track disposed
+[2025-12-18 18:31:12.429] [INFO ] [grpc-default-executor-1] [WebRTCClient] - Camera source stopped and released
+[2025-12-18 18:31:12.429] [INFO ] [grpc-default-executor-1] [WebRTCClient] - Connection closed

@@ -1322,13 +1322,12 @@ public class WebRTCClient {
                         remoteVideoFrameCount, width, height));
                 lastRemoteVideoLogTime = now;
             }
-            frame.release();
-        };
-        videoTrack.addSink(debugSink);
-        logger.info("  ✅ Debug sink attached to remote video track");
+            }
+        };videoTrack.addSink(debugSink);logger.info("  ✅ Debug sink attached to remote video track");
 
-        // Video rendering will be handled by VideoPanel through callback
-        logger.info("  Waiting for VideoPanel attachment via callback...");
+    // Video rendering will be handled by VideoPanel through callback
+    logger.info("  Waiting for VideoPanel attachment via callback...");
+
     }
 
     public void toggleAudio(boolean enabled) {
