@@ -298,7 +298,8 @@ public class ActiveCallDialog {
         isMuted = !isMuted;
 
         if (callManager != null) {
-            callManager.toggleAudio(!isMuted); // Pass the new state (true = enabled, false = disabled)
+            // FIX: Offload logic to virtual thread to avoid blocking UI
+            callManager.runAsync(() -> callManager.toggleAudio(!isMuted));
         }
 
         FontIcon icon = new FontIcon(isMuted ? FontAwesomeSolid.MICROPHONE_SLASH : FontAwesomeSolid.MICROPHONE);
@@ -322,7 +323,8 @@ public class ActiveCallDialog {
         isCameraOn = !isCameraOn;
 
         if (callManager != null) {
-            callManager.toggleVideo(isCameraOn); // Pass the new state
+            // FIX: Offload logic to virtual thread to avoid blocking UI
+            callManager.runAsync(() -> callManager.toggleVideo(isCameraOn));
         }
 
         FontIcon icon = new FontIcon(isCameraOn ? FontAwesomeSolid.VIDEO : FontAwesomeSolid.VIDEO_SLASH);
@@ -498,7 +500,8 @@ public class ActiveCallDialog {
         stopDurationTimer();
 
         if (callManager != null) {
-            callManager.endCall();
+            // FIX: Offload heavy cleanup to virtual thread
+            callManager.runAsync(() -> callManager.endCall());
         }
 
         close();
@@ -546,10 +549,12 @@ public class ActiveCallDialog {
      * Attach local video track for preview
      */
     public void attachLocalVideo(VideoTrack track) {
-        if (localVideoPanel != null && track != null) {
-            System.out.println("[ActiveCallDialog] Attaching local video track");
-            localVideoPanel.attachVideoTrack(track);
-        }
+        javafx.application.Platform.runLater(() -> {
+            if (localVideoPanel != null && track != null) {
+                System.out.println("[ActiveCallDialog] Attaching local video track");
+                localVideoPanel.attachVideoTrack(track);
+            }
+        });
     }
 
     /**
@@ -559,30 +564,32 @@ public class ActiveCallDialog {
      * We simply display the current video track content (camera or screen)
      */
     public void attachRemoteVideo(VideoTrack track) {
-        if (track == null)
-            return;
+        javafx.application.Platform.runLater(() -> {
+            if (track == null)
+                return;
 
-        String trackId = track.getId();
-        System.out.printf("[ActiveCallDialog] Attaching remote video track: %s%n", trackId);
+            String trackId = track.getId();
+            System.out.printf("[ActiveCallDialog] Attaching remote video track: %s%n", trackId);
 
-        // With replaceTrack(), the track content changes but ID stays same (video0)
-        // Simply update the main video panel with the current track
-        System.out.println("[ActiveCallDialog] 📹 Updating video panel with current track");
+            // With replaceTrack(), the track content changes but ID stays same (video0)
+            // Simply update the main video panel with the current track
+            System.out.println("[ActiveCallDialog] 📹 Updating video panel with current track");
 
-        if (remoteVideoPanel != null) {
-            // Detach old track first to ensure clean update
-            remoteVideoPanel.detachVideoTrack();
+            if (remoteVideoPanel != null) {
+                // Detach old track first to ensure clean update
+                remoteVideoPanel.detachVideoTrack();
 
-            // Attach new track (will show camera or screen share depending on sender)
-            remoteVideoPanel.attachVideoTrack(track);
-            if (isShowingScreen) {
-                remoteVideoPanel.pauseRendering();
-            } else {
-                remoteVideoPanel.resumeRendering();
+                // Attach new track (will show camera or screen share depending on sender)
+                remoteVideoPanel.attachVideoTrack(track);
+                if (isShowingScreen) {
+                    remoteVideoPanel.pauseRendering();
+                } else {
+                    remoteVideoPanel.resumeRendering();
+                }
+
+                System.out.printf("[ActiveCallDialog] ✅ Video track attached: %s%n", trackId);
             }
-
-            System.out.printf("[ActiveCallDialog] ✅ Video track attached: %s%n", trackId);
-        }
+        });
     }
 
     /**

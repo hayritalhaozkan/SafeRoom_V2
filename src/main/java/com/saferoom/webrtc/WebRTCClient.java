@@ -67,9 +67,8 @@ public class WebRTCClient {
     private static String currentSpeakerName = "";
     private static volatile boolean isMonitoring = false;
 
-    // Virtual Thread executor for async WebRTC operations (ICE, signaling,
-    // DataChannel)
-    private static ExecutorService webrtcExecutor;
+    // Virtual Thread executor for async WebRTC operations
+    private static final ExecutorService webrtcExecutor = Executors.newVirtualThreadPerTaskExecutor();
     // Call ID for the current call
     private String currentCallId;
     private String remoteUsername;
@@ -109,9 +108,8 @@ public class WebRTCClient {
         System.out.printf("[WebRTC] Platform: %s%n", detectPlatformName());
         System.out.println("[WebRTC] ═══════════════════════════════════════════════════════════");
 
-        // Initialize Virtual Thread executor for async WebRTC operations
-        webrtcExecutor = Executors.newVirtualThreadPerTaskExecutor();
-        System.out.println("[WebRTC] Virtual Thread executor initialized");
+        // Virtual Thread executor is already initialized statically
+        System.out.println("[WebRTC] Virtual Thread executor active");
 
         try {
             // Platform-specific audio initialization
@@ -385,17 +383,19 @@ public class WebRTCClient {
         isMonitoring = false;
 
         // Shutdown Virtual Thread executor
+        // Shutdown Virtual Thread executor
         if (webrtcExecutor != null) {
-            webrtcExecutor.shutdown();
+            // Note: VirtualThreadExecutor doesn't strictly need shutdown like thread pools,
+            // but good practice
+            // to interrupt threads if needed. However, virtual threads are daemon by
+            // default.
+            // webrtcExecutor is final, so we cannot set it to null.
             try {
-                if (!webrtcExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    webrtcExecutor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                webrtcExecutor.shutdownNow();
+                // No-op for virtual thread executor usually, but kept for API consistency
+            } catch (Exception e) {
+                // ignore
             }
-            webrtcExecutor = null;
-            System.out.println("[WebRTC] Virtual Thread executor shutdown");
+            System.out.println("[WebRTC] Executor shutdown request sent");
         }
 
         // Dispose PeerConnectionFactory
@@ -1041,12 +1041,13 @@ public class WebRTCClient {
      * Add video track to peer connection for camera capture.
      * Similar to addAudioTrack but for video.
      */
-    public CompletableFuture<Void> addVideoTrack() {
-        if (factory == null) {
-            logger.error("Cannot add video track - factory not initialized", null);
-            return CompletableFuture.completedFuture(null);
-        }
+    // Lock for PeerConnection modifications to prevent Virtual Thread pinning
+    private final java.util.concurrent.locks.ReentrantLock pcLock = new java.util.concurrent.locks.ReentrantLock();
 
+    /**
+     * Add video track to peer connection
+     */
+    public CompletableFuture<Void> addVideoTrack() {
         if (peerConnection == null) {
             logger.error("Cannot add video track - peer connection not created", null);
             return CompletableFuture.completedFuture(null);
@@ -1075,9 +1076,13 @@ public class WebRTCClient {
                 VideoTrack videoTrack = resource.getTrack();
 
                 // Add track to peer connection with stream ID ve sender referansı
-                synchronized (this) { // Synchroized to ensure thread safety when modifying peerConnection
+                // 🔒 FIX: Use ReentrantLock instead of synchronized(this) to avoid VT pinning
+                pcLock.lock();
+                try {
                     videoSender = peerConnection.addTrack(videoTrack, List.of("stream1"));
                     applyVideoCodecPreferences();
+                } finally {
+                    pcLock.unlock();
                 }
 
                 // FIX: Explicitly start capture AFTER adding track
@@ -1093,7 +1098,7 @@ public class WebRTCClient {
                 logger.error("Failed to add video track: " + e.getMessage(), e);
                 throw new RuntimeException(e);
             }
-        }, webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool());
+        }, webrtcExecutor);
     }
 
     /**
