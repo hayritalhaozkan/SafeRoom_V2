@@ -67,9 +67,8 @@ public class WebRTCClient {
     private static String currentSpeakerName = "";
     private static volatile boolean isMonitoring = false;
 
-    // Virtual Thread executor for async WebRTC operations (ICE, signaling,
-    // DataChannel)
-    private static ExecutorService webrtcExecutor;
+    // Virtual Thread executor for async WebRTC operations
+    private static final ExecutorService webrtcExecutor = Executors.newVirtualThreadPerTaskExecutor();
     // Call ID for the current call
     private String currentCallId;
     private String remoteUsername;
@@ -109,9 +108,8 @@ public class WebRTCClient {
         System.out.printf("[WebRTC] Platform: %s%n", detectPlatformName());
         System.out.println("[WebRTC] ═══════════════════════════════════════════════════════════");
 
-        // Initialize Virtual Thread executor for async WebRTC operations
-        webrtcExecutor = Executors.newVirtualThreadPerTaskExecutor();
-        System.out.println("[WebRTC] Virtual Thread executor initialized");
+        // Virtual Thread executor is already initialized statically
+        System.out.println("[WebRTC] Virtual Thread executor active");
 
         try {
             // Platform-specific audio initialization
@@ -144,14 +142,10 @@ public class WebRTCClient {
             System.out.println("[WebRTC] ═══════════════════════════════════════════════════════════");
 
         } catch (Throwable e) {
-            // Fallback to mock mode (native library not available)
+            // CRITICAL: Fail if native library is missing. No mock mode.
             System.err.printf("[WebRTC] Native library failed to load: %s%n", e.getMessage());
             e.printStackTrace();
-            System.out.println("[WebRTC] Running in MOCK mode (signaling will work, but no real media)");
-
-            factory = null;
-            audioDeviceModule = null;
-            initialized = true;
+            throw new RuntimeException("WebRTC initialization failed", e);
         }
     }
 
@@ -389,17 +383,19 @@ public class WebRTCClient {
         isMonitoring = false;
 
         // Shutdown Virtual Thread executor
+        // Shutdown Virtual Thread executor
         if (webrtcExecutor != null) {
-            webrtcExecutor.shutdown();
+            // Note: VirtualThreadExecutor doesn't strictly need shutdown like thread pools,
+            // but good practice
+            // to interrupt threads if needed. However, virtual threads are daemon by
+            // default.
+            // webrtcExecutor is final, so we cannot set it to null.
             try {
-                if (!webrtcExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    webrtcExecutor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                webrtcExecutor.shutdownNow();
+                // No-op for virtual thread executor usually, but kept for API consistency
+            } catch (Exception e) {
+                // ignore
             }
-            webrtcExecutor = null;
-            System.out.println("[WebRTC] Virtual Thread executor shutdown");
+            System.out.println("[WebRTC] Executor shutdown request sent");
         }
 
         // Dispose PeerConnectionFactory
@@ -643,9 +639,8 @@ public class WebRTCClient {
      * Create SDP offer
      */
     public CompletableFuture<String> createOffer() {
-        // Retry for up to 5 seconds, every 500ms
-        long deadline = System.currentTimeMillis() + 5000;
-        return retryUntilDeadline(this::createOfferInternal, deadline, 50, "Create Offer");
+        // Async retry: 50ms interval, 5000ms timeout
+        return retryAsync(this::createOfferInternal, 100, 50, "Create Offer");
     }
 
     private CompletableFuture<String> createOfferInternal() {
@@ -654,11 +649,7 @@ public class WebRTCClient {
         CompletableFuture<String> future = new CompletableFuture<>();
 
         if (peerConnection == null) {
-            // Fallback to mock SDP
-            String mockSDP = generateMockSDP("offer");
-            logger.warn("Using mock SDP (peer connection not available)");
-            future.complete(mockSDP);
-            return future;
+            return CompletableFuture.failedFuture(new IllegalStateException("Peer connection not initialized"));
         }
 
         try {
@@ -670,7 +661,7 @@ public class WebRTCClient {
                         @Override
                         public void onSuccess() {
                             logger.info("Offer created and set as local description");
-                            String sdp = description.sdp;
+                            // String sdp = description.sdp; // UNUSED - removed dead code
 
                             // ⚡ MINIMIZE SDP
                             // Strip unused codecs/extensions for faster transmission
@@ -718,9 +709,8 @@ public class WebRTCClient {
      * Create SDP answer
      */
     public CompletableFuture<String> createAnswer() {
-        // Retry for up to 5 seconds, every 500ms
-        long deadline = System.currentTimeMillis() + 5000;
-        return retryUntilDeadline(this::createAnswerInternal, deadline, 50, "Create Answer");
+        // Async retry: 50ms interval, 5000ms timeout
+        return retryAsync(this::createAnswerInternal, 100, 50, "Create Answer");
     }
 
     private CompletableFuture<String> createAnswerInternal() {
@@ -729,11 +719,7 @@ public class WebRTCClient {
         CompletableFuture<String> future = new CompletableFuture<>();
 
         if (peerConnection == null) {
-            // Fallback to mock SDP
-            String mockSDP = generateMockSDP("answer");
-            System.out.println("[WebRTC]  Using mock SDP (peer connection not available)");
-            future.complete(mockSDP);
-            return future;
+            return CompletableFuture.failedFuture(new IllegalStateException("Peer connection not initialized"));
         }
 
         try {
@@ -798,52 +784,38 @@ public class WebRTCClient {
     /**
      * Helper to retry a CompletableFuture action until a deadline
      */
-    private <T> CompletableFuture<T> retryUntilDeadline(java.util.function.Supplier<CompletableFuture<T>> action,
-            long deadlineMillis, long delayMs, String operationName) {
+    /**
+     * Async retry helper using Virtual Threads / Delayed Executor
+     * Non-blocking, fast interval (50ms).
+     */
+    private <T> CompletableFuture<T> retryAsync(java.util.function.Supplier<CompletableFuture<T>> action,
+            int maxRetries, int delayMs, String operationName) {
 
         return action.get().handle((result, ex) -> {
             if (ex == null) {
                 return CompletableFuture.completedFuture(result);
             }
 
-            // If we failed, check if we have time to retry
-            long now = System.currentTimeMillis();
-            if (now + delayMs > deadlineMillis) {
-                logger.error(String.format("%s failed and deadline exceeded: %s", operationName, ex.getMessage()),
-                        null);
+            if (maxRetries <= 0) {
+                logger.error(String.format("%s failed after retries: %s", operationName, ex.getMessage()), null);
                 return CompletableFuture.<T>failedFuture(ex);
             }
 
-            logger.info(String.format("%s failed (%s), retrying in %dms...",
-                    operationName, ex.getMessage(), delayMs));
-
-            // Schedule retry
+            // Async delay without blocking a platform thread
             CompletableFuture<T> retryFuture = new CompletableFuture<>();
 
-            // Use existing executor or common pool for delay
-            ExecutorService executor = webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool();
-
-            // Note: Java 8/11 doesn't have good built-in delayed executor without
-            // ScheduledExecutorService.
-            // Using a simple sleep in a virtual thread (if available) or blocked thread is
-            // acceptable for this context
-            // since we are using virtual threads mainly or background threads.
-            executor.submit(() -> {
-                try {
-                    Thread.sleep(delayMs);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-
-                // Recursive call
-                retryUntilDeadline(action, deadlineMillis, delayMs, operationName)
-                        .whenComplete((r, e) -> {
-                            if (e != null)
-                                retryFuture.completeExceptionally(e);
-                            else
-                                retryFuture.complete(r);
-                        });
-            });
+            // Use delayed executor (Java 9+)
+            CompletableFuture.delayedExecutor(delayMs, TimeUnit.MILLISECONDS,
+                    webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool())
+                    .execute(() -> {
+                        retryAsync(action, maxRetries - 1, delayMs, operationName)
+                                .whenComplete((r, e) -> {
+                                    if (e != null)
+                                        retryFuture.completeExceptionally(e);
+                                    else
+                                        retryFuture.complete(r);
+                                });
+                    });
 
             return retryFuture;
         }).thenCompose(f -> f);
@@ -1074,12 +1046,13 @@ public class WebRTCClient {
      * Add video track to peer connection for camera capture.
      * Similar to addAudioTrack but for video.
      */
-    public CompletableFuture<Void> addVideoTrack() {
-        if (factory == null) {
-            logger.error("Cannot add video track - factory not initialized", null);
-            return CompletableFuture.completedFuture(null);
-        }
+    // Lock for PeerConnection modifications to prevent Virtual Thread pinning
+    private final java.util.concurrent.locks.ReentrantLock pcLock = new java.util.concurrent.locks.ReentrantLock();
 
+    /**
+     * Add video track to peer connection
+     */
+    public CompletableFuture<Void> addVideoTrack() {
         if (peerConnection == null) {
             logger.error("Cannot add video track - peer connection not created", null);
             return CompletableFuture.completedFuture(null);
@@ -1108,9 +1081,13 @@ public class WebRTCClient {
                 VideoTrack videoTrack = resource.getTrack();
 
                 // Add track to peer connection with stream ID ve sender referansı
-                synchronized (this) { // Synchroized to ensure thread safety when modifying peerConnection
+                // 🔒 FIX: Use ReentrantLock instead of synchronized(this) to avoid VT pinning
+                pcLock.lock();
+                try {
                     videoSender = peerConnection.addTrack(videoTrack, List.of("stream1"));
                     applyVideoCodecPreferences();
+                } finally {
+                    pcLock.unlock();
                 }
 
                 // FIX: Explicitly start capture AFTER adding track
@@ -1126,7 +1103,7 @@ public class WebRTCClient {
                 logger.error("Failed to add video track: " + e.getMessage(), e);
                 throw new RuntimeException(e);
             }
-        }, webrtcExecutor != null ? webrtcExecutor : ForkJoinPool.commonPool());
+        }, webrtcExecutor);
     }
 
     /**
@@ -1355,13 +1332,13 @@ public class WebRTCClient {
                         remoteVideoFrameCount, width, height));
                 lastRemoteVideoLogTime = now;
             }
-            frame.release();
         };
         videoTrack.addSink(debugSink);
         logger.info("  ✅ Debug sink attached to remote video track");
 
         // Video rendering will be handled by VideoPanel through callback
         logger.info("  Waiting for VideoPanel attachment via callback...");
+
     }
 
     public void toggleAudio(boolean enabled) {
@@ -1505,37 +1482,7 @@ public class WebRTCClient {
     // Mock SDP Generator (fallback)
     // ===============================
 
-    private String generateMockSDP(String type) {
-        return String.format(
-                "v=0\r\n" +
-                        "o=- %d 2 IN IP4 127.0.0.1\r\n" +
-                        "s=-\r\n" +
-                        "t=0 0\r\n" +
-                        "a=group:BUNDLE 0\r\n" +
-                        "a=msid-semantic: WMS\r\n" +
-                        "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n" +
-                        "c=IN IP4 0.0.0.0\r\n" +
-                        "a=rtcp:9 IN IP4 0.0.0.0\r\n" +
-                        "a=ice-ufrag:%s\r\n" +
-                        "a=ice-pwd:%s\r\n" +
-                        "a=fingerprint:sha-256 MOCK:FINGERPRINT\r\n" +
-                        "a=setup:actpass\r\n" +
-                        "a=mid:0\r\n" +
-                        "a=sendrecv\r\n" +
-                        "a=rtpmap:111 opus/48000/2\r\n",
-                System.currentTimeMillis(),
-                randomString(8),
-                randomString(24));
-    }
-
-    private String randomString(int length) {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            sb.append(chars.charAt((int) (Math.random() * chars.length())));
-        }
-        return sb.toString();
-    }
+    // Mock SDP Generator REMOVED
 
     /**
      * Log video codec information from SDP for debugging cross-platform issues

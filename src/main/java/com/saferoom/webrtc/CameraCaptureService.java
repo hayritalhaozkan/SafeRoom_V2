@@ -46,7 +46,11 @@ public final class CameraCaptureService {
             throw new IllegalStateException("[CameraCaptureService] Kamera bulunamadı");
         }
 
-        VideoDevice camera = cameras.get(0);
+        // Smart Camera Selection
+        VideoDevice camera = selectBestCamera(cameras);
+        if (camera == null) {
+            throw new IllegalStateException("[CameraCaptureService] No suitable camera found");
+        }
         System.out.println("[CameraCaptureService] Selected camera: " + camera.getName());
 
         VideoDeviceSource source = new VideoDeviceSource();
@@ -68,6 +72,40 @@ public final class CameraCaptureService {
 
         System.out.println("[CameraCaptureService] ═══════════════════════════════════════════");
         return new CameraCaptureResource(source, track);
+    }
+
+    private static VideoDevice selectBestCamera(List<VideoDevice> devices) {
+        if (devices == null || devices.isEmpty())
+            return null;
+
+        // 1. Filter out known bad devices (loopback, virtual, dummy)
+        List<VideoDevice> validDevices = devices.stream()
+                .filter(d -> {
+                    String name = d.getName().toLowerCase();
+                    return !name.contains("loopback") &&
+                            !name.contains("virtual") &&
+                            !name.contains("dummy");
+                })
+                .toList();
+
+        // If all were filtered out, fallback to original list
+        if (validDevices.isEmpty()) {
+            System.out.println("[CameraCaptureService] ⚠️ All devices seem virtual/dummy, falling back to index 0");
+            return devices.get(0);
+        }
+
+        // 2. Sort/Prioritize (Front/Integrated > USB > Others)
+        return validDevices.stream()
+                .min((d1, d2) -> {
+                    String n1 = d1.getName().toLowerCase();
+                    String n2 = d2.getName().toLowerCase();
+
+                    boolean p1 = n1.contains("front") || n1.contains("integrated") || n1.contains("webcam");
+                    boolean p2 = n2.contains("front") || n2.contains("integrated") || n2.contains("webcam");
+
+                    return Boolean.compare(!p1, !p2); // True is "smaller" (comes first)
+                })
+                .orElse(validDevices.get(0));
     }
 
     public static final class CameraCaptureResource {
@@ -112,6 +150,7 @@ public final class CameraCaptureService {
                 System.err.printf("[CameraCaptureService] ❌ Failed to stop camera: %s%n", e.getMessage());
             }
         }
+
     }
 
     public record CaptureProfile(int width, int height, int fps) {

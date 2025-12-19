@@ -25,17 +25,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Platform-aware screen share orchestrator. Uses native dev.onvoid WebRTC 
- * VideoDesktopSource for Windows/macOS. Linux screen share is currently disabled
+ * Platform-aware screen share orchestrator. Uses native dev.onvoid WebRTC
+ * VideoDesktopSource for Windows/macOS. Linux screen share is currently
+ * disabled
  * pending migration to a native capture solution.
  * 
- * NOTE: Linux screen share via FFmpeg has been removed to reduce dependency bloat.
+ * NOTE: Linux screen share via FFmpeg has been removed to reduce dependency
+ * bloat.
  */
 public final class ScreenShareManager implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(ScreenShareManager.class.getName());
-    private static final List<String> SCREEN_SHARE_STREAM_IDS =
-        Collections.singletonList("screen-share-stream");
+    private static final List<String> SCREEN_SHARE_STREAM_IDS = Collections.singletonList("screen-share-stream");
 
     private final PeerConnectionFactory factory;
     private final RTCPeerConnection peerConnection;
@@ -53,18 +54,19 @@ public final class ScreenShareManager implements AutoCloseable {
     private boolean usingCameraSender;
 
     public ScreenShareManager(PeerConnectionFactory factory,
-                              RTCPeerConnection peerConnection,
-                              RenegotiationHandler renegotiationHandler) {
+            RTCPeerConnection peerConnection,
+            RenegotiationHandler renegotiationHandler) {
         this.factory = Objects.requireNonNull(factory, "factory");
         this.peerConnection = Objects.requireNonNull(peerConnection, "peerConnection");
         this.renegotiationHandler = Objects.requireNonNull(renegotiationHandler, "renegotiationHandler");
         this.asyncExecutor = Executors.newThreadPerTaskExecutor(
-            Thread.ofVirtual().name("screen-share-task-", 0).factory());
+                Thread.ofVirtual().name("screen-share-task-", 0).factory());
     }
 
     /**
      * Starts screen sharing for the current platform.
-     * NOTE: Linux screen share is currently disabled. Only Windows/macOS are supported.
+     * NOTE: Linux screen share is currently disabled. Only Windows/macOS are
+     * supported.
      */
     public CompletableFuture<Void> startScreenShare() {
         return startScreenShare(ScreenSourceOption.auto());
@@ -72,6 +74,7 @@ public final class ScreenShareManager implements AutoCloseable {
 
     /**
      * Checks if screen sharing is supported on the current platform.
+     * 
      * @return true if supported (Windows/macOS), false if not (Linux)
      */
     public static boolean isScreenShareSupported() {
@@ -80,12 +83,8 @@ public final class ScreenShareManager implements AutoCloseable {
 
     public CompletableFuture<Void> startScreenShare(ScreenSourceOption sourceOption) {
         // Linux screen share is disabled - reject early with clear message
-        if (PlatformDetector.isLinux()) {
-            LOGGER.warning("[ScreenShareManager] Screen sharing is temporarily disabled on Linux");
-            return CompletableFuture.failedFuture(
-                new UnsupportedOperationException("Screen sharing is temporarily disabled on Linux. " +
-                    "This feature requires native capture support which is not yet available."));
-        }
+        // Linux check removed to allow native capture attempt
+        // if (PlatformDetector.isLinux()) { ... }
 
         ScreenSourceOption effectiveOption = sourceOption != null ? sourceOption : ScreenSourceOption.auto();
         return CompletableFuture.supplyAsync(() -> {
@@ -109,7 +108,8 @@ public final class ScreenShareManager implements AutoCloseable {
     }
 
     /**
-     * Stops screen sharing, removes the track from the peer connection and renegotiates.
+     * Stops screen sharing, removes the track from the peer connection and
+     * renegotiates.
      */
     public CompletableFuture<Void> stopScreenShare() {
         boolean shouldStop;
@@ -338,7 +338,8 @@ public final class ScreenShareManager implements AutoCloseable {
     }
 
     /**
-     * Callback interface so callers can forward the renegotiated SDP to their signaling layer.
+     * Callback interface so callers can forward the renegotiated SDP to their
+     * signaling layer.
      */
     public interface RenegotiationHandler {
         void onScreenShareOffer(String sdp);
@@ -346,4 +347,3 @@ public final class ScreenShareManager implements AutoCloseable {
         void onScreenShareStopped(String sdp);
     }
 }
-

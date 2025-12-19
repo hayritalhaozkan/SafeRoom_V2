@@ -96,41 +96,46 @@ public class VideoPanel extends Canvas {
         this.animationTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                if (!isActive || renderingPaused) {
-                    return;
-                }
+                try {
+                    if (!isActive || renderingPaused) {
+                        return;
+                    }
 
-                // ✅ FRAME RATE THROTTLING: Cap at TARGET_FPS (30 FPS)
-                // JavaFX AnimationTimer fires at ~60 FPS, but we don't need to paint that often
-                // This reduces CPU usage by ~50% with minimal visual impact
-                if (now - lastPaintTimeNs < TARGET_FRAME_INTERVAL_NS) {
-                    return; // Too soon, skip this frame
-                }
+                    // ✅ FRAME RATE THROTTLING: Cap at TARGET_FPS (30 FPS)
+                    // JavaFX AnimationTimer fires at ~60 FPS, but we don't need to paint that often
+                    // This reduces CPU usage by ~50% with minimal visual impact
+                    if (now - lastPaintTimeNs < TARGET_FRAME_INTERVAL_NS) {
+                        return; // Too soon, skip this frame
+                    }
 
-                FrameRenderResult frame = latestFrame.getAndSet(null);
-                if (frame != null) {
-                    try {
-                        paintFrame(frame);
-                        lastPaintTimeNs = now;
-                        lastFrameTimestamp = System.nanoTime();
+                    FrameRenderResult frame = latestFrame.getAndSet(null);
+                    if (frame != null) {
+                        try {
+                            paintFrame(frame);
+                            lastPaintTimeNs = now;
+                            lastFrameTimestamp = System.nanoTime();
 
-                        // Log rendered frames (reduced frequency for less console spam)
-                        renderedCount++;
-                        if (renderedCount - lastRenderedLog >= 300) { // Log every 10 seconds @ 30 FPS
-                            System.out.printf("[VideoPanel] ✅ RENDERED %d frames (%dx%d) @ ~%d FPS%n",
-                                    renderedCount, frame.getWidth(), frame.getHeight(), TARGET_FPS);
-                            lastRenderedLog = renderedCount;
+                            // Log rendered frames (reduced frequency for less console spam)
+                            renderedCount++;
+                            if (renderedCount - lastRenderedLog >= 300) { // Log every 10 seconds @ 30 FPS
+                                System.out.printf("[VideoPanel] ✅ RENDERED %d frames (%dx%d) @ ~%d FPS%n",
+                                        renderedCount, frame.getWidth(), frame.getHeight(), TARGET_FPS);
+                                lastRenderedLog = renderedCount;
+                            }
+                            firstFrameReceived = true;
+                        } finally {
+                            frame.release();
                         }
-                        firstFrameReceived = true;
-                    } finally {
-                        frame.release();
+                    } else {
+                        // Use longer timeout for initial connection, shorter after first frame
+                        long timeout = firstFrameReceived ? FREEZE_DETECTION_NANOS : INITIAL_WAIT_NANOS;
+                        if (System.nanoTime() - lastFrameTimestamp > timeout) {
+                            handleStall();
+                        }
                     }
-                } else {
-                    // Use longer timeout for initial connection, shorter after first frame
-                    long timeout = firstFrameReceived ? FREEZE_DETECTION_NANOS : INITIAL_WAIT_NANOS;
-                    if (System.nanoTime() - lastFrameTimestamp > timeout) {
-                        handleStall();
-                    }
+                } catch (Throwable t) {
+                    System.err.println("[VideoPanel] CRITICAL: AnimationTimer crashed: " + t.getMessage());
+                    t.printStackTrace();
                 }
             }
         };
