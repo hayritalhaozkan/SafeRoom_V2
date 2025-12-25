@@ -34,8 +34,8 @@ Forget uploading to the cloud. SafeRoom uses a swarm-like protocol for file tran
 - **Parallel Chunks:** Large files are split and sent via multiple paths for maximum speed.
 - **Resume Capability:** Network drop? It picks up exactly where it left off.
 
-### 3. Serverless Rooms
-In SafeRoom, a "Room" isn't a database entry on our server. It's a **cryptographic space** held together by the participants.
+### 3. Serverless ZONE
+In SafeRoom, a "ZONE" isn't a database entry on our server. It's a **cryptographic space** held together by the participants.
 - **Ephemeral or Persistent:** You decide.
 - **No Central Admin:** The community owns the infrastructure.
 - **Uncensorable:** No central authority can delete your room or read your chats.
@@ -54,7 +54,7 @@ In SafeRoom, a "Room" isn't a database entry on our server. It's a **cryptograph
 
 ---
 
-## 🧠 Philosophy: You Own The Pipe
+## 🧠 Philosophy: You Own The ZONE
 
 > **If your data passes through their server, it is their data.**
 
