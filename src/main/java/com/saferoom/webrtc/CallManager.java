@@ -674,18 +674,19 @@ public class CallManager {
 
                         tracksAddedForIncomingCall = true;
 
-                        // 🎥 Notify GUI that local tracks are ready (for CALLEE)
-                        if (onLocalTracksReadyCallback != null) {
-                            logger.info("🎥 Local tracks ready (callee) - notifying GUI");
-                            onLocalTracksReadyCallback.run();
-                        }
-
-                        // Wait for tracks, then create answer
+                        // Wait for tracks, then notify GUI and create answer
                         CompletableFuture.allOf(trackFutures.toArray(new CompletableFuture[0]))
                                 .thenRun(() -> {
                                     logger.info(String.format("Media setup complete. Audio track: %s, Video track: %s",
                                             webrtcClient.getLocalAudioTrack() != null ? "READY" : "NONE",
                                             webrtcClient.getLocalVideoTrack() != null ? "READY" : "NONE"));
+
+                                    // 🎥 Notify GUI that local tracks are ready (for CALLEE)
+                                    // CRITICAL: Must fire AFTER tracks are created, not before!
+                                    if (onLocalTracksReadyCallback != null) {
+                                        logger.info("🎥 Local tracks ready (callee) - notifying GUI");
+                                        onLocalTracksReadyCallback.run();
+                                    }
 
                                     logger.info("Creating SDP answer (after tracks added)...");
                                     webrtcClient.createAnswer()

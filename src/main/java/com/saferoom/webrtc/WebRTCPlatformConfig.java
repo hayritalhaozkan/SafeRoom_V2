@@ -55,24 +55,36 @@ final class WebRTCPlatformConfig {
         RTCRtpCapabilities senderCaps = factory.getRtpSenderCapabilities(MediaType.VIDEO);
 
         // ═══════════════════════════════════════════════════════════════
-        // STRICT CODEC ENFORCEMENT: H.264 ONLY
-        // We filter out everything else to ensure deterministic behavior.
+        // PLATFORM-SPECIFIC CODEC STRATEGY:
+        // - Windows/macOS: H.264 only (hardware accelerated via QuickSync/VideoToolbox)
+        // - Linux: VP8/VP9 preferred (better software codec support), H.264 fallback
         // ═══════════════════════════════════════════════════════════════
 
-        List<RTCRtpCodecCapability> filtered = filterCodecsStrict(senderCaps);
+        List<RTCRtpCodecCapability> filtered;
+        boolean preferH264;
+
+        if (linux) {
+            // Linux: VP8/VP9 have better software support than H.264
+            filtered = filterCodecsForLinux(senderCaps);
+            preferH264 = false;
+            System.out.printf("[WebRTC] %s → Using VP8/VP9 preferred codec list%n", platformName);
+        } else {
+            // Windows/macOS: H.264 has hardware acceleration
+            filtered = filterCodecsStrict(senderCaps);
+            preferH264 = true;
+            System.out.printf("[WebRTC] %s → Enforcing strict codec list (H.264)%n", platformName);
+        }
 
         if (!filtered.isEmpty()) {
-            System.out.printf("[WebRTC] %s → Enforcing strict codec list (H.264)%n", platformName);
             System.out.println("[WebRTC] Allowed codecs:");
             for (RTCRtpCodecCapability codec : filtered) {
                 System.out.printf("  - %s%n", codec.getName());
             }
         } else {
-            System.out.printf("[WebRTC] %s detected but NO H.264 capability found!%n", platformName);
+            System.out.printf("[WebRTC] %s detected but NO usable video codecs found!%n", platformName);
         }
 
-        // Unified behavior for ALL platforms
-        return new WebRTCPlatformConfig(true, windows, filtered, platformName);
+        return new WebRTCPlatformConfig(preferH264, windows, filtered, platformName);
     }
 
     static WebRTCPlatformConfig empty() {
@@ -162,6 +174,41 @@ final class WebRTCPlatformConfig {
                 .toList(); // No sorting needed if it's just H264, but we could sort by profile-level-id if
                            // needed
                            // relying on default H264 ordering usually works fine.
+    }
+
+    /**
+     * Filter codecs for Linux - VP8/VP9 preferred, H.264 fallback.
+     * Linux generally has better software support for VP8/VP9 than H.264.
+     */
+    private static List<RTCRtpCodecCapability> filterCodecsForLinux(RTCRtpCapabilities capabilities) {
+        if (capabilities == null || capabilities.getCodecs() == null) {
+            return List.of();
+        }
+
+        // Separate VP8/VP9 and H264 codecs
+        List<RTCRtpCodecCapability> vpCodecs = capabilities.getCodecs().stream()
+                .filter(Objects::nonNull)
+                .filter(codec -> {
+                    String name = codec.getName();
+                    if (name == null)
+                        return false;
+                    String upper = name.toUpperCase(Locale.ROOT);
+                    return upper.contains("VP8") || upper.contains("VP9");
+                })
+                .toList();
+
+        List<RTCRtpCodecCapability> h264Codecs = capabilities.getCodecs().stream()
+                .filter(Objects::nonNull)
+                .filter(codec -> {
+                    String name = codec.getName();
+                    return name != null && name.toUpperCase(Locale.ROOT).contains("H264");
+                })
+                .toList();
+
+        // Combine: VP8/VP9 first, then H264 as fallback
+        java.util.List<RTCRtpCodecCapability> combined = new java.util.ArrayList<>(vpCodecs);
+        combined.addAll(h264Codecs);
+        return combined;
     }
 
     @Override
