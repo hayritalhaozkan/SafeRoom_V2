@@ -44,6 +44,10 @@ public class GroupCallManager {
     private final Map<String, WebRTCClient> peerConnections = new ConcurrentHashMap<>();
     // Synchronization: peerId → Future that completes when tracks are added
     private final Map<String, CompletableFuture<Void>> peerReadyFutures = new ConcurrentHashMap<>();
+    // 📺 Remote Track Buffering: stores tracks that arrive before UI callback is
+    // registered
+    // Fixes race condition where meeting UI misses remote video from peers
+    private final Map<String, java.util.List<MediaStreamTrack>> pendingPeerTracks = new ConcurrentHashMap<>();
 
     // Local video track for preview (created immediately, shared by all peer
     // connections)
@@ -559,9 +563,16 @@ public class GroupCallManager {
             logger.info(String.format("Remote track from %s: %s (%s)",
                     peerUsername, track.getId(), track.getKind()));
 
-            // Notify UI
+            // Notify UI if callback is registered
             if (onRemoteTrackCallback != null) {
                 onRemoteTrackCallback.onRemoteTrack(peerUsername, track);
+            } else {
+                // Buffer track for later - UI callback not registered yet
+                // This happens when peer tracks arrive before MeetingCallDialog is shown
+                logger.info("📺 Buffering remote track from " + peerUsername + ": " + track.getId());
+                pendingPeerTracks
+                        .computeIfAbsent(peerUsername, k -> new java.util.ArrayList<>())
+                        .add(track);
             }
         });
     }
@@ -580,6 +591,7 @@ public class GroupCallManager {
 
         peerConnections.clear();
         peerReadyFutures.clear();
+        pendingPeerTracks.clear(); // Clear buffered tracks
 
         // Stop and dispose local video track
         if (localVideoSource != null) {
@@ -803,6 +815,26 @@ public class GroupCallManager {
 
     public void setOnRemoteTrackCallback(RemoteTrackCallback callback) {
         this.onRemoteTrackCallback = callback;
+
+        // Replay any buffered tracks that arrived before the callback was registered
+        if (callback != null && !pendingPeerTracks.isEmpty()) {
+            // Copy and clear to prevent concurrent modification
+            Map<String, java.util.List<MediaStreamTrack>> toReplay = new java.util.HashMap<>(pendingPeerTracks);
+            pendingPeerTracks.clear();
+
+            int totalTracks = toReplay.values().stream().mapToInt(java.util.List::size).sum();
+            logger.info("📺 Replaying " + totalTracks + " buffered remote track(s) from " + toReplay.size()
+                    + " peer(s)...");
+
+            for (Map.Entry<String, java.util.List<MediaStreamTrack>> entry : toReplay.entrySet()) {
+                String peer = entry.getKey();
+                for (MediaStreamTrack track : entry.getValue()) {
+                    logger.info(
+                            "  → Replaying track from " + peer + ": " + track.getId() + " (" + track.getKind() + ")");
+                    callback.onRemoteTrack(peer, track);
+                }
+            }
+        }
     }
 
     public void setOnRoomErrorCallback(RoomErrorCallback callback) {

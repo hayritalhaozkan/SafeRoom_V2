@@ -26,6 +26,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import java.util.Optional;
+import com.saferoom.log.Logger;
 
 /**
  * Dialog for active WebRTC call
@@ -33,6 +34,8 @@ import java.util.Optional;
  * duration
  */
 public class ActiveCallDialog {
+
+    private static final Logger logger = Logger.getLogger(ActiveCallDialog.class);
 
     private final Stage stage;
     private final String remoteUsername;
@@ -565,29 +568,36 @@ public class ActiveCallDialog {
      */
     public void attachRemoteVideo(VideoTrack track) {
         javafx.application.Platform.runLater(() -> {
-            if (track == null)
+            if (track == null) {
+                logger.warn("[ActiveCallDialog] Cannot attach null video track");
                 return;
+            }
 
             String trackId = track.getId();
-            System.out.printf("[ActiveCallDialog] Attaching remote video track: %s%n", trackId);
+            logger.info(String.format("📹 Attaching remote video track: %s (enabled=%b)", trackId, track.isEnabled()));
 
             // With replaceTrack(), the track content changes but ID stays same (video0)
             // Simply update the main video panel with the current track
-            System.out.println("[ActiveCallDialog] 📹 Updating video panel with current track");
+            logger.info("📹 Updating video panel with current track");
 
             if (remoteVideoPanel != null) {
+                logger.info("📹 remoteVideoPanel exists, attaching track...");
                 // Detach old track first to ensure clean update
                 remoteVideoPanel.detachVideoTrack();
 
                 // Attach new track (will show camera or screen share depending on sender)
                 remoteVideoPanel.attachVideoTrack(track);
+                logger.info(String.format("📹 isShowingScreen=%b, will %s rendering",
+                        isShowingScreen, isShowingScreen ? "PAUSE" : "RESUME"));
                 if (isShowingScreen) {
                     remoteVideoPanel.pauseRendering();
                 } else {
                     remoteVideoPanel.resumeRendering();
                 }
 
-                System.out.printf("[ActiveCallDialog] ✅ Video track attached: %s%n", trackId);
+                logger.info(String.format("✅ Remote video track attached: %s", trackId));
+            } else {
+                logger.error("❌ remoteVideoPanel is NULL! Cannot attach video track", null);
             }
         });
     }
@@ -708,22 +718,27 @@ public class ActiveCallDialog {
      * Register callback to receive remote video tracks
      */
     private void registerRemoteTrackCallback() {
+        logger.info("🔧 Registering remote track callback...");
         callManager.setOnRemoteTrackCallback(track -> {
+            logger.info(String.format("📺 Remote track callback fired: kind=%s, id=%s, class=%s",
+                    track.getKind(), track.getId(), track.getClass().getSimpleName()));
+
             javafx.application.Platform.runLater(() -> {
-                System.out.printf("[ActiveCallDialog] 📺 Remote track received: kind=%s, id=%s%n",
-                        track.getKind(), track.getId());
+                logger.info(String.format("📺 Processing remote track on FX thread: kind=%s, id=%s",
+                        track.getKind(), track.getId()));
 
                 // Only attach video tracks
                 if (track instanceof dev.onvoid.webrtc.media.video.VideoTrack) {
                     dev.onvoid.webrtc.media.video.VideoTrack videoTrack = (dev.onvoid.webrtc.media.video.VideoTrack) track;
+                    logger.info("📹 Track is VideoTrack, calling attachRemoteVideo...");
                     attachRemoteVideo(videoTrack);
-                    System.out.println("[ActiveCallDialog] 📹 Remote video attached");
+                    logger.info("📹 Remote video attachment complete");
                 } else {
-                    System.out.println("[ActiveCallDialog] 🎤 Remote audio track (auto-handled)");
+                    logger.info("🎤 Remote audio track (auto-handled by AudioDeviceModule)");
                 }
             });
         });
-        System.out.println("[ActiveCallDialog] ✅ Remote track callback registered");
+        logger.info("✅ Remote track callback registered");
     }
 
     /**
