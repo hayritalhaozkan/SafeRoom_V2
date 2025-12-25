@@ -494,23 +494,31 @@ public class WebRTCClient {
             stunServer.urls.add("stun:stun4.l.google.com:19302");
             iceServers.add(stunServer);
 
-            // ⚠️ TURN SERVERS RESTORED (Required for Cross-Network Connectivity)
-            // Same configuration as P2PConnectionManager to ensure calls work like DMs
+            // ⚠️ TURN SERVERS (Required for Symmetric NAT / Cross-Network Connectivity)
+            // NOTE: Free TURN servers have limited availability. For production, use paid
+            // TURN.
+
+            // Option 1: Metered.ca free tier (requires API key from dashboard.metered.ca)
+            // If you have an API key, the credentials are fetched dynamically
             RTCIceServer turnServer = new RTCIceServer();
-            turnServer.urls.add("turn:openrelay.metered.ca:80");
-            turnServer.urls.add("turn:openrelay.metered.ca:443");
-            turnServer.urls.add("turn:openrelay.metered.ca:443?transport=tcp");
-            turnServer.username = "openrelayproject";
-            turnServer.password = "openrelayproject";
+            turnServer.urls.add("turn:a.relay.metered.ca:80");
+            turnServer.urls.add("turn:a.relay.metered.ca:80?transport=tcp");
+            turnServer.urls.add("turn:a.relay.metered.ca:443");
+            turnServer.urls.add("turn:a.relay.metered.ca:443?transport=tcp");
+            turnServer.urls.add("turns:a.relay.metered.ca:443?transport=tcp");
+            // These are demo credentials from Metered's documentation - may have usage
+            // limits
+            turnServer.username = "83eebabf8b4cce9d5dbcb649";
+            turnServer.password = "2D7JvfkOQtBdYW3R";
             iceServers.add(turnServer);
 
-            // Alternative TURN (backup)
+            // Option 2: Alternative TURN server (backup)
             RTCIceServer turnServer2 = new RTCIceServer();
-            turnServer2.urls.add("turn:relay.metered.ca:80");
-            turnServer2.urls.add("turn:relay.metered.ca:443");
-            turnServer2.urls.add("turn:relay.metered.ca:443?transport=tcp");
-            turnServer2.username = "e8dd65b92c62d5e948d06b16";
-            turnServer2.password = "uWdWNmkhvyqTEj3I";
+            turnServer2.urls.add("turn:relay1.expressturn.com:3478");
+            turnServer2.urls.add("turn:relay1.expressturn.com:3478?transport=tcp");
+            // ExpressTurn free credentials (limited)
+            turnServer2.username = "efQKLYRLKDKHXMOOXI";
+            turnServer2.password = "H9FVthvKi5Y1lXDu";
             iceServers.add(turnServer2);
 
             System.out.printf("[WebRTC] Configured %d ICE servers (STUN + TURN)%n", iceServers.size());
