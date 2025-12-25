@@ -156,24 +156,47 @@ final class WebRTCPlatformConfig {
     }
 
     /**
-     * Filter codecs - Strict H.264 enforcement.
-     * Remove everything that isn't H.264.
+     * Filter codecs for Windows/macOS - H.264 preferred, VP8/VP9 fallback.
+     * This allows hardware acceleration on Windows/Mac while still enabling
+     * cross-platform compatibility with Linux (which may not decode H.264 well).
+     * 
+     * CRITICAL: We MUST include VP8/VP9 in offers so that Linux answerers
+     * can choose a codec they can decode. Otherwise, Linux sees black video.
      */
     private static List<RTCRtpCodecCapability> filterCodecsStrict(RTCRtpCapabilities capabilities) {
         if (capabilities == null || capabilities.getCodecs() == null) {
             return List.of();
         }
 
-        return capabilities.getCodecs().stream()
+        // Separate H264 and VP8/VP9 codecs
+        List<RTCRtpCodecCapability> h264Codecs = capabilities.getCodecs().stream()
                 .filter(Objects::nonNull)
                 .filter(codec -> {
                     String name = codec.getName();
-                    // STRICT FILTER: Only allow H264
                     return name != null && name.toUpperCase(Locale.ROOT).contains("H264");
                 })
-                .toList(); // No sorting needed if it's just H264, but we could sort by profile-level-id if
-                           // needed
-                           // relying on default H264 ordering usually works fine.
+                .toList();
+
+        List<RTCRtpCodecCapability> vpCodecs = capabilities.getCodecs().stream()
+                .filter(Objects::nonNull)
+                .filter(codec -> {
+                    String name = codec.getName();
+                    if (name == null)
+                        return false;
+                    String upper = name.toUpperCase(Locale.ROOT);
+                    return upper.contains("VP8") || upper.contains("VP9");
+                })
+                .toList();
+
+        // Combine: H264 first (hardware accelerated), then VP8/VP9 as fallback for
+        // cross-platform
+        java.util.List<RTCRtpCodecCapability> combined = new java.util.ArrayList<>(h264Codecs);
+        combined.addAll(vpCodecs);
+
+        System.out.printf("[WebRTC] Codec list: %d H264 + %d VP8/VP9 = %d total%n",
+                h264Codecs.size(), vpCodecs.size(), combined.size());
+
+        return combined;
     }
 
     /**
