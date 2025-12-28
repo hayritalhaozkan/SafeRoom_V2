@@ -494,8 +494,32 @@ public class WebRTCClient {
             stunServer.urls.add("stun:stun4.l.google.com:19302");
             iceServers.add(stunServer);
 
-            // ⚠️ TURN SERVERS REMOVED by request (Pure P2P Mode)
-            // Note: Communication between symmetric NATs will likely fail.
+            // ⚠️ TURN SERVERS (Required for Symmetric NAT / Cross-Network Connectivity)
+            // NOTE: Free TURN servers have limited availability. For production, use paid
+            // TURN.
+
+            // Option 1: Metered.ca free tier (requires API key from dashboard.metered.ca)
+            // If you have an API key, the credentials are fetched dynamically
+            RTCIceServer turnServer = new RTCIceServer();
+            turnServer.urls.add("turn:a.relay.metered.ca:80");
+            turnServer.urls.add("turn:a.relay.metered.ca:80?transport=tcp");
+            turnServer.urls.add("turn:a.relay.metered.ca:443");
+            turnServer.urls.add("turn:a.relay.metered.ca:443?transport=tcp");
+            turnServer.urls.add("turns:a.relay.metered.ca:443?transport=tcp");
+            // These are demo credentials from Metered's documentation - may have usage
+            // limits
+            turnServer.username = "83eebabf8b4cce9d5dbcb649";
+            turnServer.password = "2D7JvfkOQtBdYW3R";
+            iceServers.add(turnServer);
+
+            // Option 2: Alternative TURN server (backup)
+            RTCIceServer turnServer2 = new RTCIceServer();
+            turnServer2.urls.add("turn:relay1.expressturn.com:3478");
+            turnServer2.urls.add("turn:relay1.expressturn.com:3478?transport=tcp");
+            // ExpressTurn free credentials (limited)
+            turnServer2.username = "efQKLYRLKDKHXMOOXI";
+            turnServer2.password = "H9FVthvKi5Y1lXDu";
+            iceServers.add(turnServer2);
 
             System.out.printf("[WebRTC] Configured %d ICE servers (STUN + TURN)%n", iceServers.size());
 
@@ -736,6 +760,11 @@ public class WebRTCClient {
                             // ⚡ MINIMIZE SDP
                             // Strip unused codecs/extensions for faster transmission
                             String optimizedSdp = SDPUtils.mungeSDP(description.sdp);
+
+                            // ⚡ FIX ONE-WAY MEDIA RACE (ANSWERER)
+                            // Force 'sendrecv' to ensure we signal that we are sending media
+                            optimizedSdp = SDPUtils.enforceSendRecv(optimizedSdp, "video");
+                            optimizedSdp = SDPUtils.enforceSendRecv(optimizedSdp, "audio");
 
                             System.out.printf("[WebRTC] Optimized SDP from %d bytes to %d bytes%n",
                                     description.sdp.length(), optimizedSdp.length());

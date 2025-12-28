@@ -66,6 +66,11 @@ public class CallManager {
     // Guarded by signalingLock (was synchronized list)
     private final java.util.List<WebRTCSignal> pendingIceCandidates = new java.util.ArrayList<>();
 
+    // 📺 Remote Track Buffering: stores tracks that arrive before UI callback is
+    // registered
+    // Fixes race condition where callee's ActiveCallDialog misses remote video
+    private final java.util.List<MediaStreamTrack> pendingRemoteTracks = new java.util.ArrayList<>();
+
     // ⚡ FAST P2P: Pre-generated offer to send immediately on accept
     private String preGeneratedOffer;
 
@@ -674,18 +679,19 @@ public class CallManager {
 
                         tracksAddedForIncomingCall = true;
 
-                        // 🎥 Notify GUI that local tracks are ready (for CALLEE)
-                        if (onLocalTracksReadyCallback != null) {
-                            logger.info("🎥 Local tracks ready (callee) - notifying GUI");
-                            onLocalTracksReadyCallback.run();
-                        }
-
-                        // Wait for tracks, then create answer
+                        // Wait for tracks, then notify GUI and create answer
                         CompletableFuture.allOf(trackFutures.toArray(new CompletableFuture[0]))
                                 .thenRun(() -> {
                                     logger.info(String.format("Media setup complete. Audio track: %s, Video track: %s",
                                             webrtcClient.getLocalAudioTrack() != null ? "READY" : "NONE",
                                             webrtcClient.getLocalVideoTrack() != null ? "READY" : "NONE"));
+
+                                    // 🎥 Notify GUI that local tracks are ready (for CALLEE)
+                                    // CRITICAL: Must fire AFTER tracks are created, not before!
+                                    if (onLocalTracksReadyCallback != null) {
+                                        logger.info("🎥 Local tracks ready (callee) - notifying GUI");
+                                        onLocalTracksReadyCallback.run();
+                                    }
 
                                     logger.info("Creating SDP answer (after tracks added)...");
                                     webrtcClient.createAnswer()
@@ -916,6 +922,14 @@ public class CallManager {
 
             if (onRemoteTrackCallback != null) {
                 onRemoteTrackCallback.accept(track);
+            } else {
+                // Buffer track for later - UI callback not registered yet
+                // This happens when callee receives remote track before ActiveCallDialog is
+                // shown
+                logger.info("Buffering remote track (UI callback not ready): " + track.getId());
+                synchronized (pendingRemoteTracks) {
+                    pendingRemoteTracks.add(track);
+                }
             }
         });
     }
@@ -1046,6 +1060,23 @@ public class CallManager {
 
     public void setOnRemoteTrackCallback(Consumer<MediaStreamTrack> callback) {
         this.onRemoteTrackCallback = callback;
+
+        // Replay any buffered tracks that arrived before the callback was registered
+        if (callback != null) {
+            java.util.List<MediaStreamTrack> tracksToReplay;
+            synchronized (pendingRemoteTracks) {
+                if (pendingRemoteTracks.isEmpty()) {
+                    return;
+                }
+                tracksToReplay = new java.util.ArrayList<>(pendingRemoteTracks);
+                pendingRemoteTracks.clear();
+            }
+            logger.info("📺 Replaying " + tracksToReplay.size() + " buffered remote track(s)...");
+            for (MediaStreamTrack track : tracksToReplay) {
+                logger.info("  → Replaying track: " + track.getId() + " (" + track.getKind() + ")");
+                callback.accept(track);
+            }
+        }
     }
 
     public void setOnRemoteScreenShareStoppedCallback(Runnable callback) {
