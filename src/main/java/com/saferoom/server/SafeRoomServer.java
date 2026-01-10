@@ -1,7 +1,7 @@
 package com.saferoom.server;
 
 public class SafeRoomServer {
-	public static String ServerIP = "35.198.64.68";
+	public static String ServerIP = "34.159.9.239";
 	public static int grpcPort = 443;
 
 	
