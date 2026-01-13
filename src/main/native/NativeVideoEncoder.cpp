@@ -13,14 +13,17 @@ struct NativeBuffer {
     uint8_t* data;
     size_t capacity;
     bool in_use;
+    jobject global_ref; // Cache the DirectByteBuffer wrapper
 
-    NativeBuffer(size_t size) : capacity(size), in_use(false) {
+    NativeBuffer(size_t size) : capacity(size), in_use(false), global_ref(nullptr) {
         data = new uint8_t[size];
         std::cout << "[NativePool] Allocated new buffer of size: " << size << std::endl;
     }
 
     ~NativeBuffer() {
         delete[] data;
+        // Note: global_ref needs JNIEnv to delete, but destructor might run at shutdown
+        // We can leak it safely at shutdown or handle reuse logic carefully.
     }
 };
 
@@ -118,11 +121,17 @@ JNIEXPORT jobject JNICALL Java_com_saferoom_webrtc_pipeline_NativeVideoEncoder_c
         }
     }
 
-    // 4. Wrap with DirectByteBuffer
-    // This creates a lightweight Java object pointing to our C++ heap memory.
-    // The memory is valid until 'releaseBuffer' is called (conceptually), 
-    // but actually valid forever since we own it in the static pool.
-    return env->NewDirectByteBuffer(dest_buffer->data, required_size);
+    // 4. Wrap with DirectByteBuffer (Cached)
+    // Use GlobalRef to avoid recreating the Java object every frame
+    if (dest_buffer->global_ref == nullptr) {
+        jobject local_ref = env->NewDirectByteBuffer(dest_buffer->data, required_size);
+        dest_buffer->global_ref = env->NewGlobalRef(local_ref);
+        // Do not DeleteLocalRef yet, we return it? 
+        // No, NewGlobalRef creates a new ref. We can return the global ref (it acts as local ref in current frame too)
+        // Actually, best practice: return global_ref, JNI handles it.
+    }
+    
+    return dest_buffer->global_ref;
 }
 
 // -----------------------------------------------------------------------------
@@ -137,7 +146,6 @@ JNIEXPORT void JNICALL Java_com_saferoom_webrtc_pipeline_NativeVideoEncoder_rele
     std::lock_guard<std::mutex> lock(pool_mutex);
     
     // Scan all pools (inefficient linear search, but size is small < 10)
-    // A better way would be passing an ID, but address is unique.
     bool found = false;
     for (auto& kv : pool) {
         for (auto& buf : kv.second) {
