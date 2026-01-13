@@ -412,6 +412,71 @@ tasks.withType(JavaExec).configureEach {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// NATIVE BUILD TASK (Automated C++ Compilation)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Automatically compiles the NativeVideoEncoder C++ code for the host platform.
+ * Supports: G++ (Linux/MinGW) and Clang (macOS)
+ */
+task compileNative {
+    group = 'build'
+    description = 'Compiles native video encoder library for the current platform'
+    
+    // Inputs/Outputs for incremental build support
+    def sourceFile = file("src/main/native/NativeVideoEncoder.cpp")
+    inputs.file sourceFile
+    
+    // Determine target directory and library name
+    def platformDir = isWindows ? "windows-x86_64" : (isMacOS ? (isArm ? "macos-aarch64" : "macos-x86_64") : "linux-x86_64")
+    def outputDir = file("src/main/resources/natives/${platformDir}")
+    
+    def libName = isWindows ? "native_encoder.dll" : (isMacOS ? "libnative_encoder.dylib" : "libnative_encoder.so")
+    def outputFile = file("${outputDir}/${libName}")
+    
+    outputs.file outputFile
+
+    doLast {
+        println "🔨 Compiling native library for ${platformDir}..."
+        outputDir.mkdirs()
+
+        // Get Java Home for JNI headers
+        def javaHome = System.getProperty("java.home")
+        def includeDir = "${javaHome}/include"
+        def platformIncludeDir = "${includeDir}/${isWindows ? 'win32' : (isMacOS ? 'darwin' : 'linux')}"
+
+        // Build the command execution list
+        exec {
+            workingDir projectDir
+            
+            if (isWindows) {
+                // Windows build (assuming MinGW g++ is on PATH, fallback to typical locations if needed)
+                commandLine 'g++', '-shared', '-I', includeDir, '-I', platformIncludeDir, 
+                            sourceFile.absolutePath, '-o', outputFile.absolutePath, 
+                            '-static-libgcc', '-static-libstdc++', '-Wl,--add-stdcall-alias'
+            } else {
+                // Linux / macOS
+                def compiler = 'g++'
+                if (isMacOS) compiler = 'clang++' // Prefer clang on Mac
+
+                def args = [compiler, '-shared', '-fPIC', '-I', includeDir, '-I', platformIncludeDir]
+                
+                // Optimization flags
+                args += ['-O3', '-Wall']
+                
+                args += [sourceFile.absolutePath, '-o', outputFile.absolutePath]
+                
+                commandLine args
+            }
+        }
+        println "✅ Native library compiled: ${outputFile.name}"
+    }
+}
+
+// Hook into the build process
+processResources.dependsOn compileNative
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // UTILITY TASKS
 // ═══════════════════════════════════════════════════════════════════════════════
 
