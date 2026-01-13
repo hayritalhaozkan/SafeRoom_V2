@@ -26,12 +26,19 @@ public final class FrameProcessor implements AutoCloseable {
     private static final long STALL_THRESHOLD_NANOS = Duration.ofSeconds(2).toNanos();
     private static final long STALL_LOG_INTERVAL_NANOS = Duration.ofSeconds(5).toNanos();
 
+    // SHARED Executor for all FrameProcessors to allow ThreadLocal reuse!
+    private static final java.util.concurrent.ExecutorService SHARED_EXECUTOR = java.util.concurrent.Executors
+            .newCachedThreadPool(r -> {
+                Thread t = Thread.ofPlatform().name("fp-worker").daemon(true).unstarted(r);
+                return t;
+            });
+
     private final BlockingQueue<VideoFrame> queue;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean paused = new AtomicBoolean(false);
     private final Consumer<FrameRenderResult> consumer;
     private final Predicate<VideoFrame> shouldProcess;
-    private final Thread workerThread;
+    private final java.util.concurrent.Future<?> workerFuture; // Track task
     private final VideoPipelineStats stats = new VideoPipelineStats();
 
     public FrameProcessor(Consumer<FrameRenderResult> consumer) {
@@ -48,17 +55,12 @@ public final class FrameProcessor implements AutoCloseable {
         int resolvedCapacity = capacity > 0 ? capacity : DEFAULT_QUEUE_CAPACITY;
         this.queue = new ArrayBlockingQueue<>(Math.max(1, resolvedCapacity));
 
-        // ALWAYS use platform thread for FrameProcessor
-        // Virtual threads can have issues with native code (webrtc I420Buffer
-        // operations)
-        // This affects BOTH Windows and Linux
-        this.workerThread = Thread.ofPlatform()
-                .name("frame-processor-" + System.identityHashCode(this))
-                .daemon(true)
-                .unstarted(this::processLoop);
-        System.out.println("[FrameProcessor] Using platform thread for native interop");
+        // Submit to SHARED executor
+        // This allows the task to run on an existing thread, reusing the
+        // ThreadLocal<ByteBuffer>
+        this.workerFuture = SHARED_EXECUTOR.submit(this::processLoop);
 
-        this.workerThread.start();
+        System.out.println("[FrameProcessor] Submitted process loop to shared executor");
     }
 
     public void submit(VideoFrame frame) {
@@ -180,7 +182,10 @@ public final class FrameProcessor implements AutoCloseable {
     @Override
     public void close() {
         running.set(false);
-        workerThread.interrupt();
+        // workerThread.interrupt(); // REMOVED
+        if (workerFuture != null) {
+            workerFuture.cancel(true); // INTERRUPT via Future
+        }
         drainQueue();
     }
 
