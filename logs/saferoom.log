@@ -6514,3 +6514,22 @@ Caused by: java.lang.NullPointerException
 [2026-01-10 19:26:17.870] [INFO ] [Thread-5] [WebRTCClient] - Camera source stopped and released
 [2026-01-10 19:26:17.870] [INFO ] [Thread-5] [WebRTCClient] - Connection closed
 [2026-01-10 19:26:19.314] [WARN ] [] [CallManager] - No active call to end
+[2026-01-13 20:29:14.750] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2026-01-13 20:29:14.889] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2026-01-13 20:29:14.895] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2026-01-13 20:29:28.642] [INFO ] [JavaFX Application Thread] [CallManager] - Cleaning up call resources...
+[2026-01-13 20:29:28.642] [DEBUG] [JavaFX Application Thread] [CallManager] - Already cleaned up, skipping
+[2026-01-13 20:29:28.643] [INFO ] [JavaFX Application Thread] [CallManager] - Shutting down...
+[2026-01-13 20:29:29.031] [INFO ] [webrtc-device-monitor] [WebRTCClient] - Device monitor stopped
+[2026-01-13 20:29:29.110] [INFO ] [JavaFX Application Thread] [CallManager] - Shutdown complete
+[2026-01-13 20:39:09.035] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2026-01-13 20:39:09.162] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2026-01-13 20:39:09.170] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2026-01-13 20:42:52.066] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2026-01-13 20:42:52.187] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2026-01-13 20:42:52.194] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2026-01-13 20:43:40.412] [INFO ] [JavaFX Application Thread] [CallManager] - Cleaning up call resources...
+[2026-01-13 20:43:40.413] [DEBUG] [JavaFX Application Thread] [CallManager] - Already cleaned up, skipping
+[2026-01-13 20:43:40.414] [INFO ] [JavaFX Application Thread] [CallManager] - Shutting down...
+[2026-01-13 20:43:40.652] [INFO ] [webrtc-device-monitor] [WebRTCClient] - Device monitor stopped
+[2026-01-13 20:43:40.712] [INFO ] [JavaFX Application Thread] [CallManager] - Shutdown complete
