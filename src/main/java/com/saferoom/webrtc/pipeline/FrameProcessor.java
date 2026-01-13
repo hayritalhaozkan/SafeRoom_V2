@@ -108,13 +108,14 @@ public final class FrameProcessor implements AutoCloseable {
 
                 try {
                     long start = System.nanoTime();
-                    FrameRenderResult result = convertFrame(frame);
+                    // Use Native Conversion (Pool)
+                    FrameRenderResult result = convertFrame(frame, nativeEncoder);
 
                     // ════════════════════════════════════════════════════════════════════════
                     // NATIVE ENCODING INTEGRATION (Use the JNI Encoder)
+                    // ... (rest is same)
                     // ════════════════════════════════════════════════════════════════════════
-                    // We pass the DirectByteBuffer (ARGB) to the native layer.
-                    // This is a zero-copy operation at the Java-to-C++ boundary.
+
                     if (result != null) {
                         nativeEncoder.encodeFrame(
                                 result.getBuffer(),
@@ -122,7 +123,6 @@ public final class FrameProcessor implements AutoCloseable {
                                 result.getWidth(),
                                 result.getHeight());
                     }
-                    // ════════════════════════════════════════════════════════════════════════
 
                     long processingTimeMs = (System.nanoTime() - start) / 1_000_000;
                     stats.recordProcessed(System.nanoTime() - start, queue.size());
@@ -157,16 +157,17 @@ public final class FrameProcessor implements AutoCloseable {
     }
 
     private void logIfStalled() {
+        // ... (keep as is if not in window)
         long now = System.nanoTime();
         if (stats.shouldLogStall(now, STALL_THRESHOLD_NANOS, STALL_LOG_INTERVAL_NANOS)) {
             System.err.printf("[FrameProcessor] ⚠️ Pipeline stalled: %s%n", stats);
         }
     }
 
-    private FrameRenderResult convertFrame(VideoFrame frame) {
+    private FrameRenderResult convertFrame(VideoFrame frame, NativeVideoEncoder encoder) {
         I420Buffer buffer = frame.buffer.toI420();
         try {
-            return FrameRenderResult.fromI420(buffer, frame.timestampNs);
+            return FrameRenderResult.fromI420Native(buffer, frame.timestampNs, encoder);
         } finally {
             buffer.release();
         }

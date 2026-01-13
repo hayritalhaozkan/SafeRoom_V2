@@ -2,69 +2,159 @@
 #include <iostream>
 #include <cstring>
 #include <vector>
-#include <cstdint>
-/*
- * Implementation of the NativeVideoEncoder JNI methods.
- * 
- * This is a boilerplate/connector implementation. 
- * In a real production environment, you would link this against 
- * libraries like FFmpeg (libavcodec) or x264/OpenH264.
- */
+#include <map>
+#include <mutex>
+#include <memory>
+
+// -----------------------------------------------------------------------------
+// NATIVE BUFFER POOL
+// -----------------------------------------------------------------------------
+struct NativeBuffer {
+    uint8_t* data;
+    size_t capacity;
+    bool in_use;
+
+    NativeBuffer(size_t size) : capacity(size), in_use(false) {
+        data = new uint8_t[size];
+        std::cout << "[NativePool] Allocated new buffer of size: " << size << std::endl;
+    }
+
+    ~NativeBuffer() {
+        delete[] data;
+    }
+};
+
+// Global Pool State
+static std::map<size_t, std::vector<std::shared_ptr<NativeBuffer>>> pool;
+static std::mutex pool_mutex;
+
+// Color Conversion Matrix (Integer approximation)
+static inline uint32_t yuv_to_argb(int y, int u, int v) {
+    int c = y - 16;
+    int d = u - 128;
+    int e = v - 128;
+
+    int r = (298 * c + 409 * e + 128) >> 8;
+    int g = (298 * c - 100 * d - 208 * e + 128) >> 8;
+    int b = (298 * c + 516 * d + 128) >> 8;
+
+    r = r < 0 ? 0 : (r > 255 ? 255 : r);
+    g = g < 0 ? 0 : (g > 255 ? 255 : g);
+    b = b < 0 ? 0 : (b > 255 ? 255 : b);
+
+    return (0xFF000000) | (r << 16) | (g << 8) | b;
+}
 
 extern "C" {
 
-    /*
-     * Class:     com_saferoom_webrtc_pipeline_NativeVideoEncoder
-     * Method:    encodeFrame
-     * Signature: (Ljava/nio/ByteBuffer;III)I
-     */
-    JNIEXPORT jint JNICALL Java_com_saferoom_webrtc_pipeline_NativeVideoEncoder_encodeFrame
-      (JNIEnv *env, jobject thisObj, jobject buffer, jint length, jint width, jint height) {
-        
-        // 1. Get Direct Buffer Address (Zero Copy)
-        // This gives us a pointer to the actual memory used by the DirectByteBuffer in Java.
-        // NO COPY is performed here.
-        void* raw_pixels = env->GetDirectBufferAddress(buffer);
-        
-        if (raw_pixels == nullptr) {
-            std::cerr << "[NativeVideoEncoder] Error: Buffer is not direct or is invalid!" << std::endl;
-            return -1;
-        }
+// -----------------------------------------------------------------------------
+// JNI: convertI420ToARGB
+// -----------------------------------------------------------------------------
+JNIEXPORT jobject JNICALL Java_com_saferoom_webrtc_pipeline_NativeVideoEncoder_convertI420ToARGB(
+    JNIEnv *env, jobject thisObj, 
+    jobject y_buf, jobject u_buf, jobject v_buf, 
+    jint stride_y, jint stride_u, jint stride_v, 
+    jint width, jint height) {
 
-        // Validate capacity (optional, but good practice)
-        jlong capacity = env->GetDirectBufferCapacity(buffer);
-        if (capacity < length) {
-             std::cerr << "[NativeVideoEncoder] Error: Buffer capacity (" << capacity 
-                       << ") less than requested length (" << length << ")" << std::endl;
-             return -2;
-        }
+    // 1. Get Source Pointers
+    uint8_t* src_y = (uint8_t*)env->GetDirectBufferAddress(y_buf);
+    uint8_t* src_u = (uint8_t*)env->GetDirectBufferAddress(u_buf);
+    uint8_t* src_v = (uint8_t*)env->GetDirectBufferAddress(v_buf);
 
-        // ---------------------------------------------------------
-        // SIMULATED ENCODING LOGIC
-        // ---------------------------------------------------------
-        // In a real implementation:
-        // x264_picture_t pic;
-        // x264_picture_alloc(&pic, X264_CSP_I420, width, height);
-        // memcpy(pic.img.plane[0], raw_pixels, ...);
-        // x264_encoder_encode(..., &pic, ...);
-        // ---------------------------------------------------------
-
-        // For demonstration, we just touch the memory to ensure access works
-        // and print a log once in a while.
-        
-        static int frame_counter = 0;
-        frame_counter++;
-        
-        if (frame_counter % 100 == 0) {
-            uint8_t* byte_ptr = static_cast<uint8_t*>(raw_pixels);
-            std::cout << "[NativeVideoEncoder] Enocded frame #" << frame_counter 
-                      << " (Resolution: " << width << "x" << height 
-                      << ", Ptr: " << raw_pixels 
-                      << ", FirstByte: " << (int)byte_ptr[0] << ")" << std::endl;
-        }
-
-        // Return encoded size (simulated)
-        return length / 10; 
+    if (!src_y || !src_u || !src_v) {
+        return nullptr;
     }
+
+    // 2. Acquire Destination Buffer from C++ Pool
+    // ARGB = 4 bytes per pixel
+    size_t required_size = (size_t)width * height * 4;
+    NativeBuffer* dest_buffer = nullptr;
+
+    {
+        std::lock_guard<std::mutex> lock(pool_mutex);
+        std::vector<std::shared_ptr<NativeBuffer>>& list = pool[required_size];
+        
+        // Find first free buffer
+        for (auto& buf : list) {
+            if (!buf->in_use) {
+                dest_buffer = buf.get();
+                dest_buffer->in_use = true;
+                break;
+            }
+        }
+
+        // If none found, create new
+        if (!dest_buffer) {
+            // Hard limit checks could go here
+            if (list.size() < 10) { // Limit to 10 buffers per resolution
+                auto new_buf = std::make_shared<NativeBuffer>(required_size);
+                list.push_back(new_buf);
+                dest_buffer = new_buf.get();
+                dest_buffer->in_use = true;
+            } else {
+                std::cerr << "[NativePool] Pool exhausted! Dropping frame." << std::endl;
+                return nullptr;
+            }
+        }
+    }
+
+    // 3. Perform Conversion (I420 -> ARGB)
+    // Destination is int32 array effectively
+    uint32_t* dest_argb = (uint32_t*)dest_buffer->data;
+
+    for (int y = 0; y < height; y++) {
+        const uint8_t* pY = src_y + y * stride_y;
+        const uint8_t* pU = src_u + (y / 2) * stride_u;
+        const uint8_t* pV = src_v + (y / 2) * stride_v;
+        
+        uint32_t* pDest = dest_argb + y * width;
+
+        for (int x = 0; x < width; x++) {
+            int Y = pY[x];
+            int U = pU[x / 2];
+            int V = pV[x / 2];
+            
+            pDest[x] = yuv_to_argb(Y, U, V);
+        }
+    }
+
+    // 4. Wrap with DirectByteBuffer
+    // This creates a lightweight Java object pointing to our C++ heap memory.
+    // The memory is valid until 'releaseBuffer' is called (conceptually), 
+    // but actually valid forever since we own it in the static pool.
+    return env->NewDirectByteBuffer(dest_buffer->data, required_size);
+}
+
+// -----------------------------------------------------------------------------
+// JNI: releaseBuffer
+// -----------------------------------------------------------------------------
+JNIEXPORT void JNICALL Java_com_saferoom_webrtc_pipeline_NativeVideoEncoder_releaseBuffer(
+    JNIEnv *env, jobject thisObj, jobject buffer) {
+    
+    void* addr = env->GetDirectBufferAddress(buffer);
+    if (!addr) return; // Should not happen
+
+    std::lock_guard<std::mutex> lock(pool_mutex);
+    
+    // Scan all pools (inefficient linear search, but size is small < 10)
+    // A better way would be passing an ID, but address is unique.
+    bool found = false;
+    for (auto& kv : pool) {
+        for (auto& buf : kv.second) {
+            if (buf->data == addr) {
+                buf->in_use = false;
+                found = true;
+                break;
+            }
+        }
+        if (found) break;
+    }
+}
+
+// Legacy stub
+JNIEXPORT jint JNICALL Java_com_saferoom_webrtc_pipeline_NativeVideoEncoder_encodeFrame
+  (JNIEnv *env, jobject thisObj, jobject buffer, jint length, jint width, jint height) {
+    return length;
+}
 
 }

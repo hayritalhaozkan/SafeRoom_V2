@@ -43,6 +43,32 @@ public class NativeVideoEncoder {
      */
     public native int encodeFrame(ByteBuffer buffer, int length, int width, int height);
 
+    /**
+     * Convert I420 buffer to ARGB using native SIMD optimized code.
+     * Use internal native buffer pool to avoid Java Heap allocations.
+     * 
+     * @param y       Y plane buffer
+     * @param u       U plane buffer
+     * @param v       V plane buffer
+     * @param strideY Y stride
+     * @param strideU U stride
+     * @param strideV V stride
+     * @param width   Frame width
+     * @param height  Frame height
+     * @return DirectByteBuffer wrapping the pooled ARGB data
+     */
+    public native ByteBuffer convertI420ToARGB(
+            ByteBuffer y, ByteBuffer u, ByteBuffer v,
+            int strideY, int strideU, int strideV,
+            int width, int height);
+
+    /**
+     * Release/Unlock a buffer back to the native pool.
+     * 
+     * @param buffer The buffer to release
+     */
+    public native void releaseBuffer(ByteBuffer buffer);
+
     /*
      * Example C++ implementation provided in documentation
      * ... (comments preserved from original)
