@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cstring>
 #include <vector>
-
+#include <cstdint>
 /*
  * Implementation of the NativeVideoEncoder JNI methods.
  * 

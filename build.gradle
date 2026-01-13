@@ -340,8 +340,8 @@ tasks.withType(JavaExec).configureEach {
     
     // Tuning Young Generation (Less aggressive to prevent 20ms+ Evac pauses)
     jvmArgs += '-XX:+UnlockExperimentalVMOptions'
-    jvmArgs += '-XX:G1NewSizePercent=20'       // Was 30 - Reduced to lower pause impact
-    jvmArgs += '-XX:G1MaxNewSizePercent=40'    // Was 60 - Cap burst size
+    jvmArgs += '-XX:G1NewSizePercent=40'       // Was 20 - Increased to 40 to handle video frame allocations
+    jvmArgs += '-XX:G1MaxNewSizePercent=60'    // Was 40 - Increased to 60 to allow bursts
     jvmArgs += '-XX:InitiatingHeapOccupancyPercent=45'
     jvmArgs += '-XX:+DisableExplicitGC'
     
