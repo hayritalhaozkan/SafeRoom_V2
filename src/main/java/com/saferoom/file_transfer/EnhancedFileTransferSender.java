@@ -299,24 +299,13 @@ public class EnhancedFileTransferSender {
 				transferCompleteLatch.countDown();
 			};
 
-			// QUIC-inspired hybrid congestion control
+			// QUIC-inspired hybrid congestion control (BBR)
 			this.hybridControl = new HybridCongestionController();
 
 			// Enhanced NACK listener'a congestion control referansını ver
 			enhancedNackListener.hybridControl = hybridControl;
 
-			// Network türüne göre optimize et
-			String targetHost = channel.getRemoteAddress().toString();
-			boolean isLocalNetwork = targetHost.contains("127.0.0.1") || targetHost.contains("localhost") ||
-					targetHost.contains("192.168.") || targetHost.contains("10.");
-
-			if (isLocalNetwork) {
-				hybridControl.enableLocalNetworkMode();
-				System.out.println(" Local network detected - enabling aggressive mode");
-			} else {
-				hybridControl.enableWanMode();
-				System.out.println(" WAN detected - packet-by-packet conservative mode");
-			}
+			// Auto-tuning BBR handles network modes automatically now
 
 			final boolean[] initialTransmissionDone = { false };
 			this.runtime = new FileTransferRuntime();
@@ -327,33 +316,39 @@ public class EnhancedFileTransferSender {
 			long bytesSent = 0;
 
 			// ENHANCED WINDOWED TRANSMISSION - QUIC-style with Chunk Support
-			System.out.println("Starting QUIC-inspired windowed transmission with chunked I/O...");
+			System.out.println(
+					"Starting QUIC-inspired windowed transmission with chunked I/O (Micro-Batching Enabled)...");
 			int seqNo = 0;
 			long startTime = System.currentTimeMillis();
 			long lastProgressTime = startTime;
 
 			// Chunk-based sequential transmission
 			int chunkCount = chunkManager.getChunkCount();
+
+			// MICRO-BATCHING Configuration
+			final int BATCH_SIZE = 16;
+
 			for (int chunkIdx = 0; chunkIdx < chunkCount; chunkIdx++) {
 				MappedByteBuffer chunkBuffer = chunkManager.getChunk(chunkIdx);
 
 				// Send all sequences in this chunk
 				for (int off = 0; off < chunkBuffer.capacity();) {
-					int remaining = chunkBuffer.capacity() - off;
-					int take = Math.min(SLICE_SIZE, remaining);
+					// Send a BATCH of packets
+					for (int b = 0; b < BATCH_SIZE && off < chunkBuffer.capacity(); b++) {
+						int remaining = chunkBuffer.capacity() - off;
+						int take = Math.min(SLICE_SIZE, remaining);
 
-					// DYNAMIC RTT-BASED PACING - Controller'ın hesapladığı değeri kullan
-					sendOne(initialCrc, initialPkt, chunkBuffer, fileId, seqNo, totalSeq, take, off);
-					bytesSent += take;
+						sendOne(initialCrc, initialPkt, chunkBuffer, fileId, seqNo, totalSeq, take, off);
+						bytesSent += take;
+
+						off += take;
+						seqNo++;
+					}
+
+					// Update listeners and stats after batch (reduce overhead)
 					if (transferListener != null) {
 						transferListener.onPacketProgress(fileId, bytesSent, fileSize);
 					}
-
-					// Controller'dan dynamic pacing al - RTT'ye göre adaptive
-					// rateLimitSend() zaten internal pacing yapıyor, ekstra sabit pacing yok!
-
-					off += take;
-					seqNo++;
 
 					// Enhanced progress display
 					if (System.currentTimeMillis() - lastProgressTime > 1000) {
