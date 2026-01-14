@@ -10,46 +10,57 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
- * Virtual-thread based frame processor. Each instance owns a dedicated virtual thread that
- * performs decode → convert steps off the JavaFX thread and pushes paint-ready frames to a consumer.
+ * Virtual-thread based frame processor. Each instance owns a dedicated virtual
+ * thread that
+ * performs decode → convert steps off the JavaFX thread and pushes paint-ready
+ * frames to a consumer.
  */
 public final class FrameProcessor implements AutoCloseable {
 
     private static final String QUEUE_CAPACITY_PROPERTY = "saferoom.video.queue.capacity";
-    private static final int DEFAULT_QUEUE_CAPACITY =
-        Integer.getInteger(QUEUE_CAPACITY_PROPERTY, 12);
+    public static final int DEFAULT_QUEUE_CAPACITY = Integer.getInteger(QUEUE_CAPACITY_PROPERTY, 12);
     private static final Duration POLL_TIMEOUT = Duration.ofMillis(50);
     private static final long STALL_THRESHOLD_NANOS = Duration.ofSeconds(2).toNanos();
     private static final long STALL_LOG_INTERVAL_NANOS = Duration.ofSeconds(5).toNanos();
+
+    // SHARED Executor for all FrameProcessors to allow ThreadLocal reuse!
+    private static final java.util.concurrent.ExecutorService SHARED_EXECUTOR = java.util.concurrent.Executors
+            .newCachedThreadPool(r -> {
+                Thread t = Thread.ofPlatform().name("fp-worker").daemon(true).unstarted(r);
+                return t;
+            });
 
     private final BlockingQueue<VideoFrame> queue;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final AtomicBoolean paused = new AtomicBoolean(false);
     private final Consumer<FrameRenderResult> consumer;
-    private final Thread workerThread;
+    private final Predicate<VideoFrame> shouldProcess;
+    private final java.util.concurrent.Future<?> workerFuture; // Track task
     private final VideoPipelineStats stats = new VideoPipelineStats();
 
     public FrameProcessor(Consumer<FrameRenderResult> consumer) {
-        this(consumer, DEFAULT_QUEUE_CAPACITY);
+        this(consumer, DEFAULT_QUEUE_CAPACITY, frame -> true);
     }
 
     public FrameProcessor(Consumer<FrameRenderResult> consumer, int capacity) {
+        this(consumer, capacity, frame -> true);
+    }
+
+    public FrameProcessor(Consumer<FrameRenderResult> consumer, int capacity, Predicate<VideoFrame> shouldProcess) {
         this.consumer = Objects.requireNonNull(consumer, "consumer");
+        this.shouldProcess = Objects.requireNonNull(shouldProcess, "shouldProcess");
         int resolvedCapacity = capacity > 0 ? capacity : DEFAULT_QUEUE_CAPACITY;
         this.queue = new ArrayBlockingQueue<>(Math.max(1, resolvedCapacity));
-        
-        // ALWAYS use platform thread for FrameProcessor
-        // Virtual threads can have issues with native code (webrtc I420Buffer operations)
-        // This affects BOTH Windows and Linux
-        this.workerThread = Thread.ofPlatform()
-            .name("frame-processor-" + System.identityHashCode(this))
-            .daemon(true)
-            .unstarted(this::processLoop);
-        System.out.println("[FrameProcessor] Using platform thread for native interop");
-        
-        this.workerThread.start();
+
+        // Submit to SHARED executor
+        // This allows the task to run on an existing thread, reusing the
+        // ThreadLocal<ByteBuffer>
+        this.workerFuture = SHARED_EXECUTOR.submit(this::processLoop);
+
+        System.out.println("[FrameProcessor] Submitted process loop to shared executor");
     }
 
     public void submit(VideoFrame frame) {
@@ -73,10 +84,13 @@ public final class FrameProcessor implements AutoCloseable {
     // Debug counter
     private volatile long processedCount = 0;
     private volatile long lastProcessedLog = 0;
-    
+
     private void processLoop() {
         System.out.println("[FrameProcessor] Process loop started on thread: " + Thread.currentThread().getName());
-        
+
+        // Initialize JNI Encoder (per-thread instance if needed, or shared)
+        NativeVideoEncoder nativeEncoder = new NativeVideoEncoder();
+
         while (running.get()) {
             try {
                 VideoFrame frame = queue.poll(POLL_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
@@ -84,24 +98,43 @@ public final class FrameProcessor implements AutoCloseable {
                     logIfStalled();
                     continue;
                 }
-                if (paused.get()) {
+
+                // BACKPRESSURE CHECK: If UI is busy, drop frame immediately
+                if (paused.get() || !shouldProcess.test(frame)) {
                     frame.release();
+                    stats.recordDrop(); // Count as drop in stats since we skipped it
                     continue;
                 }
+
                 try {
                     long start = System.nanoTime();
-                    FrameRenderResult result = convertFrame(frame);
+                    // Use Native Conversion (Pool)
+                    FrameRenderResult result = convertFrame(frame, nativeEncoder);
+
+                    // ════════════════════════════════════════════════════════════════════════
+                    // NATIVE ENCODING INTEGRATION (Use the JNI Encoder)
+                    // ... (rest is same)
+                    // ════════════════════════════════════════════════════════════════════════
+
+                    if (result != null) {
+                        nativeEncoder.encodeFrame(
+                                result.getBuffer(),
+                                result.getWidth() * result.getHeight() * 4,
+                                result.getWidth(),
+                                result.getHeight());
+                    }
+
                     long processingTimeMs = (System.nanoTime() - start) / 1_000_000;
                     stats.recordProcessed(System.nanoTime() - start, queue.size());
-                    
+
                     // Log processing stats every 100 frames
                     processedCount++;
                     if (processedCount - lastProcessedLog >= 100) {
                         System.out.printf("[FrameProcessor] Processed %d frames (last took %dms, queue=%d)%n",
-                            processedCount, processingTimeMs, queue.size());
+                                processedCount, processingTimeMs, queue.size());
                         lastProcessedLog = processedCount;
                     }
-                    
+
                     consumer.accept(result);
                 } finally {
                     frame.release();
@@ -124,16 +157,17 @@ public final class FrameProcessor implements AutoCloseable {
     }
 
     private void logIfStalled() {
+        // ... (keep as is if not in window)
         long now = System.nanoTime();
         if (stats.shouldLogStall(now, STALL_THRESHOLD_NANOS, STALL_LOG_INTERVAL_NANOS)) {
             System.err.printf("[FrameProcessor] ⚠️ Pipeline stalled: %s%n", stats);
         }
     }
 
-    private FrameRenderResult convertFrame(VideoFrame frame) {
+    private FrameRenderResult convertFrame(VideoFrame frame, NativeVideoEncoder encoder) {
         I420Buffer buffer = frame.buffer.toI420();
         try {
-            return FrameRenderResult.fromI420(buffer, frame.timestampNs);
+            return FrameRenderResult.fromI420Native(buffer, frame.timestampNs, encoder);
         } finally {
             buffer.release();
         }
@@ -149,7 +183,10 @@ public final class FrameProcessor implements AutoCloseable {
     @Override
     public void close() {
         running.set(false);
-        workerThread.interrupt();
+        // workerThread.interrupt(); // REMOVED
+        if (workerFuture != null) {
+            workerFuture.cancel(true); // INTERRUPT via Future
+        }
         drainQueue();
     }
 
@@ -161,4 +198,3 @@ public final class FrameProcessor implements AutoCloseable {
         paused.set(false);
     }
 }
-
