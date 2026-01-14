@@ -8390,3 +8390,435 @@ Caused by: java.lang.NullPointerException
 [2026-01-14 00:06:54.148] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=e319c73e-7933-4ddc-b142-a6c667c6187a, Peer=Quki} - Shutting down...
 [2026-01-14 00:06:54.447] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=e319c73e-7933-4ddc-b142-a6c667c6187a, Peer=Quki} - Shutdown complete
 [2026-01-14 00:06:54.482] [INFO ] [webrtc-device-monitor] [WebRTCClient] - Device monitor stopped
+[2026-01-14 13:38:30.676] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2026-01-14 13:38:30.808] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2026-01-14 13:38:30.816] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2026-01-14 13:38:41.704] [INFO ] [JavaFX Application Thread] [CallManager] - 📞 Starting call to Quki (audio=true, video=true)
+[2026-01-14 13:38:41.706] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Call request sent, callId: fe509168-5939-41e8-b905-aa129f28f15f
+[2026-01-14 13:38:41.707] [INFO ] [JavaFX Application Thread] [WebRTCClient] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - WebRTCClient created for peer: Quki
+[2026-01-14 13:38:41.707] [INFO ] [JavaFX Application Thread] [WebRTCClient] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - Creating peer connection (audio=true, video=true)
+[2026-01-14 13:38:41.711] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 🎤 Adding audio track for outgoing call...
+[2026-01-14 13:38:41.711] [INFO ] [JavaFX Application Thread] [WebRTCClient] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - Adding audio track with ADVANCED processing...
+[2026-01-14 13:38:41.712] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 📹 Adding video track for outgoing call...
+[2026-01-14 13:38:41.712] [INFO ] [] [WebRTCClient] - 🎙️ Initializing recording device (Async)...
+[2026-01-14 13:38:41.712] [INFO ] [] [WebRTCClient] - Adding video track with optimized settings...
+[2026-01-14 13:38:41.713] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 🎥 Local tracks ready (caller) - notifying GUI
+[2026-01-14 13:38:41.732] [INFO ] [] [WebRTCClient] - 🎙️ Recording started successfully
+[2026-01-14 13:38:41.733] [INFO ] [] [WebRTCClient] - ✅ Audio track added with ADVANCED processing
+[2026-01-14 13:38:41.733] [INFO ] [] [WebRTCClient] - 🎤 Professional audio quality enabled!
+[2026-01-14 13:38:41.826] [INFO ] [] [WebRTCClient] - ✅ Video track added with optimized settings (Res: 640x480, FPS: 30)
+[2026-01-14 13:38:41.827] [INFO ] [] [WebRTCClient] - 🎥 GPU acceleration enabled (VideoToolbox on Mac)!
+[2026-01-14 13:38:41.828] [DEBUG] [] [WebRTCClient] - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2026-01-14 13:38:41.828] [DEBUG] [] [WebRTCClient] - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2026-01-14 13:38:41.828] [DEBUG] [] [WebRTCClient] - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2026-01-14 13:38:41.829] [INFO ] [] [CallManager] - ⚡ Generating Early Offer during RINGING...
+[2026-01-14 13:38:41.829] [INFO ] [] [WebRTCClient] - Creating SDP offer...
+[2026-01-14 13:38:41.835] [INFO ] [Thread-5] [WebRTCClient] - Offer created and set as local description
+[2026-01-14 13:38:41.843] [DEBUG] [Thread-5] [WebRTCClient] - Optimized SDP from 4154 bytes to 4088 bytes
+[2026-01-14 13:38:41.843] [INFO ] [Thread-5] [WebRTCClient] - ═══════════════════════════════════════════
+[2026-01-14 13:38:41.844] [INFO ] [Thread-5] [WebRTCClient] - SDP OFFER - Video Codec Analysis
+[2026-01-14 13:38:41.845] [INFO ] [Thread-5] [WebRTCClient] -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 96 103 107 109 115 117 39 98 100
+[2026-01-14 13:38:41.845] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 96 VP8/90000
+[2026-01-14 13:38:41.845] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 98 VP9/90000
+[2026-01-14 13:38:41.846] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 100 VP9/90000
+[2026-01-14 13:38:41.846] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 103 H264/90000
+[2026-01-14 13:38:41.846] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+[2026-01-14 13:38:41.846] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 107 H264/90000
+[2026-01-14 13:38:41.846] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
+[2026-01-14 13:38:41.846] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 109 H264/90000
+[2026-01-14 13:38:41.846] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2026-01-14 13:38:41.847] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 115 H264/90000
+[2026-01-14 13:38:41.847] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
+[2026-01-14 13:38:41.847] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 117 H264/90000
+[2026-01-14 13:38:41.847] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
+[2026-01-14 13:38:41.848] [INFO ] [Thread-5] [WebRTCClient] -   Codec: 39 H264/90000
+[2026-01-14 13:38:41.848] [INFO ] [Thread-5] [WebRTCClient] -   Profile: 39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
+[2026-01-14 13:38:41.849] [INFO ] [Thread-5] [WebRTCClient] - ═══════════════════════════════════════════
+[2026-01-14 13:38:41.849] [INFO ] [Thread-5] [CallManager] - Local SDP generated
+[2026-01-14 13:38:41.850] [INFO ] [Thread-5] [CallManager] - ⚡ Early Offer generated and ready!
+[2026-01-14 13:38:41.851] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:3941076006 1 udp 2122260223 10.5.48.156 40328 typ host generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.852] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:3941076006 1 udp 2122260223 10.5.48.156 40328 typ host generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.853] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:3941076006 1 udp 2122260223 10.5.48.156 38015 typ host generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.853] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:3941076006 1 udp 2122260223 10.5.48.156 38015 typ host generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.909] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:3482436556 1 udp 1686052607 149.86.157.82 38015 typ srflx raddr 10.5.48.156 rport 38015 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.909] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:3482436556 1 udp 1686052607 149.86.157.82 38015 typ srflx raddr 10.5.48.156 rport 38015 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.910] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:3482436556 1 udp 1686052607 149.86.157.82 40328 typ srflx raddr 10.5.48.156 rport 40328 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.910] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:3482436556 1 udp 1686052607 149.86.157.82 40328 typ srflx raddr 10.5.48.156 rport 40328 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.936] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:2485644990 1 tcp 1518280447 10.5.48.156 52345 typ host tcptype passive generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.936] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:2485644990 1 tcp 1518280447 10.5.48.156 52345 typ host tcptype passive generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.937] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:2485644990 1 tcp 1518280447 10.5.48.156 52303 typ host tcptype passive generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:41.938] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:2485644990 1 tcp 1518280447 10.5.48.156 52303 typ host tcptype passive generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.011] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:4179554657 1 udp 41887231 188.245.177.56 36583 typ relay raddr 149.86.157.82 rport 38015 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.012] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:4179554657 1 udp 41887231 188.245.177.56 36583 typ relay raddr 149.86.157.82 rport 38015 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.013] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:4179554657 1 udp 41887231 188.245.177.56 39214 typ relay raddr 149.86.157.82 rport 40328 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.014] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:4179554657 1 udp 41887231 188.245.177.56 39214 typ relay raddr 149.86.157.82 rport 40328 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.015] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:4179554657 1 udp 41886719 188.245.177.56 34056 typ relay raddr 149.86.157.82 rport 38015 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.016] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:4179554657 1 udp 41886719 188.245.177.56 34056 typ relay raddr 149.86.157.82 rport 38015 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.018] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:4179554657 1 udp 41886719 188.245.177.56 55222 typ relay raddr 149.86.157.82 rport 40328 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.018] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:4179554657 1 udp 41886719 188.245.177.56 55222 typ relay raddr 149.86.157.82 rport 40328 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.091] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:2278626297 1 udp 25109759 188.245.177.56 35248 typ relay raddr 149.86.157.82 rport 42301 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.091] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:2278626297 1 udp 25109759 188.245.177.56 35248 typ relay raddr 149.86.157.82 rport 42301 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.092] [DEBUG] [Thread-5] [WebRTCClient] - ICE Candidate generated: candidate:2278626297 1 udp 25109759 188.245.177.56 52490 typ relay raddr 149.86.157.82 rport 38013 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:42.092] [DEBUG] [Thread-5] [CallManager] - ICE candidate generated: candidate:2278626297 1 udp 25109759 188.245.177.56 52490 typ relay raddr 149.86.157.82 rport 38013 generation 0 ufrag r/rR network-id 3 network-cost 50
+[2026-01-14 13:38:43.665] [INFO ] [grpc-default-executor-2] [CallManager] - Received CALL_ACCEPT from Quki (callId: fe509168-5939-41e8-b905-aa129f28f15f, currentState: RINGING)
+[2026-01-14 13:38:43.667] [INFO ] [grpc-default-executor-2] [CallManager] - Processing CALL_ACCEPT...
+[2026-01-14 13:38:43.667] [INFO ] [grpc-default-executor-2] [CallManager] - Call accepted by remote user
+[2026-01-14 13:38:43.668] [INFO ] [grpc-default-executor-2] [CallManager] - ⚡ Sending Early Offer immediately!
+[2026-01-14 13:38:43.790] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 🔧 Registering remote track callback...
+[2026-01-14 13:38:43.791] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - ✅ Remote track callback registered
+[2026-01-14 13:38:43.791] [DEBUG] [JavaFX Application Thread] [WebRTCClient] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2026-01-14 13:38:43.791] [DEBUG] [JavaFX Application Thread] [CallManager] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - getLocalVideoTrack called: webrtcClient=EXISTS, track=EXISTS
+[2026-01-14 13:38:43.805] [DEBUG] [JavaFX Application Thread] [WebRTCClient] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - getLocalVideoTrack called: localVideoTrack=EXISTS (class=VideoTrack)
+[2026-01-14 13:38:43.805] [DEBUG] [JavaFX Application Thread] [CallManager] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - getLocalVideoTrack called: webrtcClient=EXISTS, track=EXISTS
+[2026-01-14 13:38:44.082] [INFO ] [grpc-default-executor-2] [CallManager] - Received ANSWER from Quki (callId: fe509168-5939-41e8-b905-aa129f28f15f, currentState: CONNECTING)
+[2026-01-14 13:38:44.082] [INFO ] [grpc-default-executor-2] [CallManager] - Processing ANSWER...
+[2026-01-14 13:38:44.083] [INFO ] [] [CallManager] - Received SDP answer
+[2026-01-14 13:38:44.084] [INFO ] [] [WebRTCClient] - Setting remote answer
+[2026-01-14 13:38:44.084] [INFO ] [grpc-default-executor-2] [CallManager] - Received ICE_CANDIDATE from Quki (callId: fe509168-5939-41e8-b905-aa129f28f15f, currentState: CONNECTING)
+[2026-01-14 13:38:44.084] [INFO ] [] [WebRTCClient] - ═══════════════════════════════════════════
+[2026-01-14 13:38:44.084] [INFO ] [grpc-default-executor-2] [CallManager] - Processing ICE_CANDIDATE...
+[2026-01-14 13:38:44.085] [INFO ] [] [WebRTCClient] - SDP REMOTE ANSWER - Video Codec Analysis
+[2026-01-14 13:38:44.085] [INFO ] [grpc-default-executor-2] [CallManager] - Received ICE candidate
+[2026-01-14 13:38:44.086] [INFO ] [] [WebRTCClient] -   m=video line: m=video 9 UDP/TLS/RTP/SAVPF 96 103 107 109 115 117 39 98 100
+[2026-01-14 13:38:44.086] [INFO ] [] [WebRTCClient] -   Codec: 96 VP8/90000
+[2026-01-14 13:38:44.087] [INFO ] [] [WebRTCClient] -   Codec: 98 VP9/90000
+[2026-01-14 13:38:44.087] [INFO ] [] [WebRTCClient] -   Codec: 100 VP9/90000
+[2026-01-14 13:38:44.087] [INFO ] [] [WebRTCClient] -   Codec: 103 H264/90000
+[2026-01-14 13:38:44.088] [INFO ] [] [WebRTCClient] -   Profile: 103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
+[2026-01-14 13:38:44.088] [INFO ] [] [WebRTCClient] -   Codec: 107 H264/90000
+[2026-01-14 13:38:44.088] [INFO ] [] [WebRTCClient] -   Profile: 107 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42001f
+[2026-01-14 13:38:44.088] [INFO ] [] [WebRTCClient] -   Codec: 109 H264/90000
+[2026-01-14 13:38:44.089] [INFO ] [] [WebRTCClient] -   Profile: 109 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+[2026-01-14 13:38:44.089] [INFO ] [] [WebRTCClient] -   Codec: 115 H264/90000
+[2026-01-14 13:38:44.089] [INFO ] [] [WebRTCClient] -   Profile: 115 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=42e01f
+[2026-01-14 13:38:44.089] [INFO ] [] [WebRTCClient] -   Codec: 117 H264/90000
+[2026-01-14 13:38:44.089] [INFO ] [] [WebRTCClient] -   Profile: 117 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=4d001f
+[2026-01-14 13:38:44.090] [INFO ] [] [WebRTCClient] -   Codec: 39 H264/90000
+[2026-01-14 13:38:44.090] [INFO ] [] [WebRTCClient] -   Profile: 39 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=4d001f
+[2026-01-14 13:38:44.090] [INFO ] [] [WebRTCClient] - ═══════════════════════════════════════════
+[2026-01-14 13:38:44.104] [INFO ] [Thread-5] [WebRTCClient] - ICE Connection state: CHECKING
+[2026-01-14 13:38:44.104] [INFO ] [Thread-5] [WebRTCClient] - ℹ️ ICE is checking connectivity between candidates...
+[2026-01-14 13:38:44.104] [INFO ] [Thread-5] [WebRTCClient] - ℹ️ This can take up to 15s depending on network conditions
+[2026-01-14 13:38:44.105] [INFO ] [Thread-5] [WebRTCClient] - 🎥 HANDLING REMOTE VIDEO TRACK
+[2026-01-14 13:38:44.106] [DEBUG] [Thread-5] [WebRTCClient] -   Track ID: 56a9086b-3fcc-4e7b-b561-6edc612ae68f
+[2026-01-14 13:38:44.106] [DEBUG] [Thread-5] [WebRTCClient] -   Enabled: true
+[2026-01-14 13:38:44.106] [DEBUG] [Thread-5] [WebRTCClient] -   State: LIVE
+[2026-01-14 13:38:44.107] [INFO ] [Thread-5] [WebRTCClient] -   ✅ Debug sink attached to remote video track
+[2026-01-14 13:38:44.107] [INFO ] [Thread-5] [WebRTCClient] -   Waiting for VideoPanel attachment via callback...
+[2026-01-14 13:38:44.107] [INFO ] [Thread-5] [CallManager] - Remote track received: 56a9086b-3fcc-4e7b-b561-6edc612ae68f (kind=video)
+[2026-01-14 13:38:44.107] [INFO ] [Thread-5] [ActiveCallDialog] - 📺 Remote track callback fired: kind=video, id=56a9086b-3fcc-4e7b-b561-6edc612ae68f, class=VideoTrack
+[2026-01-14 13:38:44.108] [INFO ] [Thread-5] [WebRTCClient] - 🔊 Setting up remote audio playback...
+[2026-01-14 13:38:44.108] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 📺 Processing remote track on FX thread: kind=video, id=56a9086b-3fcc-4e7b-b561-6edc612ae68f
+[2026-01-14 13:38:44.108] [DEBUG] [Thread-5] [WebRTCClient] -   Track ID: aa9baab3-0c06-42b9-8b14-055fc782f75f
+[2026-01-14 13:38:44.108] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 📹 Track is VideoTrack, calling attachRemoteVideo...
+[2026-01-14 13:38:44.108] [DEBUG] [Thread-5] [WebRTCClient] -   Enabled: true
+[2026-01-14 13:38:44.109] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 📹 Remote video attachment complete
+[2026-01-14 13:38:44.110] [INFO ] [Thread-5] [WebRTCClient] - 🔊 Playout started
+[2026-01-14 13:38:44.110] [INFO ] [Thread-5] [WebRTCClient] - ✅ Remote audio track ready (playback via AudioDeviceModule)
+[2026-01-14 13:38:44.110] [INFO ] [Thread-5] [CallManager] - Remote track received: aa9baab3-0c06-42b9-8b14-055fc782f75f (kind=audio)
+[2026-01-14 13:38:44.111] [INFO ] [Thread-5] [ActiveCallDialog] - 📺 Remote track callback fired: kind=audio, id=aa9baab3-0c06-42b9-8b14-055fc782f75f, class=AudioTrack
+[2026-01-14 13:38:44.111] [INFO ] [Thread-5] [WebRTCClient] - Remote description set
+[2026-01-14 13:38:44.111] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 📹 Attaching remote video track: 56a9086b-3fcc-4e7b-b561-6edc612ae68f (enabled=true)
+[2026-01-14 13:38:44.111] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 📹 Updating video panel with current track
+[2026-01-14 13:38:44.112] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 📹 remoteVideoPanel exists, attaching track...
+[2026-01-14 13:38:44.112] [DEBUG] [grpc-default-executor-2] [WebRTCClient] - Adding ICE candidate: candidate:1796043465 1 udp 2122260223 10.5.51.119 47648 typ host generation 0 ufrag /fpS network-id 3 network-cost 10
+[2026-01-14 13:38:44.112] [DEBUG] [grpc-default-executor-2] [WebRTCClient] - ICE candidate added
+[2026-01-14 13:38:44.113] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 📹 isShowingScreen=false, will RESUME rendering
+[2026-01-14 13:38:44.113] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - ✅ Remote video track attached: 56a9086b-3fcc-4e7b-b561-6edc612ae68f
+[2026-01-14 13:38:44.113] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 📺 Processing remote track on FX thread: kind=audio, id=aa9baab3-0c06-42b9-8b14-055fc782f75f
+[2026-01-14 13:38:44.113] [INFO ] [JavaFX Application Thread] [ActiveCallDialog] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - 🎤 Remote audio track (auto-handled by AudioDeviceModule)
+[2026-01-14 13:38:44.203] [INFO ] [Thread-5] [WebRTCClient] - ICE Connection state: CONNECTED
+[2026-01-14 13:38:44.203] [INFO ] [Thread-5] [WebRTCClient] - ✅ ICE connection established! Media should now flow between peers
+[2026-01-14 13:38:44.203] [INFO ] [Thread-5] [CallManager] - WebRTC connection established
+[2026-01-14 13:38:44.204] [INFO ] [Thread-5] [WebRTCClient] - ICE Connection state: COMPLETED
+[2026-01-14 13:38:44.204] [INFO ] [Thread-5] [WebRTCClient] - ✅ ICE connection established! Media should now flow between peers
+[2026-01-14 13:38:44.204] [INFO ] [Thread-5] [CallManager] - WebRTC connection established
+[2026-01-14 13:38:44.614] [INFO ] [Thread-9] [WebRTCClient] - 🎬 FIRST REMOTE VIDEO FRAME RECEIVED! (size: 320x240)
+[2026-01-14 13:38:49.112] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 500 frames @ 48000Hz, 1ch
+[2026-01-14 13:38:49.128] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 124 frames received (latest: 320x240)
+[2026-01-14 13:38:54.114] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 1000 frames @ 48000Hz, 1ch
+[2026-01-14 13:38:54.135] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 277 frames received (latest: 320x240)
+[2026-01-14 13:38:59.116] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 1500 frames @ 48000Hz, 1ch
+[2026-01-14 13:38:59.170] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 428 frames received (latest: 640x480)
+[2026-01-14 13:39:04.119] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 2001 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:04.182] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 579 frames received (latest: 640x480)
+[2026-01-14 13:39:09.122] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 2501 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:09.189] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 731 frames received (latest: 640x480)
+[2026-01-14 13:39:14.124] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 3001 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:14.218] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 883 frames received (latest: 640x480)
+[2026-01-14 13:39:19.127] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 3501 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:19.223] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 1035 frames received (latest: 640x480)
+[2026-01-14 13:39:24.130] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 4002 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:24.230] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 1187 frames received (latest: 640x480)
+[2026-01-14 13:39:29.132] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 4502 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:29.233] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 1339 frames received (latest: 640x480)
+[2026-01-14 13:39:34.135] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 5002 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:34.239] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 1491 frames received (latest: 640x480)
+[2026-01-14 13:39:39.138] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 5502 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:39.248] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 1643 frames received (latest: 640x480)
+[2026-01-14 13:39:44.140] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 6003 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:44.257] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 1795 frames received (latest: 640x480)
+[2026-01-14 13:39:49.143] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 6503 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:49.278] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 1947 frames received (latest: 640x480)
+[2026-01-14 13:39:54.146] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 7003 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:54.286] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 2099 frames received (latest: 640x480)
+[2026-01-14 13:39:59.148] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 7503 frames @ 48000Hz, 1ch
+[2026-01-14 13:39:59.291] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 2251 frames received (latest: 640x480)
+[2026-01-14 13:40:04.150] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 8004 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:04.340] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 2370 frames received (latest: 640x480)
+[2026-01-14 13:40:09.153] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 8504 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:09.355] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 2519 frames received (latest: 640x480)
+[2026-01-14 13:40:14.156] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 9004 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:14.358] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 2671 frames received (latest: 640x480)
+[2026-01-14 13:40:19.159] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 9505 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:19.362] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 2823 frames received (latest: 640x480)
+[2026-01-14 13:40:24.161] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 10005 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:24.370] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 2973 frames received (latest: 640x480)
+[2026-01-14 13:40:29.163] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 10505 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:29.391] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 3125 frames received (latest: 640x480)
+[2026-01-14 13:40:34.166] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 11005 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:34.394] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 3277 frames received (latest: 640x480)
+[2026-01-14 13:40:39.169] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 11506 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:39.398] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 3429 frames received (latest: 640x480)
+[2026-01-14 13:40:44.172] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 12006 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:44.403] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 3581 frames received (latest: 640x480)
+[2026-01-14 13:40:49.174] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 12506 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:49.405] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 3733 frames received (latest: 640x480)
+[2026-01-14 13:40:54.177] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 13006 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:54.413] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 3885 frames received (latest: 640x480)
+[2026-01-14 13:40:59.180] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 13507 frames @ 48000Hz, 1ch
+[2026-01-14 13:40:59.417] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 4037 frames received (latest: 640x480)
+[2026-01-14 13:41:04.183] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 14007 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:04.420] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 4189 frames received (latest: 640x480)
+[2026-01-14 13:41:09.186] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 14507 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:09.424] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 4341 frames received (latest: 640x480)
+[2026-01-14 13:41:14.188] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 15007 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:14.427] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 4493 frames received (latest: 640x480)
+[2026-01-14 13:41:19.191] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 15508 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:19.434] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 4645 frames received (latest: 640x480)
+[2026-01-14 13:41:24.194] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 16008 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:24.441] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 4793 frames received (latest: 640x480)
+[2026-01-14 13:41:29.213] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 16512 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:29.443] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 4945 frames received (latest: 640x480)
+[2026-01-14 13:41:34.226] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 17013 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:34.472] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 5098 frames received (latest: 640x480)
+[2026-01-14 13:41:39.240] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 17515 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:39.476] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 5250 frames received (latest: 640x480)
+[2026-01-14 13:41:44.253] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 18016 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:44.505] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 5403 frames received (latest: 640x480)
+[2026-01-14 13:41:49.267] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 18517 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:49.508] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 5555 frames received (latest: 640x480)
+[2026-01-14 13:41:54.280] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 19019 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:54.512] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 5707 frames received (latest: 640x480)
+[2026-01-14 13:41:59.293] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 19520 frames @ 48000Hz, 1ch
+[2026-01-14 13:41:59.534] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 5860 frames received (latest: 640x480)
+[2026-01-14 13:42:04.307] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 20021 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:04.539] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 6012 frames received (latest: 640x480)
+[2026-01-14 13:42:09.320] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 20523 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:09.542] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 6164 frames received (latest: 640x480)
+[2026-01-14 13:42:14.334] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 21024 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:14.546] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 6316 frames received (latest: 640x480)
+[2026-01-14 13:42:19.348] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 21525 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:19.550] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 6468 frames received (latest: 640x480)
+[2026-01-14 13:42:24.361] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 22027 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:24.559] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 6619 frames received (latest: 640x480)
+[2026-01-14 13:42:29.374] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 22528 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:29.563] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 6771 frames received (latest: 640x480)
+[2026-01-14 13:42:34.388] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 23029 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:34.566] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 6923 frames received (latest: 640x480)
+[2026-01-14 13:42:39.401] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 23531 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:39.571] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 7075 frames received (latest: 640x480)
+[2026-01-14 13:42:44.415] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 24032 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:44.575] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 7227 frames received (latest: 640x480)
+[2026-01-14 13:42:49.431] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 24533 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:49.584] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 7379 frames received (latest: 640x480)
+[2026-01-14 13:42:54.442] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 25035 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:54.588] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 7531 frames received (latest: 640x480)
+[2026-01-14 13:42:59.456] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 25536 frames @ 48000Hz, 1ch
+[2026-01-14 13:42:59.593] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 7683 frames received (latest: 640x480)
+[2026-01-14 13:43:04.470] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 26037 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:04.596] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 7835 frames received (latest: 640x480)
+[2026-01-14 13:43:09.482] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 26539 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:09.607] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 7987 frames received (latest: 640x480)
+[2026-01-14 13:43:14.496] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 27040 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:14.637] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 8131 frames received (latest: 640x480)
+[2026-01-14 13:43:19.509] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 27541 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:19.651] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 8283 frames received (latest: 640x480)
+[2026-01-14 13:43:24.523] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 28043 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:24.673] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 8435 frames received (latest: 640x480)
+[2026-01-14 13:43:29.536] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 28544 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:29.676] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 8587 frames received (latest: 640x480)
+[2026-01-14 13:43:34.549] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 29045 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:34.680] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 8739 frames received (latest: 640x480)
+[2026-01-14 13:43:39.563] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 29547 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:39.684] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 8891 frames received (latest: 640x480)
+[2026-01-14 13:43:44.576] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 30048 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:44.698] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 9044 frames received (latest: 640x480)
+[2026-01-14 13:43:49.590] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 30549 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:49.718] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 9196 frames received (latest: 640x480)
+[2026-01-14 13:43:54.603] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 31051 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:54.723] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 9348 frames received (latest: 640x480)
+[2026-01-14 13:43:59.617] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 31552 frames @ 48000Hz, 1ch
+[2026-01-14 13:43:59.729] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 9500 frames received (latest: 640x480)
+[2026-01-14 13:44:04.631] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 32053 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:04.751] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 9653 frames received (latest: 640x480)
+[2026-01-14 13:44:09.644] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 32555 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:09.754] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 9805 frames received (latest: 640x480)
+[2026-01-14 13:44:14.657] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 33056 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:14.759] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 9957 frames received (latest: 640x480)
+[2026-01-14 13:44:19.671] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 33557 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:19.766] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 10109 frames received (latest: 640x480)
+[2026-01-14 13:44:24.684] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 34059 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:24.771] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 10261 frames received (latest: 640x480)
+[2026-01-14 13:44:29.698] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 34560 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:29.774] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 10413 frames received (latest: 640x480)
+[2026-01-14 13:44:34.711] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 35061 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:34.778] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 10565 frames received (latest: 640x480)
+[2026-01-14 13:44:39.725] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 35563 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:39.787] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 10717 frames received (latest: 640x480)
+[2026-01-14 13:44:44.738] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 36064 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:44.790] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 10869 frames received (latest: 640x480)
+[2026-01-14 13:44:49.752] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 36565 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:49.796] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 11021 frames received (latest: 640x480)
+[2026-01-14 13:44:54.765] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 37067 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:54.800] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 11173 frames received (latest: 640x480)
+[2026-01-14 13:44:59.779] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 37568 frames @ 48000Hz, 1ch
+[2026-01-14 13:44:59.803] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 11325 frames received (latest: 640x480)
+[2026-01-14 13:45:04.793] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 38069 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:04.813] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 11477 frames received (latest: 640x480)
+[2026-01-14 13:45:09.807] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 38571 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:09.817] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 11629 frames received (latest: 640x480)
+[2026-01-14 13:45:14.820] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 11781 frames received (latest: 640x480)
+[2026-01-14 13:45:14.821] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 39072 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:19.825] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 11933 frames received (latest: 640x480)
+[2026-01-14 13:45:19.834] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 39573 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:24.829] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 12085 frames received (latest: 640x480)
+[2026-01-14 13:45:24.849] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 40075 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:29.835] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 12237 frames received (latest: 640x480)
+[2026-01-14 13:45:29.863] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 40576 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:34.841] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 12389 frames received (latest: 640x480)
+[2026-01-14 13:45:34.877] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 41077 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:39.845] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 12541 frames received (latest: 640x480)
+[2026-01-14 13:45:39.891] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 41579 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:44.849] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 12693 frames received (latest: 640x480)
+[2026-01-14 13:45:44.905] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 42080 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:49.852] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 12845 frames received (latest: 640x480)
+[2026-01-14 13:45:49.919] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 42581 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:54.861] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 12997 frames received (latest: 640x480)
+[2026-01-14 13:45:54.933] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 43083 frames @ 48000Hz, 1ch
+[2026-01-14 13:45:59.865] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 13149 frames received (latest: 640x480)
+[2026-01-14 13:45:59.947] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 43584 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:04.870] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 13301 frames received (latest: 640x480)
+[2026-01-14 13:46:04.961] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 44085 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:09.892] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 13454 frames received (latest: 640x480)
+[2026-01-14 13:46:09.975] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 44587 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:14.896] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 13606 frames received (latest: 640x480)
+[2026-01-14 13:46:14.989] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 45088 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:19.900] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 13758 frames received (latest: 640x480)
+[2026-01-14 13:46:20.003] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 45589 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:24.905] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 13910 frames received (latest: 640x480)
+[2026-01-14 13:46:25.017] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 46091 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:29.911] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 14062 frames received (latest: 640x480)
+[2026-01-14 13:46:30.031] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 46592 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:34.920] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 14210 frames received (latest: 640x480)
+[2026-01-14 13:46:35.045] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 47093 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:39.933] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 14361 frames received (latest: 640x480)
+[2026-01-14 13:46:40.059] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 47595 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:44.940] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 14510 frames received (latest: 640x480)
+[2026-01-14 13:46:45.073] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 48096 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:49.943] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 14662 frames received (latest: 640x480)
+[2026-01-14 13:46:50.087] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 48597 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:54.947] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 14814 frames received (latest: 640x480)
+[2026-01-14 13:46:55.101] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 49099 frames @ 48000Hz, 1ch
+[2026-01-14 13:46:59.952] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 14966 frames received (latest: 640x480)
+[2026-01-14 13:47:00.115] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 49600 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:04.977] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 15119 frames received (latest: 640x480)
+[2026-01-14 13:47:05.129] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 50101 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:09.997] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 15270 frames received (latest: 640x480)
+[2026-01-14 13:47:10.143] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 50603 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:15.018] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 15422 frames received (latest: 640x480)
+[2026-01-14 13:47:15.157] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 51104 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:20.024] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 15574 frames received (latest: 640x480)
+[2026-01-14 13:47:20.171] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 51605 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:25.029] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 15726 frames received (latest: 640x480)
+[2026-01-14 13:47:25.184] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 52107 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:30.037] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 15878 frames received (latest: 640x480)
+[2026-01-14 13:47:30.198] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 52608 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:35.040] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 16030 frames received (latest: 640x480)
+[2026-01-14 13:47:35.211] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 53109 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:40.046] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 16182 frames received (latest: 640x480)
+[2026-01-14 13:47:40.224] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 53611 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:45.054] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 16333 frames received (latest: 640x480)
+[2026-01-14 13:47:45.237] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 54112 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:50.060] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 16485 frames received (latest: 640x480)
+[2026-01-14 13:47:50.251] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 54613 frames @ 48000Hz, 1ch
+[2026-01-14 13:47:55.067] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 16637 frames received (latest: 640x480)
+[2026-01-14 13:47:55.264] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 55115 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:00.072] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 16789 frames received (latest: 640x480)
+[2026-01-14 13:48:00.278] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 55616 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:05.075] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 16941 frames received (latest: 640x480)
+[2026-01-14 13:48:05.291] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 56117 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:10.078] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 17093 frames received (latest: 640x480)
+[2026-01-14 13:48:10.304] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 56619 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:15.102] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 17246 frames received (latest: 640x480)
+[2026-01-14 13:48:15.318] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 57120 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:20.106] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 17398 frames received (latest: 640x480)
+[2026-01-14 13:48:20.331] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 57621 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:25.111] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 17550 frames received (latest: 640x480)
+[2026-01-14 13:48:25.344] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 58123 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:30.115] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 17702 frames received (latest: 640x480)
+[2026-01-14 13:48:30.358] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 58624 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:35.123] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 17854 frames received (latest: 640x480)
+[2026-01-14 13:48:35.371] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 59125 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:40.126] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 18006 frames received (latest: 640x480)
+[2026-01-14 13:48:40.384] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 59627 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:45.146] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 18159 frames received (latest: 640x480)
+[2026-01-14 13:48:45.398] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 60128 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:50.171] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 18312 frames received (latest: 640x480)
+[2026-01-14 13:48:50.411] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 60629 frames @ 48000Hz, 1ch
+[2026-01-14 13:48:55.175] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 18464 frames received (latest: 640x480)
+[2026-01-14 13:48:55.437] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 61131 frames @ 48000Hz, 1ch
+[2026-01-14 13:49:00.180] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 18616 frames received (latest: 640x480)
+[2026-01-14 13:49:00.437] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 61632 frames @ 48000Hz, 1ch
+[2026-01-14 13:49:05.183] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 18768 frames received (latest: 640x480)
+[2026-01-14 13:49:05.451] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 62133 frames @ 48000Hz, 1ch
+[2026-01-14 13:49:10.188] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 18920 frames received (latest: 640x480)
+[2026-01-14 13:49:10.464] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 62635 frames @ 48000Hz, 1ch
+[2026-01-14 13:49:15.195] [DEBUG] [Thread-9] [WebRTCClient] - 📹 Remote video: 19072 frames received (latest: 640x480)
+[2026-01-14 13:49:15.477] [DEBUG] [Thread-8] [WebRTCClient] - 🔊 Audio [aa9baab3]: 63136 frames @ 48000Hz, 1ch
+[2026-01-14 13:49:17.113] [INFO ] [] [CallManager] - 📴 Ending call: fe509168-5939-41e8-b905-aa129f28f15f
+[2026-01-14 13:49:17.119] [INFO ] [] [CallManager] - Cleaning up call resources...
+[2026-01-14 13:49:17.119] [INFO ] [] [WebRTCClient] - Closing peer connection...
+[2026-01-14 13:49:17.121] [INFO ] [] [WebRTCClient] - 🔊 Cleaning up 1 audio sink(s)
+[2026-01-14 13:49:17.125] [DEBUG] [] [WebRTCClient] -   Removed sink from track: aa9baab3-0c06-42b9-8b14-055fc782f75f
+[2026-01-14 13:49:17.133] [DEBUG] [] [WebRTCClient] - Removing track: video0
+[2026-01-14 13:49:17.137] [DEBUG] [] [WebRTCClient] - Removing track: audio0
+[2026-01-14 13:49:17.144] [INFO ] [Thread-5] [WebRTCClient] - ICE Connection state: CLOSED
+[2026-01-14 13:49:17.163] [INFO ] [] [WebRTCClient] - Audio track disposed
+[2026-01-14 13:49:17.163] [INFO ] [] [WebRTCClient] - Video track disposed
+[2026-01-14 13:49:17.200] [INFO ] [] [WebRTCClient] - Camera source stopped and released
+[2026-01-14 13:49:17.200] [INFO ] [] [WebRTCClient] - Connection closed
+[2026-01-14 13:49:35.415] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - Cleaning up call resources...
+[2026-01-14 13:49:35.416] [DEBUG] [JavaFX Application Thread] [CallManager] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - Already cleaned up, skipping
+[2026-01-14 13:49:35.416] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - Shutting down...
+[2026-01-14 13:49:35.639] [INFO ] [webrtc-device-monitor] [WebRTCClient] - Device monitor stopped
+[2026-01-14 13:49:35.734] [INFO ] [JavaFX Application Thread] [CallManager] {CallID=fe509168-5939-41e8-b905-aa129f28f15f, Peer=Quki} - Shutdown complete
+[2026-01-14 13:51:38.025] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2026-01-14 13:51:38.163] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2026-01-14 13:51:38.173] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2026-01-14 13:52:37.038] [INFO ] [JavaFX Application Thread] [CallManager] - Cleaning up call resources...
+[2026-01-14 13:52:37.040] [DEBUG] [JavaFX Application Thread] [CallManager] - Already cleaned up, skipping
+[2026-01-14 13:52:37.041] [INFO ] [JavaFX Application Thread] [CallManager] - Shutting down...
+[2026-01-14 13:52:37.276] [INFO ] [webrtc-device-monitor] [WebRTCClient] - Device monitor stopped
+[2026-01-14 13:52:37.465] [INFO ] [JavaFX Application Thread] [CallManager] - Shutdown complete
+[2026-01-14 13:53:30.675] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2026-01-14 13:53:30.808] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2026-01-14 13:53:30.814] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2026-01-14 13:53:51.641] [INFO ] [JavaFX Application Thread] [CallManager] - Cleaning up call resources...
+[2026-01-14 13:53:51.642] [DEBUG] [JavaFX Application Thread] [CallManager] - Already cleaned up, skipping
+[2026-01-14 13:53:51.642] [INFO ] [JavaFX Application Thread] [CallManager] - Shutting down...
+[2026-01-14 13:53:52.064] [INFO ] [webrtc-device-monitor] [WebRTCClient] - Device monitor stopped
+[2026-01-14 13:53:52.116] [INFO ] [JavaFX Application Thread] [CallManager] - Shutdown complete
+[2026-01-14 13:55:23.535] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2026-01-14 13:55:23.656] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2026-01-14 13:55:23.666] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
