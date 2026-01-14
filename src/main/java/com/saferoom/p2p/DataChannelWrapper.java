@@ -125,8 +125,10 @@ public class DataChannelWrapper extends DatagramChannel implements FlowControlle
             // DEBUG: Log what we're reading from queue
             if (data.remaining() > 0) {
                 byte signal = data.get(data.position());
-                System.out.printf("[Wrapper] 📖 Reading signal 0x%02X (%d bytes) from queue (remaining: %d)%n",
-                        signal, data.remaining(), inboundQueue.size());
+                if (signal != 0x00) { // Optional: Don't log 0x00 even if it has data if it's spammy
+                    System.out.printf("[Wrapper] 📖 Reading signal 0x%02X (%d bytes) from queue (remaining: %d)%n",
+                            signal, data.remaining(), inboundQueue.size());
+                }
             }
 
             // Copy to destination buffer

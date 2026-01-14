@@ -8822,3 +8822,9 @@ Caused by: java.lang.NullPointerException
 [2026-01-14 13:55:23.535] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
 [2026-01-14 13:55:23.656] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
 [2026-01-14 13:55:23.666] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2026-01-14 15:33:24.716] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2026-01-14 15:33:24.838] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2026-01-14 15:33:24.843] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
+[2026-01-14 15:34:37.792] [INFO ] [JavaFX Application Thread] [CallManager] - 🔧 Initializing for user: abkarada
+[2026-01-14 15:34:37.919] [INFO ] [webrtc-device-monitor] [WebRTCClient] - 🎧 Device monitor started (Hot-Swap enabled)
+[2026-01-14 15:34:37.925] [INFO ] [JavaFX Application Thread] [CallManager] - ✅ Initialization complete
